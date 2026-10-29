@@ -1,0 +1,25 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#A7F3D0</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#0B1116</item>
+        <item name="android:navigationBarColor">#0B1116</item>
+        <item name="android:statusBarColor">#0B1116</item>
+    </style>
+    <style name="CoverTheme" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+    <style name="SettingsTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#006F95</item>
+        <item name="android:windowBackground">#F5F9FD</item>
+        <item name="android:statusBarColor">#C1EAFB</item>
+        <item name="android:navigationBarColor">#F5F9FD</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+    <color name="app_icon_background">#102437</color>
+    <string name="accessibility_description">Hiển thị giao diện LIT, vùng vuốt cạnh phải và thanh điều hướng trên màn hình ngoài; thực hiện Quay lại khi bạn nhấn nút. Không đọc nội dung màn hình, không ghi thao tác và không tự bật quyền. Dừng hoàn toàn trong ứng dụng LIT hoặc thông báo thường trực.</string>
+</resources>

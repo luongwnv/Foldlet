@@ -1,0 +1,13 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.reference/
+*.iml
+.idea/
+artifacts/
+__pycache__/
+.DS_Store
+.vscode/
+*.apk
+*.aab

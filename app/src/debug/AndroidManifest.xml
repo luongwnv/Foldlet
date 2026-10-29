@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity android:name=".OverlayUnderlayActivity" android:exported="false" android:theme="@style/CoverTheme" />
+        <!-- ADB can start/stop the debug engine; ordinary apps cannot hold DUMP. -->
+        <service android:name=".CoverMonitorService" android:exported="true"
+            android:permission="android.permission.DUMP" android:foregroundServiceType="specialUse" tools:replace="android:exported" />
+    </application>
+</manifest>
