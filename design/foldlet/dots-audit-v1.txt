@@ -1,0 +1,22 @@
+
+=== a-six-v1.svg  (407 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #111111 · gradients 0 · anchors 18
+margins L44.0 R44.0 T68.0 B68.0 · bbox fill 0.308
+· INFO [small-in-canvas] The mark occupies little of its square canvas; tighten the viewBox or scale up.
+production-readiness score: 99/100 (heuristic)
+
+=== b-hinge-v1.svg  (468 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #111111 · gradients 0 · anchors 24
+margins L52.0 R52.0 T52.0 B52.0 · bbox fill 0.353
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== c-four-v1.svg  (372 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #111111 · gradients 0 · anchors 18
+margins L52.0 R44.0 T52.0 B44.0 · bbox fill 0.391
+· INFO [off-centre-x] Horizontal margins differ (left 52.0, right 44.0). Intentional optical centring? Otherwise centre it.
+· INFO [off-centre-y] Vertical margins differ (top 52.0, bottom 44.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)

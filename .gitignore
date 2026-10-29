@@ -11,3 +11,6 @@ __pycache__/
 .vscode/
 *.apk
 *.aab
+*.keystore
+*.jks
+keystore.properties

@@ -139,3 +139,31 @@ Thêm sự kiện trợ năng làm lộ race khi một cửa sổ vừa add chư
 ## Icon điều hướng 0.5.4
 
 Tách glyph NAV_BACK/NAV_HOME/NAV_RECENT cho thanh điều hướng trong app: Back dạng ‹, Home vuông bo góc, Gần đây ba vạch dọc theo ngôn ngữ Samsung; cùng nét trắng 1,8. Các glyph ngôi nhà và lịch sử có nghĩa khác trong giao diện khác nên không thay toàn bộ enum HOME/RECENT. Đã render và xem ảnh rail 48 × 260; build/lint và regression overlay đã qua (`artifacts/054-build.log`, `054-overlay-smoke.log`). Lượt này chỉnh hình icon; nút Gần đây vẫn là lịch sử mở app qua LIT, không gọi đa nhiệm hệ thống hoặc thao tác trên display chính.
+
+## Điều hướng và mở app độc lập 0.5.5
+
+Đã tái hiện hai lỗi chức năng trên SM-F711B. Back qua accessibility global chỉ làm mất rail, Calculator vẫn resumed; BACK nhắm display 1 có tác dụng. Drawer lưu hướng `landscape` nhưng helper không chạy: `prepare(false)` cũ chặn luôn mở app. Đã bỏ việc chặn launch bởi tính năng xoay tùy chọn; khi helper không sẵn sàng, app vẫn mở theo hướng tự nhiên. Kiểm tra thật bằng tìm Calculator trong drawer rồi chạm icon đã mở app trên display 1, `adbBridgeConfigured=false`.
+
+Back dùng API Accessibility InputMethod Android 13+ gửi KEYCODE_BACK tới kết nối đang hoạt động, chỉ khi package của editor trùng app có focus trên cover. Không đọc nội dung input. Với app không có kết nối input, tìm nút Back/Up/Dismiss tiêu chuẩn trong đúng cửa sổ đó; nếu usage event xác nhận đang ở activity launcher gốc, đưa app xuống nền và về Samsung như Back tại trang gốc. Không gọi global Back trên Flip3; nếu không có đường phù hợp thì giữ rail và báo trên cover để dùng nút của app. Home mở Samsung secondary home trên display 1. Nút ẩn đổi từ `>` sang `×`; Menu vẫn mở drawer.
+
+Đã khảo sát activity Recents gốc One UI: exported, mở được bằng UID app trên display 1, nhưng dữ liệu vẫn lấy task màn hình chính và chạm card không chuyển đúng app về cover. Người dùng chọn phương án độc lập: danh sách app vừa dùng toàn điện thoại qua quyền Usage Access một lần, thay cho quản lý task qua ADB. Bản cuối dùng `RecentApps` + `RecentAppsView`: đọc package/thời điểm dùng trong 7 ngày, lọc app launcher, tối đa 30 thẻ; mở app bằng component trên cover. Không có ảnh snapshot hoặc đóng task hệ thống. Không sao chép nguồn/tài nguyên One UI vào app; khảo sát APK nằm ngoài Git.
+
+Usage Access đã cấp cho bản cài trên máy thật theo lựa chọn người dùng qua kết nối ADB đang có; không cần máy tính sau khi cấp. Có hàng quyền trong Tổng quan và nút Cho phép nếu chưa cấp. Dữ liệu usage không được lưu thêm hoặc gửi ra ngoài; view xóa nội dung khi điện thoại khóa. Bộ nhận diện widget vẫn dừng trước cây widget; phần Back chỉ đọc metadata/nút điều hướng của app đang focus khi người dùng yêu cầu.
+
+Test máy thật bằng chạm đúng các nút: drawer mở Calculator/Clock khi không có helper; X ẩn rail, Calculator vẫn mở; Recent toàn máy hiển thị app không chỉ từ lịch sử LIT và mở lại Calculator trên cover; Back rời Calculator qua accessibility input; Back tại Clock gốc trở về Samsung; Home về Samsung; Menu mở drawer. Báo cáo `artifacts/physical-055-independent-test.log`, `physical-055-independent-nav.txt`; ảnh `physical-055-navigation-final.png`, `physical-055-global-recents.png`, `physical-055-drawer-launch.png`.
+
+Regression AVD: Back được giao tới app dưới rail, X ẩn rail; mở Clock ngoài LIT, xóa lịch sử LIT rồi Recent vẫn liệt kê/mở được Clock qua usage; các cử chỉ home/widget/menu và pass-through/lifecycle vẫn qua. Drawer thử chọn portrait khi không có helper vẫn mở Clock; Settings kiểm tra lại với hàng quyền mới. Báo cáo `055-overlay-smoke.log`, `055-drawer-smoke.log`, `055-settings-smoke.log`; build/lint `055-build.log`. Test AVD tạm cấp rồi phục hồi AppOp Usage Access của AVD, không thay quyền điện thoại qua script test.
+
+## Foldlet 0.5.6 — nhận diện, ngôn ngữ và phát hành
+
+Đổi tên hiển thị sang **Foldlet**, giữ package `vn.lit.screenos` để giữ dữ liệu/quyền khi cập nhật. Người dùng chọn **A — Glance**; icon adaptive xanh/vàng, bản themed/đơn sắc và bộ SVG/PNG được dựng từ hình học riêng trong `design/foldlet/`.
+
+Gần đây có nút **Đóng tất cả / Close all** 16sp: lưu mốc thời gian để xóa các thẻ đã dùng trước đó; app xuất hiện lại khi dùng tiếp. Không force-stop hoặc xóa task hệ thống. UI chuyển sang string resources tiếng Anh mặc định và tiếng Việt; theo ngôn ngữ hệ thống, có plurals cho thời gian. Dịch vụ cập nhật notification/overlay khi cấu hình đổi.
+
+Preview Settings dùng chính `AppDrawerView` gắn vào cây view ở cấu hình 512 × 260 / 160 dpi, scale và clip khi vẽ. Không dùng grid icon giả. Việc gắn view bảo đảm nhãn TextView được render đúng; tính lại grid khi nhận kích thước thực. Vùng preview không mở app khi chạm.
+
+Sau cập nhật APK, mở MainActivity khôi phục monitor trước đó đã bật khi Trợ năng và overlay sẵn sàng, có chờ rebind ngắn. Không tự bật quyền hay bật lại công tắc người dùng đã tắt.
+
+Build debug, instrumentation và release/lint đã qua. AVD dành riêng kiểm tra drawer không helper, Back thật tới underlay, Home/menu/edge, Usage Access ngoài lịch sử local, Clear all, pass-through/lifecycle, thiết lập và chuyển system locale vi-VN/en-US. Script input đợi WindowManager hoàn tất thay cửa sổ giữa các thao tác; các suite chạy tuần tự trên cùng AVD. Kết quả cục bộ `056-*-smoke.log`, `056-release-build.log`.
+
+README tiếng Anh tập trung hướng dẫn người dùng và dùng ảnh native từ AVD riêng, không có dữ liệu điện thoại cá nhân; phần phát triển ở `docs/DEVELOPMENT.md`. APK beta dùng build release không debuggable và chứng chỉ phát triển đã có trên máy build, giữ ngoài Git.

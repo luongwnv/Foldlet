@@ -1,0 +1,130 @@
+
+=== app-tile.svg  (894 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 3: #3289ff #ffffff #ffe14a · gradients 0 · anchors 60
+margins L0.0 R0.0 T0.0 B0.0 · bbox fill 1.0
+· INFO [on-tile] White artwork on a full-canvas tile/container — fine for app icons and avatars; make sure a version without the tile exists for other uses.
+production-readiness score: 99/100 (heuristic)
+
+=== horizontal-black.svg  (1706 bytes)
+viewBox 0 0 832 256 · aspect 3.25 (horizontal)
+colours 1: #000000 · gradients 0 · anchors 130
+margins L40.0 R38.0 T24.0 B24.0 · bbox fill 0.736
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== horizontal-brand.svg  (1706 bytes)
+viewBox 0 0 832 256 · aspect 3.25 (horizontal)
+colours 3: #3289ff #ffe14a #173b5a · gradients 0 · anchors 130
+margins L40.0 R38.0 T24.0 B24.0 · bbox fill 0.736
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== horizontal-on-blue.svg  (1708 bytes)
+viewBox 0 0 832 256 · aspect 3.25 (horizontal)
+colours 2: #ffffff #ffe14a · gradients 0 · anchors 130
+margins L40.0 R38.0 T24.0 B24.0 · bbox fill 0.736
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== horizontal-white.svg  (1706 bytes)
+viewBox 0 0 832 256 · aspect 3.25 (horizontal)
+colours 1: #ffffff · gradients 0 · anchors 130
+margins L40.0 R38.0 T24.0 B24.0 · bbox fill 0.736
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== stacked-black.svg  (1728 bytes)
+viewBox 0 0 512 416 · aspect 1.231 (square)
+colours 1: #000000 · gradients 0 · anchors 130
+margins L82.0 R82.0 T24.0 B48.0 · bbox fill 0.562
+· INFO [complexity] 130 anchor points (library median 53.0, p75 95.5). Check every point earns its place.
+· INFO [off-centre-y] Vertical margins differ (top 24.0, bottom 48.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)
+
+=== stacked-brand.svg  (1728 bytes)
+viewBox 0 0 512 416 · aspect 1.231 (square)
+colours 3: #3289ff #ffe14a #173b5a · gradients 0 · anchors 130
+margins L82.0 R82.0 T24.0 B48.0 · bbox fill 0.562
+· INFO [complexity] 130 anchor points (library median 53.0, p75 95.5). Check every point earns its place.
+· INFO [off-centre-y] Vertical margins differ (top 24.0, bottom 48.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)
+
+=== stacked-on-blue.svg  (1730 bytes)
+viewBox 0 0 512 416 · aspect 1.231 (square)
+colours 2: #ffffff #ffe14a · gradients 0 · anchors 130
+margins L82.0 R82.0 T24.0 B48.0 · bbox fill 0.562
+· INFO [complexity] 130 anchor points (library median 53.0, p75 95.5). Check every point earns its place.
+· INFO [off-centre-y] Vertical margins differ (top 24.0, bottom 48.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)
+
+=== stacked-white.svg  (1728 bytes)
+viewBox 0 0 512 416 · aspect 1.231 (square)
+colours 1: #ffffff · gradients 0 · anchors 130
+margins L82.0 R82.0 T24.0 B48.0 · bbox fill 0.562
+· INFO [complexity] 130 anchor points (library median 53.0, p75 95.5). Check every point earns its place.
+· INFO [off-centre-y] Vertical margins differ (top 24.0, bottom 48.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)
+
+=== symbol-black.svg  (792 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #000000 · gradients 0 · anchors 51
+margins L40.0 R40.0 T24.0 B24.0 · bbox fill 0.559
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== symbol-brand.svg  (792 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 2: #3289ff #ffe14a · gradients 0 · anchors 51
+margins L40.0 R40.0 T24.0 B24.0 · bbox fill 0.559
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== symbol-on-blue.svg  (794 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 2: #ffffff #ffe14a · gradients 0 · anchors 51
+margins L40.0 R40.0 T24.0 B24.0 · bbox fill 0.559
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== symbol-small.svg  (691 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #173b5a · gradients 0 · anchors 42
+margins L40.0 R40.0 T24.0 B24.0 · bbox fill 0.559
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== symbol-white.svg  (792 bytes)
+viewBox 0 0 256 256 · aspect 1.0 (square)
+colours 1: #ffffff · gradients 0 · anchors 51
+margins L40.0 R40.0 T24.0 B24.0 · bbox fill 0.559
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== wordmark-black.svg  (1079 bytes)
+viewBox 0 0 384 112 · aspect 3.429 (horizontal)
+colours 1: #000000 · gradients 0 · anchors 79
+margins L18.0 R18.0 T24.0 B24.0 · bbox fill 0.518
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== wordmark-brand.svg  (1079 bytes)
+viewBox 0 0 384 112 · aspect 3.429 (horizontal)
+colours 1: #173b5a · gradients 0 · anchors 79
+margins L18.0 R18.0 T24.0 B24.0 · bbox fill 0.518
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== wordmark-on-blue.svg  (1081 bytes)
+viewBox 0 0 384 112 · aspect 3.429 (horizontal)
+colours 1: #ffffff · gradients 0 · anchors 79
+margins L18.0 R18.0 T24.0 B24.0 · bbox fill 0.518
+✔ no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== wordmark-white.svg  (1079 bytes)
+viewBox 0 0 384 112 · aspect 3.429 (horizontal)
+colours 1: #ffffff · gradients 0 · anchors 79
+margins L18.0 R18.0 T24.0 B24.0 · bbox fill 0.518
+✔ no issues found
+production-readiness score: 100/100 (heuristic)

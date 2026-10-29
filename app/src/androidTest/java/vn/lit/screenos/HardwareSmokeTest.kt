@@ -56,7 +56,7 @@ class HardwareSmokeTest : Instrumentation() {
                     if (preview) dashboard.viewTreeObserver.registerFrameCommitCallback { frame.countDown() }
                     dashboard.openSection(label)
                     if (!Platform.unlocked(targetContext)) {
-                        check(descendants(dashboard).filterIsInstance<TextView>().any { it.text.toString() == "Mở khóa để tiếp tục" }) { "Locked device exposes protected page $label" }
+                        check(descendants(dashboard).filterIsInstance<TextView>().any { it.text.toString() == I18n.text(R.string.ui_unlock_to_continue) }) { "Locked device exposes protected page $label" }
                     }
                     visited.add(label)
                     dashboard.invalidate()

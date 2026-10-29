@@ -9,6 +9,11 @@ import android.provider.Settings
 class MainActivity : Activity() {
     private lateinit var screen: SettingsScreen
     private val prefs by lazy { Platform.preferences(this) }
+    private val resumeHandler = Handler(Looper.getMainLooper())
+    private val restoreMonitor = Runnable {
+        if (prefs.getBoolean("monitor", false) && !CoverMonitorService.running &&
+            NavigationService.current != null && Settings.canDrawOverlays(this)) setMonitor(true)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CoverRotation.initialize(this)
@@ -17,8 +22,17 @@ class MainActivity : Activity() {
     }
     override fun onResume() {
         super.onResume()
+        // An APK update can stop the process while preserving the user's switch.
+        // Allow time for Android to rebind the accessibility service.
+        resumeHandler.post(restoreMonitor)
+        resumeHandler.postDelayed(restoreMonitor, 750)
+        resumeHandler.postDelayed(restoreMonitor, 1500)
         screen.render()
         CoverRotation.probe(this) { if (!isDestroyed && !isFinishing) screen.render() }
+    }
+    override fun onPause() {
+        resumeHandler.removeCallbacks(restoreMonitor)
+        super.onPause()
     }
     override fun onSaveInstanceState(outState: Bundle) { screen.save(outState); super.onSaveInstanceState(outState) }
     fun setMonitor(enabled: Boolean, showApps: Boolean = false): Boolean {
@@ -29,9 +43,9 @@ class MainActivity : Activity() {
         }
         if (NavigationService.current == null) { accessibility(); return false }
         if (Build.MODEL.startsWith("SM-F711") && !Settings.canDrawOverlays(this)) {
-            AlertDialog.Builder(this).setTitle("Cho phép hiển thị trên ứng dụng khác")
-                .setMessage("LIT cần quyền này để hiển thị menu và vùng vuốt trên màn hình ngoài.")
-                .setPositiveButton("Mở cài đặt") { _, _ -> overlayPermission() }.setNegativeButton("Để sau", null).show()
+            AlertDialog.Builder(this).setTitle(I18n.text(R.string.ui_allow_display_over_other_apps))
+                .setMessage(I18n.text(R.string.ui_foldlet_needs_this_permission_to_show_its))
+                .setPositiveButton(I18n.text(R.string.ui_open_settings)) { _, _ -> overlayPermission() }.setNegativeButton(I18n.text(R.string.ui_later), null).show()
             return false
         }
         prefs.edit().putBoolean("monitor", true).remove("monitor_error").apply()
@@ -47,10 +61,10 @@ class MainActivity : Activity() {
     }
     fun overlayPermission() { startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:$packageName"))) }
     fun accessibility() {
-        AlertDialog.Builder(this).setTitle("Bật dịch vụ LIT Screen OS")
-            .setMessage("Chọn LIT Screen OS trong cài đặt Trợ năng để dùng menu và điều hướng màn hình ngoài. LIT chỉ kiểm tra mã khung giao diện Samsung để phân biệt đồng hồ với widget; không đọc chữ, nội dung widget hoặc ghi thao tác.")
-            .setPositiveButton("Mở cài đặt") { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-            .setNegativeButton("Để sau", null).show()
+        AlertDialog.Builder(this).setTitle(I18n.text(R.string.ui_enable_foldlet_service))
+            .setMessage(I18n.text(R.string.ui_choose_foldlet_in_accessibility_settings_to_use))
+            .setPositiveButton(I18n.text(R.string.ui_open_settings)) { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            .setNegativeButton(I18n.text(R.string.ui_later), null).show()
     }
     fun notificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)

@@ -51,7 +51,7 @@ object CoverRotation {
         val request = generation
         probe(context) { ready ->
             if (request != generation) { complete(false); return@probe }
-            if (!ready) Platform.message(context,"Cắm máy tính và chạy adb_rotation_bridge.py để dùng xoay ứng dụng")
+            if (!ready) Platform.message(context,I18n.text(R.string.ui_connect_a_computer_and_run_adb_rotation))
             complete(ready)
         }
     }
@@ -67,7 +67,7 @@ object CoverRotation {
             main.post {
                 if (request != generation) { complete(false); return@post }
                 available = success
-                if (success) mode = requested else if (requested != "auto") Platform.message(context,"Kết nối ADB hỗ trợ xoay đã ngắt")
+                if (success) mode = requested else if (requested != "auto") Platform.message(context,I18n.text(R.string.ui_the_adb_rotation_connection_was_disconnected))
                 complete(success)
             }
         }

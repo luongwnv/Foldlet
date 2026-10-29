@@ -63,10 +63,10 @@ class CoverView(
         val content = Ui.column(context, 8)
         body.addView(Ui.scroll(context, content))
         if (!Platform.unlocked(context)) {
-            content.addView(Ui.heading(context, "Mở khóa để tiếp tục", 20f))
-            content.addView(Ui.text(context, "Dùng vân tay hoặc mở khóa điện thoại.", 13f, Ui.muted))
+            content.addView(Ui.heading(context, I18n.text(R.string.ui_unlock_to_continue), 20f))
+            content.addView(Ui.text(context, I18n.text(R.string.ui_use_your_fingerprint_or_unlock_your_phone), 13f, Ui.muted))
             val activity = context as? Activity
-            if (activity != null) content.addView(Ui.button(context, "Mở khóa") {
+            if (activity != null) content.addView(Ui.button(context, I18n.text(R.string.ui_unlock)) {
                 activity.getSystemService(KeyguardManager::class.java).requestDismissKeyguard(activity, null)
             })
             return
@@ -85,18 +85,18 @@ class CoverView(
     }
 
     private fun notifications(content: LinearLayout) {
-        content.addView(Ui.button(context, "Làm mới thông báo") { render() })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_refresh_notifications)) { render() })
         val listener = CoverNotifications.current
-        if (listener == null) { content.addView(Ui.text(context, "Cấp quyền truy cập thông báo trên màn hình chính.", 13f, Ui.muted)); return }
+        if (listener == null) { content.addView(Ui.text(context, I18n.text(R.string.ui_allow_notification_access_on_the_main_screen), 13f, Ui.muted)); return }
         val entries = listener.snapshot()
-        if (entries.isEmpty()) content.addView(Ui.text(context, "Không có thông báo", 14f, Ui.muted))
+        if (entries.isEmpty()) content.addView(Ui.text(context, I18n.text(R.string.ui_no_notifications), 14f, Ui.muted))
         entries.forEach { entry ->
             val extras = entry.notification.extras
             val label = try { context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(entry.packageName, 0)) } catch (_: Exception) { entry.packageName }
             content.addView(Ui.heading(context, label.toString(), 14f))
             content.addView(Ui.text(context, extras.getCharSequence(Notification.EXTRA_TITLE) ?: "", 15f))
             content.addView(Ui.text(context, extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT) ?: "", 13f, Ui.muted))
-            entry.notification.contentIntent?.let { pending -> content.addView(Ui.button(context, "Mở thông báo") { send(pending, closeAfter = true) }) }
+            entry.notification.contentIntent?.let { pending -> content.addView(Ui.button(context, I18n.text(R.string.ui_open_notification)) { send(pending, closeAfter = true) }) }
             entry.notification.actions?.forEach { action ->
                 content.addView(Ui.button(context, action.title.toString()) {
                     if (!Platform.unlocked(context)) return@button
@@ -105,46 +105,46 @@ class CoverView(
                     else reply(action, input)
                 })
             }
-            if (entry.isClearable) content.addView(Ui.button(context, "Xóa") {
+            if (entry.isClearable) content.addView(Ui.button(context, I18n.text(R.string.ui_delete)) {
                 if (Platform.unlocked(context)) { listener.cancelNotification(entry.key); handler.postDelayed({ render() }, 200) }
             })
         }
     }
 
     private fun send(pending: PendingIntent, closeAfter: Boolean = false) {
-        if (!Platform.unlocked(context)) { Platform.message(context, "Mở khóa để tiếp tục"); return }
+        if (!Platform.unlocked(context)) { Platform.message(context, I18n.text(R.string.ui_unlock_to_continue)); return }
         try {
             pending.send(context, 0, null, null, null, null, Platform.displayOptions(displayId))
             if (closeAfter || (Build.VERSION.SDK_INT >= 31 && pending.isActivity)) close()
-        } catch (_: PendingIntent.CanceledException) { Platform.message(context, "Thông báo đã hết hiệu lực") }
-        catch (_: RuntimeException) { Platform.message(context, "Hệ thống không cho phép thao tác này") }
+        } catch (_: PendingIntent.CanceledException) { Platform.message(context, I18n.text(R.string.ui_this_notification_has_expired)) }
+        catch (_: RuntimeException) { Platform.message(context, I18n.text(R.string.ui_the_system_blocked_this_action)) }
     }
     private fun reply(action: Notification.Action, input: RemoteInput) {
-        val field = EditText(context).apply { hint = "Nhập trả lời"; minLines = 1 }
+        val field = EditText(context).apply { hint = I18n.text(R.string.ui_type_a_reply); minLines = 1 }
         val content = Ui.column(context, 8)
-        content.addView(Ui.heading(context, "Trả lời", 18f)); content.addView(field)
-        content.addView(Ui.button(context, "Gửi") {
+        content.addView(Ui.heading(context, I18n.text(R.string.ui_reply), 18f)); content.addView(field)
+        content.addView(Ui.button(context, I18n.text(R.string.ui_send)) {
             if (!Platform.unlocked(context)) { render(); return@button }
             if (field.text.isNullOrBlank()) return@button
             val intent = Intent()
             val results = Bundle().apply { putCharSequence(input.resultKey, field.text.toString()) }
             RemoteInput.addResultsToIntent(arrayOf(input), intent, results)
             RemoteInput.setResultsSource(intent, RemoteInput.SOURCE_FREE_FORM_INPUT)
-            try { action.actionIntent.send(context, 0, intent); Platform.message(context, "Đã gửi phản hồi đến ứng dụng") }
-            catch (_: PendingIntent.CanceledException) { Platform.message(context, "Không gửi được: thông báo đã hết hiệu lực") }
+            try { action.actionIntent.send(context, 0, intent); Platform.message(context, I18n.text(R.string.ui_reply_sent_to_the_app)) }
+            catch (_: PendingIntent.CanceledException) { Platform.message(context, I18n.text(R.string.ui_could_not_send_the_notification_expired)) }
             render()
         })
-        content.addView(Ui.button(context, "Hủy") { render() })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_cancel)) { render() })
         clearModal = { field.text.clear() }
         body.removeAllViews(); body.addView(Ui.scroll(context, content))
         field.requestFocus()
     }
 
     private fun media(content: LinearLayout) {
-        content.addView(Ui.button(context, "Làm mới phiên nhạc") { render() })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_refresh_media)) { render() })
         val manager = context.getSystemService(MediaSessionManager::class.java)
         val sessions = try { manager.getActiveSessions(ComponentName(context, CoverNotifications::class.java)) } catch (_: SecurityException) { emptyList() }
-        if (sessions.isEmpty()) { content.addView(Ui.text(context, "Phát nhạc trong một app và cấp quyền truy cập thông báo.", 13f, Ui.muted)); return }
+        if (sessions.isEmpty()) { content.addView(Ui.text(context, I18n.text(R.string.ui_play_media_in_an_app_and_allow), 13f, Ui.muted)); return }
         sessions.forEach { session ->
             content.addView(Ui.heading(context, session.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: session.packageName, 18f))
             content.addView(Ui.text(context, session.metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: "", 13f, Ui.muted))
@@ -154,25 +154,25 @@ class CoverView(
             fun control(label: String, supported: Boolean, action: () -> Unit) {
                 row.addView(Ui.button(context, label) { if (Platform.unlocked(context)) action() }.apply { isEnabled = supported }, LayoutParams(0, Ui.dp(context, 44), 1f))
             }
-            control("Trước", actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS != 0L) { session.transportControls.skipToPrevious() }
+            control(I18n.text(R.string.ui_previous), actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS != 0L) { session.transportControls.skipToPrevious() }
             val playing = state?.state == PlaybackState.STATE_PLAYING
-            control(if (playing) "Dừng" else "Phát", actions and (if (playing) PlaybackState.ACTION_PAUSE else PlaybackState.ACTION_PLAY) != 0L || actions and PlaybackState.ACTION_PLAY_PAUSE != 0L) {
+            control(if (playing) I18n.text(R.string.ui_pause) else I18n.text(R.string.ui_play), actions and (if (playing) PlaybackState.ACTION_PAUSE else PlaybackState.ACTION_PLAY) != 0L || actions and PlaybackState.ACTION_PLAY_PAUSE != 0L) {
                 if (playing) session.transportControls.pause() else session.transportControls.play()
                 handler.postDelayed({ render() }, 300)
             }
-            control("Sau", actions and PlaybackState.ACTION_SKIP_TO_NEXT != 0L) { session.transportControls.skipToNext() }
+            control(I18n.text(R.string.ui_next), actions and PlaybackState.ACTION_SKIP_TO_NEXT != 0L) { session.transportControls.skipToNext() }
             content.addView(row)
         }
     }
 
     private fun toggles(content: LinearLayout) {
         val awake = hostWindow.attributes.flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON != 0
-        content.addView(Ui.button(context, if (awake) "✓ Giữ sáng · nhấn để tắt" else "Giữ màn hình sáng") {
+        content.addView(Ui.button(context, if (awake) I18n.text(R.string.ui_keep_awake_tap_to_turn_off) else I18n.text(R.string.ui_keep_screen_awake)) {
             if (awake) hostWindow.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             else hostWindow.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             render()
         })
-        content.addView(Ui.text(context, "Độ sáng cửa sổ", 13f, Ui.muted))
+        content.addView(Ui.text(context, I18n.text(R.string.ui_window_brightness), 13f, Ui.muted))
         content.addView(SeekBar(context).apply {
             max = 100; progress = ((hostWindow.attributes.screenBrightness.takeIf { it >= 0 } ?: .5f) * 100).toInt()
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -184,7 +184,7 @@ class CoverView(
             })
         })
         val audio = context.getSystemService(AudioManager::class.java)
-        content.addView(Ui.text(context, "Âm lượng media", 13f, Ui.muted))
+        content.addView(Ui.text(context, I18n.text(R.string.ui_media_volume), 13f, Ui.muted))
         content.addView(SeekBar(context).apply {
             max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC); progress = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
             setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -195,9 +195,9 @@ class CoverView(
                 override fun onStopTrackingTouch(bar: SeekBar?) = Unit
             })
         })
-        content.addView(Ui.button(context, "Cài đặt Wi-Fi") { if (Platform.launch(context, Intent(Settings.Panel.ACTION_WIFI), displayId)) close() })
-        content.addView(Ui.button(context, "Cài đặt Bluetooth") { if (Platform.launch(context, Intent(Settings.ACTION_BLUETOOTH_SETTINGS), displayId)) close() })
-        content.addView(Ui.button(context, "Hiện lại ứng dụng đã ẩn") { prefs.edit().remove("hidden").apply(); Platform.message(context, "Đã hiện lại ứng dụng") })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_wi_fi_settings)) { if (Platform.launch(context, Intent(Settings.Panel.ACTION_WIFI), displayId)) close() })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_bluetooth_settings)) { if (Platform.launch(context, Intent(Settings.ACTION_BLUETOOTH_SETTINGS), displayId)) close() })
+        content.addView(Ui.button(context, I18n.text(R.string.ui_restore_hidden_apps)) { prefs.edit().remove("hidden").apply(); Platform.message(context, I18n.text(R.string.ui_hidden_apps_restored)) })
     }
     private var downX = 0f
     private var downY = 0f
