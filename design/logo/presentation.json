@@ -1,0 +1,32 @@
+{
+  "brand": "LIT Screen OS",
+  "industry": "consumer-app",
+  "brand_color": "#006F95",
+  "tile_color": "#D8F2FC",
+  "greyscale": false,
+  "final": true,
+  "round": 3,
+  "mockups": ["app-icon", "readme", "social", "favicon-tab", "sticker", "website"],
+  "brief": "Menu ứng dụng cho màn hình ngoài Z Flip3, dùng cùng màn hình chính Samsung. Logo gọn, rõ ở kích thước nhỏ, không đặt chữ L trong biểu tượng.",
+  "adjectives": ["gọn", "rõ", "mở rộng"],
+  "criteria": "Một màu vẫn rõ; khe không bít ở 16 px; an toàn trong mặt nạ icon Android.",
+  "concepts": [{
+    "name": "A — Nếp mở",
+    "symbol": "final/symbol-brand.svg",
+    "lockup": "final/horizontal-brand.svg",
+    "stacked": "final/stacked-brand.svg",
+    "symbol_on_tile": "final/symbol-brand.svg",
+    "symbol_on_dark": "final/symbol-cyan.svg",
+    "lockup_on_dark": "final/horizontal-white.svg",
+    "stacked_on_tile": "final/stacked-brand.svg",
+    "idea": "Hai nếp đối nhau mở khoảng trống xuyên khung — gợi chuyển động gập và không gian màn hình được mở rộng.",
+    "rationale": [
+      "Giữ hình A v2 đã được người dùng chọn: góc vát 45°, hai phần đối xứng quay 180°.",
+      "Nét 48 đơn vị và khe 32 đơn vị khớp lưới pixel ở 16 px: nét 3 px, khe 2 px.",
+      "Icon app nền xanh nhạt, biểu tượng xanh teal theo yêu cầu bỏ nền tối. Tên nằm ngoài biểu tượng.",
+      "Chữ hình học dựng bằng path; icon thao tác trong Settings tiếp tục dùng nét viền đơn sắc."
+    ]
+  }],
+  "recommendation": "Người dùng đã chọn A — Nếp mở. Bộ chính thức gồm SVG, PNG, logo ngang/dọc, đơn sắc, Android adaptive/monochrome và favicon.",
+  "next_steps": ["Dùng tài nguyên Android trong app; không chép ảnh mockup vào giao diện.", "Trang Tổng quan bắt đầu bằng trạng thái hoạt động theo yêu cầu mới."]
+}

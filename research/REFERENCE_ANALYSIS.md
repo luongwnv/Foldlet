@@ -113,3 +113,9 @@ Settings mới có công tắc engine, quyền truy cập, mở menu/Samsung, s�
 Theo phản hồi tiếp theo, bỏ icon trước trạng thái hoạt động; lấy dáng bánh răng sáu răng từ ảnh người dùng, vẽ lại trợ năng/chuông/hai hướng màn hình. Sau khi người dùng yêu cầu đồng bộ, thống nhất icon Settings về nét viền đơn sắc, bỏ nền tròn và các mảng tô hai tông. Đây là bộ icon giao diện, tách với các concept logo.
 
 Test Settings trên AVD đã qua: ba tab, lưu số cột/sắp xếp/bộ lọc/hướng, tên app xuất hiện trong drawer và tồn tại sau mở lại, mở preview và hướng dẫn ADB. Regression launcher 112 px và overlay/cử chỉ cũng đã qua. Ảnh/báo cáo ở `artifacts/settings/` và ảnh máy thật bắt đầu `physical-050-`.
+
+## Logo A và Tổng quan 0.5.1
+
+Người dùng chọn A — Nếp mở sau bảng ba concept. Logo được dựng bằng path riêng, triển khai SVG/PNG, logo ngang/dọc, adaptive/monochrome/status và bộ hướng dẫn trong `design/logo/`. Theo phản hồi không dùng nền đen, icon Android dùng xanh nhạt `#D8F2FC` và hình teal `#006F95`; các glyph chức năng Settings vẫn nét viền. Không sử dụng logo/tài nguyên CoverScreen OS.
+
+Đã bỏ toàn bộ khối logo lớn, tên LIT Screen OS và khẩu hiệu ở đầu Tổng quan. Thẻ trạng thái/công tắc là nội dung đầu tiên, không có khoảng trống thay thế. Logo giữ trong launcher và tab Thông tin. Build/lint và smoke Settings đã qua, bản APK cập nhật được cài trên SM-F711B qua ADB.

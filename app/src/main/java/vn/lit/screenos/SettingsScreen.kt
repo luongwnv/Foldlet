@@ -56,12 +56,6 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         content.addView(SettingsUi.text(c,subtitle,14f,SettingsUi.muted),LinearLayout.LayoutParams(-1,-2).apply { topMargin=SettingsUi.dp(c,8); bottomMargin=SettingsUi.dp(c,24) })
     }
     private fun overview(content: LinearLayout) {
-        val brand=SettingsUi.column(c).apply { gravity=Gravity.CENTER_HORIZONTAL; setPadding(0,SettingsUi.dp(c,14),0,SettingsUi.dp(c,24)) }
-        brand.addView(logo(80))
-        brand.addView(SettingsUi.text(c,"LIT Screen OS",28f,SettingsUi.ink,true),LinearLayout.LayoutParams(-2,-2).apply { topMargin=SettingsUi.dp(c,14) })
-        brand.addView(SettingsUi.text(c,"Màn hình nhỏ, trải nghiệm rộng hơn",14f,SettingsUi.muted),LinearLayout.LayoutParams(-2,-2).apply { topMargin=SettingsUi.dp(c,7) })
-        content.addView(brand)
-
         val running=CoverMonitorService.running
         val ready=NavigationService.current!=null && (Settings.canDrawOverlays(c) || Platform.isEmulatorOverlay(c))
         val status=SettingsUi.card(c).apply { setPadding(SettingsUi.dp(c,16),SettingsUi.dp(c,20),SettingsUi.dp(c,16),SettingsUi.dp(c,20)) }

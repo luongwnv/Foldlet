@@ -33,4 +33,6 @@ Word map: cover → giới hạn/khung → khe mở; flip → khớp/nếp/đố
 - B: một khung mở với cung tròn bán kính 32/8 và cánh nghiêng 15°, không camera, chữ hoặc tay nắm nhỏ.
 - C: vòng tròn mở một góc tư và ô vuông tách rời ở góc mở; khoảng trống lớn để đọc ở 16 px.
 
-Mỗi bản dùng viewBox 256 × 256, màu đen, hình tô kín, không text/raster/filter/mask trong biểu tượng. Lưu v1/v2 để so và kiểm tra trước khi trình ba phương án. Bộ logo hoàn chỉnh và việc thay icon app thực hiện sau khi người dùng chọn hướng theo checkpoint của skill.
+Mỗi concept dùng viewBox 256 × 256, màu đen, hình tô kín, không text/raster/filter/mask trong biểu tượng. Lưu v1/v2 để so và kiểm tra trước khi trình ba phương án.
+
+Người dùng đã chọn **A — Nếp mở** tại checkpoint. Bộ chính thức nằm trong `final/` và `exports/`, đã áp dụng vào icon Android. Phản hồi tiếp theo: bỏ khối thương hiệu đầu trang Tổng quan và không dùng nền tối cho icon; bản cuối dùng nền xanh nhạt `#D8F2FC`, hình xanh teal `#006F95`.

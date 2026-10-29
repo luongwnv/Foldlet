@@ -20,6 +20,6 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
-    <color name="app_icon_background">#102437</color>
+    <color name="app_icon_background">#D8F2FC</color>
     <string name="accessibility_description">Hiển thị giao diện LIT, vùng vuốt cạnh phải và thanh điều hướng trên màn hình ngoài; thực hiện Quay lại khi bạn nhấn nút. Không đọc nội dung màn hình, không ghi thao tác và không tự bật quyền. Dừng hoàn toàn trong ứng dụng LIT hoặc thông báo thường trực.</string>
 </resources>

@@ -1,6 +1,6 @@
 # LIT Screen OS
 
-Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.0**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
+Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.1**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
 
 ## Trạng thái đã kiểm chứng
 
@@ -70,9 +70,11 @@ Test nhịp sống tự khởi động helper, thử xoay bằng token của app
 
 Test Settings tạm chuyển AVD LIT sang khổ dọc 648 × 1536 / 288 dpi, kiểm tra tab, dropdown, lưu cài đặt, tên app trong drawer thật và màn hướng dẫn ADB; phục hồi kích thước/mật độ trước test. Ảnh và báo cáo ở `artifacts/settings/`.
 
-## Logo đang thiết kế
+## Logo và trang Tổng quan
 
-Icon app hiện tại là điện thoại gập không chữ L. Theo workflow logo-design được người dùng yêu cầu, ba phương án thương hiệu mới trong `design/logo/` là concept chờ chọn, chưa áp dụng vào icon Android. [Xem bảng phương án](design/logo/concepts-v2.png) và [brief](design/logo/brief.md).
+Đã áp dụng hướng **A — Nếp mở** được người dùng chọn: hai nếp hình học, không có chữ L trong biểu tượng. Icon Android nền xanh nhạt với hình xanh đậm, có adaptive/monochrome và bản thông báo một màu. [Bộ logo SVG/PNG](design/logo/), [bảng trình bày](design/logo/presentation.html) và [hướng dẫn dùng](design/logo/GUIDELINES.md).
+
+Trang Tổng quan bắt đầu ngay bằng thẻ trạng thái và công tắc; đã bỏ khối logo, tên ứng dụng và khẩu hiệu lớn theo yêu cầu. Logo vẫn có trong launcher và tab Thông tin. Bộ icon chức năng Cài đặt tiếp tục dùng nét viền đồng bộ.
 
 ## Phần chưa hoàn tất
 
