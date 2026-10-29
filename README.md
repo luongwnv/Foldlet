@@ -1,12 +1,12 @@
 # LIT Screen OS
 
-Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.2**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
+Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.3**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
 
 ## Trạng thái đã kiểm chứng
 
 - Overlay thật trên **display 1** của SM-F711B, Android 14, 512 × 260; không dùng Activity/Presentation làm engine.
 - Firmware này không cấp token accessibility overlay cho cover. LIT dùng `TYPE_APPLICATION_OVERLAY` (2038) sau khi người dùng cho phép hiển thị trên ứng dụng khác. Trên display hỗ trợ token, dùng accessibility overlay 2032.
-- **Màn hình Samsung là mặc định.** Chạm vùng **48 px ở cạnh phải** của home Samsung để mở danh sách app LIT; vẫn hỗ trợ vuốt từ phải sang trái. Vùng này trong suốt, chỉ có vạch gợi ý nhỏ ở mép. Chạm hơi lệch tay vẫn nhận; kéo dọc không mở nhầm menu.
+- **Màn hình Samsung là mặc định.** Chỉ trên **trang đồng hồ Samsung**, chạm vùng **48 px ở cạnh phải** để mở danh sách app LIT; vẫn hỗ trợ vuốt từ phải sang trái. Vùng này trong suốt, chỉ có vạch gợi ý nhỏ ở mép. Sang trang widget, LIT tháo hẳn vùng chạm để Samsung nhận toàn bộ thao tác. Khi chưa xác định được trang, LIT cũng nhường Samsung. Chạm hơi lệch tay vẫn nhận; kéo dọc không mở nhầm menu.
 - Trong menu LIT, vuốt từ cạnh trái sang phải hoặc cạnh phải sang trái để về Samsung. Cử chỉ bắt đầu trong 24 dp ở cạnh, đi vào ít nhất 48 dp và chủ yếu theo chiều ngang; cuộn dọc vẫn hoạt động. Icon đang chạm được hủy trước khi rời menu để không mở nhầm app.
 - Khi đang dùng app, vùng cạnh thu về **18 px**; vuốt hoặc chạm cạnh phải hiện thanh điều hướng 48 px: Quay lại, launcher, gần đây, về Samsung, ẩn thanh. Nhấn giữ nút ẩn để tạm tháo cả vùng cạnh. Nút về Samsung gọi secondary-home Samsung trên display 1 bằng UID app, không cần helper ADB.
 - Launcher nền đen, thanh công cụ năm nút: hướng mở app, tìm kiếm, sắp xếp, gần đây, yêu thích. Toolbar trượt ẩn khi cuộn xuống và hiện khi cuộn lên; không thay đổi bề rộng/ô icon.
@@ -31,7 +31,7 @@ adb -s DEVICE_SERIAL shell am start -n vn.lit.screenos/.MainActivity
 
 Trong tab **Tổng quan**, cấp **Hiển thị trên ứng dụng khác**, bật dịch vụ **LIT Screen OS · Overlay màn hình ngoài**, rồi gạt công tắc LIT. Samsung tiếp tục hiển thị; chạm cạnh phải để gọi danh sách app. Notification Access là quyền tùy chọn trong tab Thông tin cho thông báo/media. Quyền gửi thông báo cho phép dùng nút Dừng trong thông báo thường trực.
 
-App chỉ chọn màn hình cover trong profile Flip3. Không lấy display ảo scrcpy làm cover và không dựa vào việc màn hình chính có đang sáng hay không. Cảm biến hinge/lid giúp phân biệt trạng thái gập. App không đọc nội dung màn hình qua trợ năng.
+App chỉ chọn màn hình cover trong profile Flip3. Không lấy display ảo scrcpy làm cover và không dựa vào việc màn hình chính có đang sáng hay không. Cảm biến hinge/lid giúp phân biệt trạng thái gập. Trợ năng chỉ kiểm tra mã khung và trạng thái hiển thị của giao diện Samsung trên cover để phân biệt trang đồng hồ với widget; không đọc chữ, mô tả hoặc nội dung widget. Không duyệt cây giao diện của các app khác hay màn hình chính. Việc kiểm tra trang này không cần helper ADB.
 
 ## Xoay ứng dụng
 

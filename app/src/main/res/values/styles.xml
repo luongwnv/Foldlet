@@ -21,5 +21,5 @@
         <item name="android:windowLightNavigationBar">true</item>
     </style>
     <color name="app_icon_background">#D8F2FC</color>
-    <string name="accessibility_description">Hiển thị giao diện LIT, vùng vuốt cạnh phải và thanh điều hướng trên màn hình ngoài; thực hiện Quay lại khi bạn nhấn nút. Không đọc nội dung màn hình, không ghi thao tác và không tự bật quyền. Dừng hoàn toàn trong ứng dụng LIT hoặc thông báo thường trực.</string>
+    <string name="accessibility_description">Hiển thị menu LIT và thanh điều hướng trên màn hình ngoài; thực hiện Quay lại khi bạn nhấn nút. Chỉ kiểm tra mã khung và trạng thái hiển thị của giao diện Samsung để vùng chạm chỉ xuất hiện trên trang đồng hồ; không đọc chữ, nội dung widget, không ghi thao tác và không tự bật quyền. Dừng hoàn toàn trong ứng dụng LIT hoặc thông báo thường trực.</string>
 </resources>

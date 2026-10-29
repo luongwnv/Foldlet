@@ -48,7 +48,7 @@ class MainActivity : Activity() {
     fun overlayPermission() { startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:$packageName"))) }
     fun accessibility() {
         AlertDialog.Builder(this).setTitle("Bật dịch vụ LIT Screen OS")
-            .setMessage("Chọn LIT Screen OS trong cài đặt Trợ năng để dùng menu và điều hướng màn hình ngoài. LIT không đọc nội dung màn hình hoặc ghi thao tác.")
+            .setMessage("Chọn LIT Screen OS trong cài đặt Trợ năng để dùng menu và điều hướng màn hình ngoài. LIT chỉ kiểm tra mã khung giao diện Samsung để phân biệt đồng hồ với widget; không đọc chữ, nội dung widget hoặc ghi thao tác.")
             .setPositiveButton("Mở cài đặt") { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
             .setNegativeButton("Để sau", null).show()
     }

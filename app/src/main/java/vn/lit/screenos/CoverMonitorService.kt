@@ -93,7 +93,12 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     }
     fun expand() { openDrawer(prefs.getString("app_mode", "all") ?: "all") }
     fun showNavigation() {
-        if (samsungHome) { openDrawer(prefs.getString("app_mode", "all") ?: "all"); return }
+        if (samsungHome) {
+            val cover = Platform.overlayDisplay(this) ?: return
+            val service = NavigationService.current ?: return
+            if (!Platform.isEmulatorOverlay(this) && !SamsungCoverPage.isClock(service, cover.displayId)) { reconcile(); return }
+            openDrawer(prefs.getString("app_mode", "all") ?: "all"); return
+        }
         minimized = true; navigationVisible = true; reconcile()
     }
     fun showSamsungHome() {
@@ -146,6 +151,17 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             return
         }
         if (yieldedUntilSleep) { clearOverlay(); report("Đã nhường giao diện Samsung đến lần bật màn hình tiếp theo", null); return }
+        if (minimized && !navigationVisible && !emulatorPreview) {
+            // Events remove the handle while the page moves; polling also covers
+            // firmware that omits a final accessibility scroll event.
+            handler.removeCallbacks(update); handler.postDelayed(update, 200)
+            val clock = SamsungCoverPage.isClock(accessibility, cover.displayId)
+            // Back inside an app can return to Samsung without our Home button.
+            if (SamsungCoverPage.isSamsungPage) samsungHome = true
+            if (samsungHome && !clock) {
+                clearOverlay(); report("Đang nhường trang widget/giao diện Samsung", null); return
+            }
+        }
         try {
             if (overlay?.displayId != cover.displayId || owner !== accessibility) {
                 clearOverlay()
@@ -178,6 +194,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("engine=cover-overlay enabled=${prefs.getBoolean("monitor", false)}")
         writer.println("display=${overlay?.displayId} mode=${overlay?.mode ?: CoverOverlay.Mode.HIDDEN} backend=${overlay?.backend} folded=$folded lidSensor=${lidSensor?.type} samsungHome=$samsungHome")
         writer.println("rotationRequest=${CoverRotation.mode} actualRotation=${Platform.overlayDisplay(this)?.rotation} adbBridgeConfigured=${CoverRotation.authorized} adbBridgeAvailable=${CoverRotation.available}")
+        writer.println("samsungPage=${SamsungCoverPage.diagnostic}")
         writer.println("window=${overlay?.window?.attributes} status=${prefs.getString("monitor_status", "")} error=${prefs.getString("monitor_error", null)}")
     }
     override fun onDestroy() {

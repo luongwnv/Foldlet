@@ -35,7 +35,9 @@ class CoverOverlay(
 
     fun show(requested: Mode) {
         if (requested == Mode.HIDDEN) { hide(); return }
-        if (mode == requested && attached?.isAttachedToWindow == true) return
+        // addView already owns the pending root before its first frame. Repeated
+        // accessibility updates must not replace that window while it lays out.
+        if (mode == requested && attached != null) return
         hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
