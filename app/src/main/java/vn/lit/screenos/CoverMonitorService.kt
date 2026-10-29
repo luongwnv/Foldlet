@@ -39,7 +39,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         val stop = PendingIntent.getService(this, 1, Intent(this, CoverMonitorService::class.java).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE)
         startForeground(1, Notification.Builder(this, "cover").setSmallIcon(R.drawable.ic_status)
             .setContentTitle("LIT Screen OS · overlay màn hình ngoài")
-            .setContentText("Vuốt cạnh phải để mở ứng dụng · nhấn để thiết lập")
+            .setContentText("Chạm cạnh phải màn hình Samsung để mở ứng dụng · nhấn để thiết lập")
             .setContentIntent(open).addAction(Notification.Action.Builder(null, "Dừng", stop).build()).setOngoing(true).build())
         displays = getSystemService(DisplayManager::class.java)
         sensors = getSystemService(SensorManager::class.java)
@@ -152,7 +152,12 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
                 owner = accessibility
                 overlay = CoverOverlay(accessibility, cover, ::minimize, ::expand, ::yieldToStock, ::showNavigation, { openDrawer("recent") }, section, ::showSamsungHome)
             }
-            overlay!!.show(if (navigationVisible) CoverOverlay.Mode.SIDEBAR else if (minimized) CoverOverlay.Mode.EDGE else CoverOverlay.Mode.DASHBOARD)
+            overlay!!.show(when {
+                navigationVisible -> CoverOverlay.Mode.SIDEBAR
+                !minimized -> CoverOverlay.Mode.DASHBOARD
+                samsungHome -> CoverOverlay.Mode.HOME_EDGE
+                else -> CoverOverlay.Mode.EDGE
+            })
             report("Overlay ${overlay!!.mode} · display ${cover.displayId} · ${overlay!!.backend}", null)
         } catch (e: RuntimeException) {
             clearOverlay()

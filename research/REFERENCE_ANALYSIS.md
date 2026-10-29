@@ -119,3 +119,9 @@ Test Settings trên AVD đã qua: ba tab, lưu số cột/sắp xếp/bộ lọc
 Người dùng chọn A — Nếp mở sau bảng ba concept. Logo được dựng bằng path riêng, triển khai SVG/PNG, logo ngang/dọc, adaptive/monochrome/status và bộ hướng dẫn trong `design/logo/`. Theo phản hồi không dùng nền đen, icon Android dùng xanh nhạt `#D8F2FC` và hình teal `#006F95`; các glyph chức năng Settings vẫn nét viền. Không sử dụng logo/tài nguyên CoverScreen OS.
 
 Đã bỏ toàn bộ khối logo lớn, tên LIT Screen OS và khẩu hiệu ở đầu Tổng quan. Thẻ trạng thái/công tắc là nội dung đầu tiên, không có khoảng trống thay thế. Logo giữ trong launcher và tab Thông tin. Build/lint và smoke Settings đã qua, bản APK cập nhật được cài trên SM-F711B qua ADB.
+
+## Chạm cạnh phải home Samsung 0.5.2
+
+Theo phản hồi vùng cạnh khó thao tác, tách trạng thái HOME_EDGE khỏi cạnh điều hướng khi đang mở app. Home Samsung có vùng trong suốt rộng 48 dp (48 px trên cover Z Flip3); chạm trực tiếp gọi drawer, vẫn nhận vuốt trái. Khi mở app, cạnh thu về 18 dp và gọi thanh điều hướng như trước. Chỉ giữ vạch gợi ý nhỏ ở mép, không thêm nút lớn lên mặt đồng hồ Samsung.
+
+Tap cho phép lệch ngón trong touch slop ít nhất 12 dp, kiểm tra cả X/Y và hủy nếu kéo dọc, đa điểm hoặc ACTION_CANCEL. Vuốt trái cần ngang chiếm ưu thế. Test overlay thật 2032 trên AVD 512 × 260 đã qua: tap ở x=480 (ngoài cạnh 18 px cũ) mở menu, lệch ngón 6/5 px vẫn mở, kéo dọc không mở nhầm, chạm ngoài vùng 48 px tới underlay; cả hai cạnh menu trở về home và cạnh 18 px trong app vẫn mở rail. Kết quả `artifacts/052-overlay-smoke.log`; build/lint `artifacts/052-build.log`. Máy thật đang mở nên chưa kiểm tra chạm vật lý trên cover trong lượt này.

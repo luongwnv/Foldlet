@@ -19,7 +19,7 @@ class CoverOverlay(
     private val initialSection: String = "apps",
     private val onSamsungHome: () -> Unit = onYieldToStock,
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, EDGE, SIDEBAR }
+    enum class Mode { HIDDEN, DASHBOARD, HOME_EDGE, EDGE, SIDEBAR }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
     private var attached: View? = null
@@ -40,13 +40,17 @@ class CoverOverlay(
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
         val full = requested == Mode.DASHBOARD
+        val homeEdge = requested == Mode.HOME_EDGE
+        val edge = homeEdge || requested == Mode.EDGE
         try {
             if (full) {
                 val dashboard = CoverView(dialog.context, window, displayId, onMinimize, onSamsungHome)
                 if (initialSection != "apps") dashboard.openSection(initialSection)
                 dialog.setContentView(dashboard)
-            } else if (requested == Mode.EDGE) {
+            } else if (edge) {
                 var downX = 0f; var downY = 0f; var revealed = false
+                var tapCandidate = false; var verticalGesture = false
+                val tapSlop = ViewConfiguration.get(a11yContext).scaledTouchSlop.coerceAtLeast(Ui.dp(a11yContext,12))
                 val strip = object : View(dialog.context) {
                     override fun onDraw(canvas: Canvas) {
                         super.onDraw(canvas)
@@ -55,12 +59,28 @@ class CoverOverlay(
                     }
                     override fun performClick(): Boolean { super.performClick(); onNavigation(); return true }
                 }
-                strip.contentDescription = "Vuốt từ cạnh phải sang trái để mở điều hướng"
+                strip.isClickable = true
+                strip.contentDescription = if (homeEdge) "Chạm hoặc vuốt cạnh phải để mở ứng dụng" else "Chạm hoặc vuốt cạnh phải để mở điều hướng"
                 strip.setOnTouchListener { _, event ->
                     when (event.actionMasked) {
-                        MotionEvent.ACTION_DOWN -> { downX = event.rawX; downY = event.rawY; revealed = false }
-                        MotionEvent.ACTION_MOVE -> if (!revealed && downX - event.rawX > Ui.dp(a11yContext,24) && kotlin.math.abs(event.rawY - downY) < Ui.dp(a11yContext,60)) { revealed = true; onNavigation() }
-                        MotionEvent.ACTION_UP -> if (!revealed && kotlin.math.abs(event.rawX - downX) < Ui.dp(a11yContext,8)) strip.performClick()
+                        MotionEvent.ACTION_DOWN -> {
+                            downX = event.rawX; downY = event.rawY; revealed = false
+                            tapCandidate = true; verticalGesture = false
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            val dx = downX - event.rawX
+                            val dy = kotlin.math.abs(event.rawY - downY)
+                            if (kotlin.math.abs(dx) > tapSlop || dy > tapSlop) tapCandidate = false
+                            if (dy > tapSlop && dy > kotlin.math.abs(dx)) verticalGesture = true
+                            if (!revealed && !verticalGesture && dx > Ui.dp(a11yContext,24) && dx > dy * 1.25f) {
+                                revealed = true; onNavigation()
+                            }
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            if (!revealed && tapCandidate && kotlin.math.abs(event.rawX - downX) <= tapSlop && kotlin.math.abs(event.rawY - downY) <= tapSlop) strip.performClick()
+                            tapCandidate = false
+                        }
+                        MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> { tapCandidate = false; verticalGesture = true }
                     }
                     true
                 }
@@ -83,7 +103,7 @@ class CoverOverlay(
             }
             dialog.setCancelable(false)
             window.setBackgroundDrawableResource(android.R.color.transparent)
-            window.setTitle(if (full) DASHBOARD_TITLE else if (requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE)
+            window.setTitle(if (full) DASHBOARD_TITLE else if (edge) EDGE_TITLE else NAVIGATION_TITLE)
             window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
             if (!full) window.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
@@ -92,7 +112,7 @@ class CoverOverlay(
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
             window.setDecorFitsSystemWindows(false)
             window.attributes = window.attributes.apply {
-                setTitle(if (full) DASHBOARD_TITLE else if (requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE)
+                setTitle(if (full) DASHBOARD_TITLE else if (edge) EDGE_TITLE else NAVIGATION_TITLE)
                 type = if (preferApplicationWindow) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
                 format = PixelFormat.TRANSLUCENT
                 width = if (full) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE) 18 else 48)

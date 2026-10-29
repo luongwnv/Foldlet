@@ -31,9 +31,12 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             runOnMainSync {
                 targetContext.startForegroundService(Intent(targetContext, CoverMonitorService::class.java).setAction(CoverMonitorService.ACTION_START))
             }
-            await("Samsung default edge") { CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.EDGE && CoverMonitorService.current?.overlay?.view?.width == 18 }
+            await("Samsung default edge") { CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && CoverMonitorService.current?.overlay?.view?.width == 48 }
             capture("overlay-samsung-default", requireNotNull(CoverMonitorService.current?.overlay?.window))
-            swipeLeftFromRightEdge()
+            swipe(480f, 220f, 480f, 80f)
+            waitForIdleSync(); SystemClock.sleep(300)
+            check(CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.HOME_EDGE) { "Vertical home-edge drag opened the menu" }
+            tap(480f, 130f)
             await("dashboard") { CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.DASHBOARD && CoverMonitorService.current?.overlay?.view?.width == 512 }
             val engine = requireNotNull(CoverMonitorService.current)
             var leakedRoot = false
@@ -59,13 +62,13 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             capture("overlay-dashboard", requireNotNull(engine.overlay?.window))
             val historyBeforeSwipes = prefs.all.filterKeys { it == "recents" || it.startsWith("launches.") }
             swipe(2f, 80f, 82f, 80f)
-            await("left menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.EDGE && engine.overlay?.view?.width == 18 }
+            await("left menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
             await("reopen after left menu edge") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
             capture("overlay-dashboard", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
-            await("right menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.EDGE && engine.overlay?.view?.width == 18 }
+            await("right menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
             await("reopen after right menu edge") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
@@ -75,7 +78,7 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             await("empty favorites menu") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
             capture("overlay-empty-favorites", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
-            await("empty menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.EDGE && engine.overlay?.view?.width == 18 }
+            await("empty menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
             prefs.edit().putStringSet("favorites", oldFavorites).apply()
             runOnMainSync { engine.openDrawer(oldMode ?: "all") }
@@ -116,22 +119,25 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             check(underlay.taps == 1) { "Restored dashboard did not intercept touches" }
 
             runOnMainSync { engine.showSamsungHome() }
-            await("Samsung home edge") { engine.overlay?.mode == CoverOverlay.Mode.EDGE && engine.overlay?.view?.width == 18 }
+            await("Samsung home edge") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
-            swipeLeftFromRightEdge()
-            await("Samsung home edge reopens drawer") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
+            tap(440f, 120f)
+            waitForIdleSync()
+            check(underlay.taps == 2) { "Home edge blocked taps outside its 48px bounds" }
+            swipe(480f, 130f, 486f, 135f)
+            await("Samsung home tap with finger drift reopens drawer") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
 
             runOnMainSync { engine.yieldToStock(); engine.schedule() }
             await("yield to stock") { engine.overlay == null }
             waitForIdleSync()
             tap(400f, 120f)
             waitForIdleSync()
-            check(underlay.taps == 2) { "Yielding did not release the overlay window" }
+            check(underlay.taps == 3) { "Yielding did not release the overlay window" }
             runOnMainSync { engine.expand() }
             await("explicit restore") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD }
             runOnMainSync { targetContext.startService(Intent(targetContext, CoverMonitorService::class.java).setAction(CoverMonitorService.ACTION_STOP)) }
             await("overlay teardown") { CoverMonitorService.current == null && engine.overlay == null }
-            result.putString("stream", "PASS: Samsung default keeps only 18px edge; edge swipe opens drawer; BOTH menu edge swipes return to Samsung without launching apps; empty favorites edge also exits; vertical edge scroll and edge tap stay in menu; pending roots removed; real type=2032 overlay 512x260; dashboard intercepts input; outside touches pass through; app edge opens 48px navigation; drawer and Samsung buttons switch modes; yield/stop remove windows; underlay taps=2\n")
+            result.putString("stream", "PASS: Samsung home has a 48px tap target; tap and small finger drift open drawer; vertical home drag does not open drawer; edge swipe also works; BOTH menu edge swipes return to Samsung without launching apps; empty favorites edge also exits; vertical edge scroll and edge tap stay in menu; pending roots removed; real type=2032 overlay 512x260; dashboard intercepts input; outside touches pass through; app edge opens 48px navigation; drawer and Samsung buttons switch modes; home/app edges pass outside touches; yield/stop remove windows; underlay taps=3\n")
         } catch (e: Throwable) {
             code = Activity.RESULT_CANCELED
             result.putString("stream", "FAIL: ${e.stackTraceToString()}\n")

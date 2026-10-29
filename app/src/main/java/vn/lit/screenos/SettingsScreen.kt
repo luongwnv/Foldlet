@@ -197,7 +197,7 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
     }
     private fun gestureGuide() {
         AlertDialog.Builder(c).setTitle("Cử chỉ màn hình ngoài")
-            .setMessage("Trên Samsung: vuốt cạnh phải để mở menu LIT.\n\nTrong menu: vuốt từ cạnh trái hoặc phải vào trong để về Samsung. Vuốt lên/xuống để cuộn ứng dụng.\n\nTrong ứng dụng: vuốt cạnh phải để hiện thanh điều hướng.")
+            .setMessage("Trên Samsung: chạm vùng cạnh phải để mở menu LIT; vẫn có thể vuốt từ phải sang trái.\n\nTrong menu: vuốt từ cạnh trái hoặc phải vào trong để về Samsung. Vuốt lên/xuống để cuộn ứng dụng.\n\nTrong ứng dụng: vuốt cạnh phải để hiện thanh điều hướng.")
             .setPositiveButton("Đã hiểu",null).show()
     }
     private fun navigation() = LinearLayout(c).apply {
