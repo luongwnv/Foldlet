@@ -92,13 +92,13 @@ class CoverOverlay(
                 fun item(icon: Glyph.Kind, title: String, action: () -> Unit) {
                     rail.addView(Glyph.button(dialog.context, icon, title, action = action), LinearLayout.LayoutParams(-1, 0, 1f))
                 }
-                item(Glyph.Kind.BACK, "Quay lại") {
+                item(Glyph.Kind.NAV_BACK, "Quay lại") {
                     if (Platform.unlocked(service)) service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
                     onMinimize()
                 }
                 item(Glyph.Kind.GRID, "Ứng dụng") { onExpand() }
-                item(Glyph.Kind.RECENT, "Gần đây") { onRecents() }
-                item(Glyph.Kind.HOME, "Về màn hình Samsung") { onSamsungHome() }
+                item(Glyph.Kind.NAV_RECENT, "Gần đây") { onRecents() }
+                item(Glyph.Kind.NAV_HOME, "Về màn hình Samsung") { onSamsungHome() }
                 item(Glyph.Kind.FORWARD, "Ẩn điều hướng") { onMinimize() }
                 rail.getChildAt(4).setOnLongClickListener { onYieldToStock(); true }
                 dialog.setContentView(rail)

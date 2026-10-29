@@ -7,7 +7,7 @@ import android.widget.ImageButton
 
 /** Small original vector glyphs, drawn with platform Canvas. */
 class Glyph(private val kind: Kind, private val selected: Boolean = false, private val size: Int = 24) : Drawable() {
-    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD }
+    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT }
     override fun draw(canvas: Canvas) {
         val save = canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
@@ -17,6 +17,18 @@ class Glyph(private val kind: Kind, private val selected: Boolean = false, priva
         when (kind) {
             Kind.SEARCH -> { canvas.drawCircle(10f, 10f, 6f, p); line(15f, 15f, 21f, 21f) }
             Kind.BACK -> line(14f, 4f, 6f, 12f, 14f, 20f)
+            Kind.NAV_BACK -> {
+                p.strokeWidth = 1.8f
+                line(15f, 5f, 8f, 12f, 15f, 19f)
+            }
+            Kind.NAV_HOME -> {
+                p.strokeWidth = 1.8f
+                canvas.drawRoundRect(5f, 5f, 19f, 19f, 4.5f, 4.5f, p)
+            }
+            Kind.NAV_RECENT -> {
+                p.strokeWidth = 1.8f
+                for (x in listOf(5.5f, 12f, 18.5f)) line(x, 5f, x, 19f)
+            }
             Kind.FORWARD -> line(9f, 4f, 17f, 12f, 9f, 20f)
             Kind.CLOSE -> { line(6f, 6f, 18f, 18f); line(18f, 6f, 6f, 18f) }
             Kind.STAR -> { val path = Path(); for (i in 0..10) { val angle = Math.PI * (i / 5.0 - .5); val radius = if (i % 2 == 0) 9f else 4.1f; val x = 12 + kotlin.math.cos(angle).toFloat() * radius; val y = 12 + kotlin.math.sin(angle).toFloat() * radius; if (i == 0) path.moveTo(x,y) else path.lineTo(x,y) }; if (selected) p.style = Paint.Style.FILL; canvas.drawPath(path,p) }

@@ -1,6 +1,6 @@
 # LIT Screen OS
 
-Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.3**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
+Ứng dụng Android độc lập cho màn hình ngoài Galaxy Z Flip3, phát triển từ phân tích hành vi/giao diện APK CoverScreen OS Legacy đang có trên máy. Package `vn.lit.screenos`, bản **0.5.4**. Không có billing hoặc giới hạn Premium trong các tính năng đã triển khai. Chưa đạt tương đương toàn bộ CoverScreen OS Premium.
 
 ## Trạng thái đã kiểm chứng
 
@@ -9,6 +9,7 @@
 - **Màn hình Samsung là mặc định.** Chỉ trên **trang đồng hồ Samsung**, chạm vùng **48 px ở cạnh phải** để mở danh sách app LIT; vẫn hỗ trợ vuốt từ phải sang trái. Vùng này trong suốt, chỉ có vạch gợi ý nhỏ ở mép. Sang trang widget, LIT tháo hẳn vùng chạm để Samsung nhận toàn bộ thao tác. Khi chưa xác định được trang, LIT cũng nhường Samsung. Chạm hơi lệch tay vẫn nhận; kéo dọc không mở nhầm menu.
 - Trong menu LIT, vuốt từ cạnh trái sang phải hoặc cạnh phải sang trái để về Samsung. Cử chỉ bắt đầu trong 24 dp ở cạnh, đi vào ít nhất 48 dp và chủ yếu theo chiều ngang; cuộn dọc vẫn hoạt động. Icon đang chạm được hủy trước khi rời menu để không mở nhầm app.
 - Khi đang dùng app, vùng cạnh thu về **18 px**; vuốt hoặc chạm cạnh phải hiện thanh điều hướng 48 px: Quay lại, launcher, gần đây, về Samsung, ẩn thanh. Nhấn giữ nút ẩn để tạm tháo cả vùng cạnh. Nút về Samsung gọi secondary-home Samsung trên display 1 bằng UID app, không cần helper ADB.
+- Ba icon điều hướng Back/Home/Gần đây dùng bộ riêng theo kiểu Samsung: dấu ‹, vuông bo góc và ba vạch dọc; nét trắng 1,8 đơn vị. Icon lịch sử trong toolbar vẫn biểu thị bộ lọc các app mở qua LIT; nút Gần đây trên thanh hiện cũng mở danh sách này, chưa phải trình đa nhiệm hệ thống.
 - Launcher nền đen, thanh công cụ năm nút: hướng mở app, tìm kiếm, sắp xếp, gần đây, yêu thích. Toolbar trượt ẩn khi cuộn xuống và hiện khi cuộn lên; không thay đổi bề rộng/ô icon.
 - Glyph cùng màu trắng, cùng kích thước 26 dp và nét vẽ; trạng thái chọn dùng nền đánh dấu/ngôi sao tô đầy. Chữ LIT tối thiểu 16 sp, ô tìm kiếm 17 sp, phím tìm kiếm 14 sp.
 - Settings trên màn hình chính dùng nền xanh nhạt, thẻ nhóm, icon, công tắc và ô chọn; ba tab Tổng quan/Cài đặt/Thông tin. Trạng thái chạy không có icon đứng trước. Bộ icon Settings thống nhất nét viền 1,8 đơn vị, một màu; bánh răng sáu răng, trợ năng không nền tròn, chuông và hai hướng màn hình đều cùng ngôn ngữ hình học.
