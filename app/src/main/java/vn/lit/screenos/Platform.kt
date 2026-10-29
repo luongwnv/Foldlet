@@ -58,21 +58,36 @@ object Platform {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
             context.startActivity(intent, displayOptions(displayId))
             true
-        } catch (_: RuntimeException) { message(context, "Không mở được màn hình Samsung"); false }
+        } catch (_: RuntimeException) { message(context, I18n.text(R.string.ui_could_not_open_samsung_home)); false }
     }
     fun unlocked(context: Context): Boolean = !context.getSystemService(KeyguardManager::class.java).isDeviceLocked
+    fun coverHasFocus(service: NavigationService, displayId: Int): Boolean = try {
+        service.windowsOnAllDisplays[displayId]?.any { it.isFocused } == true
+    } catch (_: RuntimeException) { false }
+
+    fun focusedCoverPackage(service: NavigationService, displayId: Int): String? = try {
+        val window = service.windowsOnAllDisplays[displayId]?.firstOrNull { it.isFocused }
+        val root = window?.root
+        try { root?.packageName?.toString() }
+        finally { @Suppress("DEPRECATION") root?.recycle() }
+    } catch (_: RuntimeException) { null }
+
     fun message(context: Context, message: String) = Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    fun messageOnDisplay(context: Context, displayId: Int, message: String) {
+        val display = context.getSystemService(DisplayManager::class.java).getDisplay(displayId)
+        message(if (display != null) context.createDisplayContext(display) else context, message)
+    }
 
     fun launch(context: Context, intent: Intent, displayId: Int): Boolean {
         if (!unlocked(context)) {
-            message(context, "Mở khóa điện thoại để tiếp tục")
+            message(context, I18n.text(R.string.ui_unlock_your_phone_to_continue))
             return false
         }
         return try {
             val manager = context.getSystemService(ActivityManager::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             if (!manager.isActivityStartAllowedOnDisplay(context, displayId, intent)) {
-                message(context, "Hệ thống chặn mở ứng dụng trên màn hình này")
+                message(context, I18n.text(R.string.ui_the_system_blocked_this_app_on_the))
                 false
             } else {
                 val options = ActivityOptions.makeBasic().apply { launchDisplayId = displayId }
@@ -80,7 +95,7 @@ object Platform {
                 true
             }
         } catch (e: RuntimeException) {
-            message(context, "Không mở được: ${e.javaClass.simpleName}")
+            message(context, I18n.text(R.string.ui_could_not_open, e.javaClass.simpleName))
             false
         }
     }

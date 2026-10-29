@@ -20,6 +20,8 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
         val oldMonitor = prefs.getBoolean("monitor", false)
         val oldPreview = prefs.getBoolean("emulator_overlay", false)
         val oldMode = prefs.getString("app_mode", null)
+        val oldRecents = prefs.getString("recents", null)
+        val oldCleared = prefs.getLong("recent_cleared_at",0)
         val oldFavorites = prefs.getStringSet("favorites", null)?.toSet()
         try {
             check(BuildConfig.DEBUG && Build.MODEL.startsWith("sdk_gphone")) { "Overlay input test is only for the owned emulator" }
@@ -111,6 +113,42 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             swipeLeftFromRightEdge()
             await("right navigation") { engine.overlay?.mode == CoverOverlay.Mode.SIDEBAR && engine.overlay?.view?.width == 48 }
             capture("overlay-navigation", requireNotNull(engine.overlay?.window))
+            tap(488f,26f)
+            await("real Back delivered to the underlying app") { underlay.backPresses==1 && engine.overlay?.mode==CoverOverlay.Mode.EDGE }
+            swipeLeftFromRightEdge()
+            await("rail after Back") { engine.overlay?.mode==CoverOverlay.Mode.SIDEBAR }
+            tap(488f,234f)
+            await("X hides rail") { engine.overlay?.mode==CoverOverlay.Mode.EDGE }
+
+            val clock=targetContext.packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),0)
+                .first { it.loadLabel(targetContext.packageManager).toString().equals("Clock",ignoreCase=true) }.activityInfo
+            runOnMainSync { targetContext.startActivity(Intent(Intent.ACTION_MAIN).setComponent(android.content.ComponentName(clock.packageName,clock.name)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            SystemClock.sleep(600)
+            runOnMainSync { targetContext.startActivity(Intent(targetContext,OverlayUnderlayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)) }
+            await("underlay restored after outside Clock launch") { underlay.hasWindowFocus() }
+            prefs.edit().remove("recents").apply()
+            swipeLeftFromRightEdge()
+            await("rail before Recent") { engine.overlay?.mode==CoverOverlay.Mode.SIDEBAR }
+            tap(488f,130f)
+            await("standalone Recent from system usage") {
+                engine.overlay?.mode==CoverOverlay.Mode.RECENTS && engine.overlay?.view?.let { root -> descendants(root).any { it.tag=="recent:${clock.packageName}" } } == true
+            }
+            check(prefs.getString("recents",null)==null) { "Recent changed or relied on local LIT history" }
+            runOnMainSync { descendants(requireNotNull(engine.overlay?.view)).first { it.tag=="recent:${clock.packageName}" }.performClick() }
+            await("global Recent card launches Clock") { engine.overlay?.mode==CoverOverlay.Mode.EDGE && !underlay.hasWindowFocus() }
+            runOnMainSync { targetContext.startActivity(Intent(targetContext,OverlayUnderlayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)) }
+            await("underlay restored after Recent") { underlay.hasWindowFocus() }
+            swipeLeftFromRightEdge()
+            await("rail before clear all") { engine.overlay?.mode==CoverOverlay.Mode.SIDEBAR }
+            tap(488f,130f)
+            await("Recent cards before clear all") { engine.overlay?.view?.let { descendants(it).any { view -> view.tag=="recent:${clock.packageName}" } } == true }
+            runOnMainSync { descendants(requireNotNull(engine.overlay?.view)).first { it.tag=="recent-clear-all" }.performClick() }
+            await("Close all clears cards") { engine.overlay?.view?.let { descendants(it).none { view -> view.tag?.toString()?.startsWith("recent:")==true } && descendants(it).filterIsInstance<android.widget.TextView>().any { view -> view.text.toString()==I18n.text(R.string.ui_no_recent_apps) } } == true }
+            check(prefs.getLong("recent_cleared_at",0)>0) { "Clear all was not persisted" }
+            tap(20f,20f)
+            await("close empty Recent") { engine.overlay?.mode==CoverOverlay.Mode.EDGE }
+            swipeLeftFromRightEdge()
+            await("rail before menu button") { engine.overlay?.mode==CoverOverlay.Mode.SIDEBAR }
             tap(488f, 97f)
             await("return from navigation") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 && engine.overlay?.view?.isAttachedToWindow == true }
             capture("overlay-restored-dashboard", requireNotNull(engine.overlay?.window))
@@ -137,7 +175,7 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             await("explicit restore") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD }
             runOnMainSync { targetContext.startService(Intent(targetContext, CoverMonitorService::class.java).setAction(CoverMonitorService.ACTION_STOP)) }
             await("overlay teardown") { CoverMonitorService.current == null && engine.overlay == null }
-            result.putString("stream", "PASS: Samsung home has a 48px tap target; tap and small finger drift open drawer; vertical home drag does not open drawer; edge swipe also works; BOTH menu edge swipes return to Samsung without launching apps; empty favorites edge also exits; vertical edge scroll and edge tap stay in menu; pending roots removed; real type=2032 overlay 512x260; dashboard intercepts input; outside touches pass through; app edge opens 48px navigation; drawer and Samsung buttons switch modes; home/app edges pass outside touches; yield/stop remove windows; underlay taps=3\n")
+            result.putString("stream", "PASS: Samsung home 48px tap target; app edge 18px and rail 48px; real Back reaches underlying app; X hides rail; global Recent lists Clock opened outside LIT with local history empty and opens its card; both menu edges return to Samsung; vertical drags/taps do not exit; pending roots removed; real overlay input interception/pass-through; menu/Home/yield/stop switch modes; underlay taps=3\n")
         } catch (e: Throwable) {
             code = Activity.RESULT_CANCELED
             result.putString("stream", "FAIL: ${e.stackTraceToString()}\n")
@@ -145,12 +183,17 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             runOnMainSync {
                 targetContext.stopService(Intent(targetContext, CoverMonitorService::class.java))
                 prefs.edit().putBoolean("monitor", oldMonitor).putBoolean("emulator_overlay", oldPreview)
-                    .putString("app_mode", oldMode).putStringSet("favorites", oldFavorites).apply()
+                    .putString("app_mode", oldMode).putString("recents",oldRecents).putLong("recent_cleared_at",oldCleared).putStringSet("favorites", oldFavorites).apply()
                 underlay?.finish()
                 File(targetContext.cacheDir, "overlay-await-accessibility").delete()
             }
         }
         finish(code, result)
+    }
+
+    private fun descendants(view: View): Sequence<View> = sequence {
+        yield(view)
+        if(view is android.view.ViewGroup) for(i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
     }
 
     private fun await(label: String, predicate: () -> Boolean) {
@@ -164,12 +207,18 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
         error("Timed out waiting for $label; status=${Platform.preferences(runner.targetContext).getString("monitor_status", null)}; error=${Platform.preferences(runner.targetContext).getString("monitor_error", null)}")
     }
     private fun tap(x: Float, y: Float) {
+        runner.waitForIdleSync()
+        // Allow WindowManager to publish a replacement overlay input window.
+        SystemClock.sleep(200)
         val now = SystemClock.uptimeMillis()
         MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, x, y, 0).let { runner.sendPointerSync(it); it.recycle() }
         MotionEvent.obtain(now, now + 40, MotionEvent.ACTION_UP, x, y, 0).let { runner.sendPointerSync(it); it.recycle() }
     }
     private fun swipeLeftFromRightEdge() = swipe(510f, 130f, 430f, 130f)
     private fun swipe(startX: Float, startY: Float, endX: Float, endY: Float) {
+        runner.waitForIdleSync()
+        // Allow WindowManager to publish a replacement overlay input window.
+        SystemClock.sleep(200)
         val now = SystemClock.uptimeMillis()
         MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, startX, startY, 0).let { runner.sendPointerSync(it); it.recycle() }
         for (step in 1..6) MotionEvent.obtain(now, now + step * 20, MotionEvent.ACTION_MOVE, startX + (endX - startX) * step / 6, startY + (endY - startY) * step / 6, 0).let { runner.sendPointerSync(it); it.recycle() }

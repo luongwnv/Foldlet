@@ -1,6 +1,5 @@
 package vn.lit.screenos
 
-import android.accessibilityservice.AccessibilityService
 import android.app.Dialog
 import android.graphics.*
 import android.provider.Settings
@@ -18,8 +17,15 @@ class CoverOverlay(
     private val onRecents: () -> Unit,
     private val initialSection: String = "apps",
     private val onSamsungHome: () -> Unit = onYieldToStock,
+    private val onBack: () -> Unit = {
+        if (Platform.unlocked(service)) when(service.sendCoverBack(display.displayId)) {
+            NavigationService.BackResult.SENT -> onMinimize()
+            NavigationService.BackResult.LAUNCHER_ROOT -> onSamsungHome()
+            NavigationService.BackResult.UNAVAILABLE -> Unit
+        }
+    },
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, HOME_EDGE, EDGE, SIDEBAR }
+    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
     private var attached: View? = null
@@ -41,11 +47,14 @@ class CoverOverlay(
         hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
-        val full = requested == Mode.DASHBOARD
+        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS
+        val title = if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
         val homeEdge = requested == Mode.HOME_EDGE
         val edge = homeEdge || requested == Mode.EDGE
         try {
-            if (full) {
+            if (requested == Mode.RECENTS) {
+                dialog.setContentView(RecentAppsView(dialog.context,displayId,onMinimize))
+            } else if (full) {
                 val dashboard = CoverView(dialog.context, window, displayId, onMinimize, onSamsungHome)
                 if (initialSection != "apps") dashboard.openSection(initialSection)
                 dialog.setContentView(dashboard)
@@ -62,7 +71,7 @@ class CoverOverlay(
                     override fun performClick(): Boolean { super.performClick(); onNavigation(); return true }
                 }
                 strip.isClickable = true
-                strip.contentDescription = if (homeEdge) "Chạm hoặc vuốt cạnh phải để mở ứng dụng" else "Chạm hoặc vuốt cạnh phải để mở điều hướng"
+                strip.contentDescription = if (homeEdge) I18n.text(R.string.ui_tap_or_swipe_the_right_edge_to) else I18n.text(R.string.ui_tap_or_swipe_the_right_edge_to_2)
                 strip.setOnTouchListener { _, event ->
                     when (event.actionMasked) {
                         MotionEvent.ACTION_DOWN -> {
@@ -92,20 +101,17 @@ class CoverOverlay(
                 fun item(icon: Glyph.Kind, title: String, action: () -> Unit) {
                     rail.addView(Glyph.button(dialog.context, icon, title, action = action), LinearLayout.LayoutParams(-1, 0, 1f))
                 }
-                item(Glyph.Kind.NAV_BACK, "Quay lại") {
-                    if (Platform.unlocked(service)) service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-                    onMinimize()
-                }
-                item(Glyph.Kind.GRID, "Ứng dụng") { onExpand() }
-                item(Glyph.Kind.NAV_RECENT, "Gần đây") { onRecents() }
-                item(Glyph.Kind.NAV_HOME, "Về màn hình Samsung") { onSamsungHome() }
-                item(Glyph.Kind.FORWARD, "Ẩn điều hướng") { onMinimize() }
+                item(Glyph.Kind.NAV_BACK, I18n.text(R.string.ui_back), onBack)
+                item(Glyph.Kind.GRID, I18n.text(R.string.ui_apps_2)) { onExpand() }
+                item(Glyph.Kind.NAV_RECENT, I18n.text(R.string.ui_recent_apps_across_the_phone)) { onRecents() }
+                item(Glyph.Kind.NAV_HOME, I18n.text(R.string.ui_return_to_samsung_home)) { onSamsungHome() }
+                item(Glyph.Kind.CLOSE, I18n.text(R.string.ui_hide_navigation)) { onMinimize() }
                 rail.getChildAt(4).setOnLongClickListener { onYieldToStock(); true }
                 dialog.setContentView(rail)
             }
             dialog.setCancelable(false)
             window.setBackgroundDrawableResource(android.R.color.transparent)
-            window.setTitle(if (full) DASHBOARD_TITLE else if (edge) EDGE_TITLE else NAVIGATION_TITLE)
+            window.setTitle(title)
             window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
             if (!full) window.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
@@ -114,7 +120,7 @@ class CoverOverlay(
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
             window.setDecorFitsSystemWindows(false)
             window.attributes = window.attributes.apply {
-                setTitle(if (full) DASHBOARD_TITLE else if (edge) EDGE_TITLE else NAVIGATION_TITLE)
+                setTitle(title)
                 type = if (preferApplicationWindow) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
                 format = PixelFormat.TRANSLUCENT
                 width = if (full) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE) 18 else 48)
@@ -140,7 +146,7 @@ class CoverOverlay(
             manager = (if (preferApplicationWindow) appContext else a11yContext).getSystemService(WindowManager::class.java)
             try { manager.addView(decor, window.attributes) }
             catch (error: WindowManager.BadTokenException) {
-                if (!Settings.canDrawOverlays(service)) throw IllegalStateException("Firmware không cấp token overlay cho màn hình ngoài. Bật quyền Hiển thị trên ứng dụng khác trong LIT.", error)
+                if (!Settings.canDrawOverlays(service)) throw IllegalStateException(I18n.text(R.string.ui_the_firmware_did_not_provide_a_cover), error)
                 manager = appContext.getSystemService(WindowManager::class.java)
                 window.attributes = window.attributes.apply { type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY; token = null }
                 manager.addView(decor, window.attributes)
@@ -160,8 +166,9 @@ class CoverOverlay(
         if (decor != null) manager.removeViewImmediate(decor)
     }
     companion object {
-        const val DASHBOARD_TITLE = "LIT Screen OS · cover dashboard"
-        const val EDGE_TITLE = "LIT Screen OS · right edge"
-        const val NAVIGATION_TITLE = "LIT Screen OS · right navigation"
+        const val DASHBOARD_TITLE = "Foldlet · cover dashboard"
+        const val EDGE_TITLE = "Foldlet · right edge"
+        const val NAVIGATION_TITLE = "Foldlet · right navigation"
+        const val RECENTS_TITLE = "Foldlet · recent applications"
     }
 }

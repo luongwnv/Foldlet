@@ -54,24 +54,24 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         toolbar.removeAllViews(); keyboard.removeAllViews()
         val selection = selected
         if (selection != null) {
-            command(Glyph.Kind.BACK, "Bỏ chọn") { selected = null; renderToolbar() }
-            command(Glyph.Kind.HIDE, "Ẩn ${selection.name}") {
+            command(Glyph.Kind.BACK, I18n.text(R.string.ui_deselect)) { selected = null; renderToolbar() }
+            command(Glyph.Kind.HIDE, I18n.text(R.string.ui_hide, selection.name)) {
                 prefs.edit().putStringSet("hidden", prefs.getStringSet("hidden", emptySet())!!.plus(selection.key)).apply()
                 selected = null; renderToolbar(); renderGrid()
             }
-            command(Glyph.Kind.STAR, "Yêu thích ${selection.name}", selection.key in prefs.getStringSet("favorites", emptySet())!!) {
+            command(Glyph.Kind.STAR, I18n.text(R.string.ui_favorite, selection.name), selection.key in prefs.getStringSet("favorites", emptySet())!!) {
                 val values = prefs.getStringSet("favorites", emptySet())!!
                 prefs.edit().putStringSet("favorites", if (selection.key in values) values.minus(selection.key) else values.plus(selection.key)).apply()
                 renderToolbar(); renderGrid()
             }
-            command(Glyph.Kind.LANDSCAPE, "Mở ${selection.name} nằm ngang") { orient("landscape", selection) }
-            command(Glyph.Kind.PORTRAIT, "Mở ${selection.name} dọc") { orient("portrait", selection) }
+            command(Glyph.Kind.LANDSCAPE, I18n.text(R.string.ui_open_in_landscape, selection.name)) { orient("landscape", selection) }
+            command(Glyph.Kind.PORTRAIT, I18n.text(R.string.ui_open_in_portrait, selection.name)) { orient("portrait", selection) }
             return
         }
         if (searching) {
-            toolbar.addView(Glyph.button(context, Glyph.Kind.BACK, "Đóng tìm kiếm") { searching = false; query = ""; renderToolbar(); renderGrid() }, LayoutParams(Ui.dp(context, 40), -1))
+            toolbar.addView(Glyph.button(context, Glyph.Kind.BACK, I18n.text(R.string.ui_close_search)) { searching = false; query = ""; renderToolbar(); renderGrid() }, LayoutParams(Ui.dp(context, 40), -1))
             searchField = EditText(context).apply {
-                hint = "Tìm ứng dụng"; setTextColor(Color.WHITE); setHintTextColor(0xFF888888.toInt())
+                hint = I18n.text(R.string.ui_search_apps); setTextColor(Color.WHITE); setHintTextColor(0xFF888888.toInt())
                 textSize = 17f; isSingleLine = true; minimumHeight = 0
                 setPadding(0, 0, 0, 0); setBackgroundColor(Color.TRANSPARENT)
                 showSoftInputOnFocus = false
@@ -89,15 +89,15 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             return
         }
         val orientation = prefs.getString("orientation", "auto")
-        command(when (orientation) { "portrait" -> Glyph.Kind.PORTRAIT; "landscape" -> Glyph.Kind.LANDSCAPE; else -> Glyph.Kind.ROTATE }, "Xoay màn hình") {
-            sheet(listOf("Tự động" to { orient("auto") }, "Ngang" to { orient("landscape") }, "Dọc" to { orient("portrait") }))
+        command(when (orientation) { "portrait" -> Glyph.Kind.PORTRAIT; "landscape" -> Glyph.Kind.LANDSCAPE; else -> Glyph.Kind.ROTATE }, I18n.text(R.string.ui_rotate_screen)) {
+            sheet(listOf(I18n.text(R.string.ui_auto) to { orient("auto") }, I18n.text(R.string.ui_landscape) to { orient("landscape") }, I18n.text(R.string.ui_portrait) to { orient("portrait") }))
         }
-        command(Glyph.Kind.SEARCH, "Tìm kiếm") { prefs.edit().putString("app_mode", "all").apply(); searching = true; renderToolbar(); renderGrid() }
-        command(Glyph.Kind.SORT, "Sắp xếp") {
-            sheet(listOf("A → Z" to { sort("az") }, "Z → A" to { sort("za") }, "Dùng nhiều nhất" to { sort("used") }, "Tự sắp xếp" to { sort("custom") }))
+        command(Glyph.Kind.SEARCH, I18n.text(R.string.ui_search)) { prefs.edit().putString("app_mode", "all").apply(); searching = true; renderToolbar(); renderGrid() }
+        command(Glyph.Kind.SORT, I18n.text(R.string.ui_sort)) {
+            sheet(listOf("A → Z" to { sort("az") }, "Z → A" to { sort("za") }, I18n.text(R.string.ui_most_used_2) to { sort("used") }, I18n.text(R.string.ui_custom_order) to { sort("custom") }))
         }
-        command(Glyph.Kind.RECENT, "Gần đây", prefs.getString("app_mode", "all") == "recent") { filter("recent") }
-        command(Glyph.Kind.STAR, "Yêu thích", prefs.getString("app_mode", "all") == "favorite") { filter("favorite") }
+        command(Glyph.Kind.RECENT, I18n.text(R.string.ui_recent_apps), prefs.getString("app_mode", "all") == "recent") { filter("recent") }
+        command(Glyph.Kind.STAR, I18n.text(R.string.ui_favorites), prefs.getString("app_mode", "all") == "favorite") { filter("favorite") }
     }
     private fun sheet(options: List<Pair<String, () -> Unit>>) {
         showToolbar(true, false)
@@ -106,7 +106,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         options.forEach { (name, action) ->
             column.addView(Ui.button(context, name, action).apply { setBackgroundColor(Color.BLACK) }, LayoutParams(-1, Ui.dp(context, 42)))
         }
-        column.addView(Ui.button(context, "Quay lại") { renderGrid() }.apply { setBackgroundColor(Color.BLACK) }, LayoutParams(-1, Ui.dp(context, 42)))
+        column.addView(Ui.button(context, I18n.text(R.string.ui_back)) { renderGrid() }.apply { setBackgroundColor(Color.BLACK) }, LayoutParams(-1, Ui.dp(context, 42)))
         contents.addView(Ui.scroll(context, column), FrameLayout.LayoutParams(-1, -1).apply { topMargin = toolbarHeight })
     }
     private fun orient(value: String, entry: Entry? = null) {
@@ -186,7 +186,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
                 rowSpec = GridLayout.spec(index / columns, GridLayout.TOP)
             })
         }
-        if (visible.isEmpty()) contents.addView(Ui.text(context, "Không có ứng dụng", 17f, Ui.muted), FrameLayout.LayoutParams(-1, -2).apply { topMargin = toolbarHeight })
+        if (visible.isEmpty()) contents.addView(Ui.text(context, I18n.text(R.string.ui_no_apps), 17f, Ui.muted), FrameLayout.LayoutParams(-1, -2).apply { topMargin = toolbarHeight })
         else {
             val list = FrameLayout(context).apply {
                 setPadding(0, toolbarHeight, 0, 0)
@@ -207,14 +207,14 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
     private fun launch(entry: Entry) {
         val rotation = prefs.getString("orientation.${entry.key}", prefs.getString("orientation", "auto")) ?: "auto"
         CoverRotation.prepare(context, displayId, rotation) { success ->
-        if (!success || !isAttachedToWindow || !Platform.unlocked(context)) return@prepare
+        if (!isAttachedToWindow || !Platform.unlocked(context)) return@prepare
         val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(entry.component)
         if (Platform.launch(context, intent, displayId)) {
             val recent = prefs.getString("recents", "")!!.split('|').filter { it.isNotBlank() }
             prefs.edit().putString("recents", (listOf(entry.key) + recent).distinct().take(40).joinToString("|"))
                 .putInt("launches.${entry.key}", prefs.getInt("launches.${entry.key}", 0) + 1).apply()
             close()
-            CoverRotation.apply(context, displayId, rotation)
+            CoverRotation.apply(context, displayId, if (success) rotation else "auto")
         }
         }
     }
@@ -225,13 +225,13 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             keyboard.addView(row)
         }
         val row = LinearLayout(context)
-        listOf("Xóa" to { searchField?.setText(""); Unit }, "Dấu cách" to { searchField?.text?.append(' '); Unit }, "⌫" to { searchField?.text?.let { if (it.isNotEmpty()) it.delete(it.length-1,it.length) }; Unit }, "Xong" to { keyboard.removeAllViews(); Unit }).forEach { (label, action) ->
+        listOf(I18n.text(R.string.ui_delete) to { searchField?.setText(""); Unit }, I18n.text(R.string.ui_space) to { searchField?.text?.append(' '); Unit }, "⌫" to { searchField?.text?.let { if (it.isNotEmpty()) it.delete(it.length-1,it.length) }; Unit }, I18n.text(R.string.ui_done) to { keyboard.removeAllViews(); Unit }).forEach { (label, action) ->
             row.addView(Ui.button(context,label,action).apply { minimumHeight=0; minHeight=0; setPadding(0,0,0,0); textSize=14f; setBackgroundColor(Color.BLACK) }, LayoutParams(0,Ui.dp(context,24),1f))
         }
         keyboard.addView(row)
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w,h,oldw,oldh)
-        if (oldw > 0 && oldw != w) post { renderGrid() }
+        if (oldw != w) post { renderGrid() }
     }
 }

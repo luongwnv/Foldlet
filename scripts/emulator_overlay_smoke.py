@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Test real accessibility overlay windows on the dedicated, empty LIT AVD."""
 import pathlib
+import re
 import subprocess
 import time
 
@@ -26,6 +27,9 @@ for apk in (root / "app/build/outputs/apk/debug/app-debug.apk", root / "app/buil
 
 old_services = command("shell", "settings", "get", "secure", "enabled_accessibility_services")
 old_enabled = command("shell", "settings", "get", "secure", "accessibility_enabled")
+old_usage_text = command("shell", "appops", "get", "vn.lit.screenos", "GET_USAGE_STATS")
+usage_mode = re.search(r"GET_USAGE_STATS:\s*(allow|ignore|deny|default|foreground)", old_usage_text)
+old_usage = usage_mode[1] if usage_mode else "default"
 component = "vn.lit.screenos/vn.lit.screenos.NavigationService"
 services = [] if old_services in ("null", "") else old_services.split(":")
 if component not in services:
@@ -33,6 +37,7 @@ if component not in services:
 out = root / "artifacts" / "overlay"
 out.mkdir(parents=True, exist_ok=True)
 try:
+    command("shell", "appops", "set", "vn.lit.screenos", "GET_USAGE_STATS", "allow")
     # Only this named, empty AVD is changed. Never enable accessibility by ADB on a phone.
     command("shell", "settings", "put", "secure", "enabled_accessibility_services", ":".join(services))
     command("shell", "settings", "put", "secure", "accessibility_enabled", "1")
@@ -73,6 +78,7 @@ try:
         with (out / f"{name}.png").open("wb") as image:
             subprocess.run(adb + ["exec-out", "run-as", "vn.lit.screenos", "cat", f"cache/{name}.png"], stdout=image, check=True, timeout=30)
 finally:
+    command("shell", "appops", "set", "vn.lit.screenos", "GET_USAGE_STATS", old_usage)
     for key, value in (("enabled_accessibility_services", old_services), ("accessibility_enabled", old_enabled)):
         if value == "null":
             command("shell", "settings", "delete", "secure", key)

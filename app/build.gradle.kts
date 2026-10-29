@@ -9,11 +9,19 @@ android {
         applicationId = "vn.lit.screenos"
         minSdk = 30
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.5.4"
+        versionCode = 17
+        versionName = "0.5.6"
         testInstrumentationRunner = "vn.lit.screenos.HardwareSmokeTest"
     }
     buildFeatures { buildConfig = true }
+    buildTypes {
+        getByName("release") {
+            // Keep beta updates compatible with the certificate already installed
+            // on the test phone. The local keystore is never included in Git.
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

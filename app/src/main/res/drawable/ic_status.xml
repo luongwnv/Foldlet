@@ -1,3 +1,4 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="#FFFFFF" android:pathData="M32 32H176L224 80V144H176V80H32Z M32 112H80V176H224V224H80L32 176Z"/>
+        <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M72 24H184Q216 24 216 56V200Q216 232 184 232H72Q40 232 40 200V56Q40 24 72 24Z M72 44H184Q196 44 196 56V200Q196 212 184 212H72Q60 212 60 200V56Q60 44 72 44Z M78 66a10 10 0 1 0 0 20a10 10 0 1 0 0 -20Z M78 102a10 10 0 1 0 0 20a10 10 0 1 0 0 -20Z M66 144H190Q196 144 196 150V150Q196 156 190 156H66Q60 156 60 150V150Q60 144 66 144Z"/>
+        <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M118 68H178Q188 68 188 78V106Q188 116 178 116H118Q108 116 108 106V78Q108 68 118 68Z"/>
 </vector>

@@ -76,7 +76,7 @@ try:
         except (OSError,RuntimeError,json.JSONDecodeError): time.sleep(.2)
     else: raise RuntimeError("ADB helper did not become ready; inspect its device log")
     shell("am","broadcast","-n","vn.lit.screenos/.AdbBridgeReceiver","-a","vn.lit.screenos.SET_ADB_BRIDGE","--ei","port",str(device_port),"--es","token",app_token,*( ["--ez","emulator","true"] if args.emulator else [] ))
-    print("LIT cover rotation is ready over tethered ADB. Keep this process running; Ctrl+C restores rotation.",flush=True)
+    print("Foldlet cover rotation is ready over tethered ADB. Keep this process running; Ctrl+C restores rotation.",flush=True)
     while running:
         try: call("heartbeat")
         except (OSError,RuntimeError,json.JSONDecodeError):

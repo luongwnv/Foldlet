@@ -47,27 +47,27 @@ class DrawerSmokeTest(private val runner: Instrumentation) {
             var commandBar: View? = null
             runOnMainSync {
                 scroller = descendants(activity!!.window.decorView).filterIsInstance<ScrollView>().first()
-                commandBar = descendants(activity!!.window.decorView).first { it.contentDescription?.toString() == "Tìm kiếm" }.parent as View
+                commandBar = descendants(activity!!.window.decorView).first { it.contentDescription?.toString() == I18n.text(R.string.ui_search) }.parent as View
                 scroller!!.scrollTo(0, 140)
             }
             await("scroll down hides toolbar") { scroller!!.scrollY > 0 && commandBar!!.translationY <= -35f }
             capture(activity!!.window, "drawer-scrolled")
             runOnMainSync { scroller!!.scrollTo(0, 0) }
             await("scroll up restores toolbar") { commandBar!!.translationY == 0f }
-            toolbar("Tìm kiếm")
+            toolbar(I18n.text(R.string.ui_search))
             runOnMainSync { descendants(activity!!.window.decorView).filterIsInstance<EditText>().first().setText("cloc") }
             check(names() == listOf(clock)) { "Search did not filter to Clock: ${names()}" }
             capture(activity!!.window, "drawer-search")
             runOnMainSync { descendants(activity!!.window.decorView).filterIsInstance<EditText>().first().setText("___no_such_app___") }
             check(names().isEmpty()) { "An unmatched search still shows apps" }
-            toolbar("Đóng tìm kiếm")
+            toolbar(I18n.text(R.string.ui_close_search))
             check(names().size == initial.size) { "Closing search did not restore app list" }
 
             runOnMainSync { descendants(activity!!.window.decorView).first { it.contentDescription?.toString() == clock }.performLongClick() }
-            toolbar("Yêu thích $clock")
+            toolbar(I18n.text(R.string.ui_favorite, clock))
             check(prefs.getStringSet("favorites", emptySet())!!.size == 1) { "Favorite was not saved" }
-            toolbar("Bỏ chọn")
-            toolbar("Yêu thích")
+            toolbar(I18n.text(R.string.ui_deselect))
+            toolbar(I18n.text(R.string.ui_favorites))
             check(names() == listOf(clock)) { "Favorites filter did not isolate selected app" }
             runOnMainSync {
                 val tile = descendants(activity!!.window.decorView).filterIsInstance<FrameLayout>().first { it.contentDescription?.toString() == clock }
@@ -75,31 +75,32 @@ class DrawerSmokeTest(private val runner: Instrumentation) {
                 check(tile.width == 128 && position[0] == 0) { "Single favorite drifted out of the first grid column: x=${position[0]} width=${tile.width}" }
             }
             capture(activity!!.window, "drawer-favorite")
-            toolbar("Yêu thích")
+            toolbar(I18n.text(R.string.ui_favorites))
 
-            toolbar("Sắp xếp")
+            toolbar(I18n.text(R.string.ui_sort))
             runOnMainSync { descendants(activity!!.window.decorView).filterIsInstance<Button>().first { it.text.toString() == "Z → A" }.performClick() }
             check(names().indexOf(clock) < names().indexOf("Calendar")) { "Z-A sort failed" }
-            toolbar("Sắp xếp")
+            toolbar(I18n.text(R.string.ui_sort))
             runOnMainSync { descendants(activity!!.window.decorView).filterIsInstance<Button>().first { it.text.toString() == "A → Z" }.performClick() }
             check(names().indexOf("Calendar") < names().indexOf(clock)) { "A-Z sort failed" }
 
             runOnMainSync { descendants(activity!!.window.decorView).first { it.contentDescription?.toString() == clock }.performLongClick() }
-            toolbar("Ẩn $clock")
+            toolbar(I18n.text(R.string.ui_hide, clock))
             check(clock !in names()) { "Hidden app remains visible" }
             prefs.edit().remove("hidden").apply()
-            toolbar("Sắp xếp")
+            toolbar(I18n.text(R.string.ui_sort))
             runOnMainSync { descendants(activity!!.window.decorView).filterIsInstance<Button>().first { it.text.toString() == "A → Z" }.performClick() }
 
+            prefs.edit().putString("orientation","portrait").apply()
             runOnMainSync { descendants(activity!!.window.decorView).first { it.contentDescription?.toString() == clock }.performClick() }
-            check(!prefs.getString("recents", "").isNullOrBlank()) { "Successful launch was not added to recent apps" }
+            await("Clock opens even when optional rotation has no ADB helper") { !prefs.getString("recents", "").isNullOrBlank() }
             activity = startActivitySync(Intent(targetContext, CoverActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as CoverActivity
             runOnMainSync { dashboard().openSection("apps") }
-            toolbar("Gần đây")
+            toolbar(I18n.text(R.string.ui_recent_apps))
             check(names() == listOf(clock)) { "Recents did not retain actual launched app" }
             capture(activity!!.window, "drawer-recent")
             check(prefs.getStringSet("favorites", emptySet())!!.size == 1) { "Favorite did not survive activity recreation" }
-            result.putString("stream", "PASS: fixed 4-column grid with 112px icons; square toolbar glyphs; scroll down hides toolbar and scroll up restores it; single favorite stays in column 1; live search/no-results; favorites persist/filter; A-Z/Z-A; hiding; real Clock launch recorded in recents\n")
+            result.putString("stream", "PASS: fixed 4-column grid with 112px icons; square toolbar glyphs; scroll down hides toolbar and scroll up restores it; single favorite stays in column 1; live search/no-results; favorites persist/filter; A-Z/Z-A; hiding; Clock opens with portrait requested and no ADB helper, recorded in recents\n")
         } catch (error: Throwable) {
             code = Activity.RESULT_CANCELED
             result.putString("stream", "FAIL: ${error.stackTraceToString()}\n")
