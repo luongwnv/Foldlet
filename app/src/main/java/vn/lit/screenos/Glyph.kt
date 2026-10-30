@@ -7,7 +7,7 @@ import android.widget.ImageButton
 
 /** Small original vector glyphs, drawn with platform Canvas. */
 class Glyph(private val kind: Kind, private val selected: Boolean = false, private val size: Int = 24) : Drawable() {
-    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT }
+    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT, KEYBOARD }
     override fun draw(canvas: Canvas) {
         val save = canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
@@ -15,6 +15,7 @@ class Glyph(private val kind: Kind, private val selected: Boolean = false, priva
         val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; style = Paint.Style.STROKE; strokeWidth = 2f; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
         fun line(vararg points: Float) { val path = Path(); path.moveTo(points[0], points[1]); for (i in 2 until points.size step 2) path.lineTo(points[i], points[i + 1]); canvas.drawPath(path, p) }
         when (kind) {
+            Kind.KEYBOARD -> { canvas.drawRoundRect(2f,5f,22f,19f,2f,2f,p); for(y in listOf(9f,12f)) for(x in listOf(6f,10f,14f,18f)) canvas.drawPoint(x,y,p); line(8f,16f,16f,16f) }
             Kind.SEARCH -> { canvas.drawCircle(10f, 10f, 6f, p); line(15f, 15f, 21f, 21f) }
             Kind.BACK -> line(14f, 4f, 6f, 12f, 14f, 20f)
             Kind.NAV_BACK -> {

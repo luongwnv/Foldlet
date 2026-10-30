@@ -5,6 +5,7 @@ import android.graphics.*
 import android.provider.Settings
 import android.view.*
 import android.widget.LinearLayout
+import android.widget.TextView
 
 /** Persistent cover windows: dashboard, right-edge gesture strip, navigation rail. */
 class CoverOverlay(
@@ -24,8 +25,9 @@ class CoverOverlay(
             NavigationService.BackResult.UNAVAILABLE -> Unit
         }
     },
+    private val onKeyboard: () -> Unit = {},
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR }
+    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
     private var attached: View? = null
@@ -48,11 +50,20 @@ class CoverOverlay(
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
         val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS
-        val title = if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
+        val title = if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
         val homeEdge = requested == Mode.HOME_EDGE
         val edge = homeEdge || requested == Mode.EDGE
         try {
-            if (requested == Mode.RECENTS) {
+            if(requested == Mode.KEYBOARD) {
+                val target=service.coverInputTarget(displayId) ?: return
+                val input=LinearLayout(dialog.context).apply { orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.BLACK) }
+                val header=LinearLayout(dialog.context).apply { gravity=Gravity.CENTER_VERTICAL }
+                header.addView(Glyph.button(dialog.context,Glyph.Kind.CLOSE,I18n.text(R.string.ui_hide_keyboard),action=onMinimize),LinearLayout.LayoutParams(Ui.dp(dialog.context,40),-1))
+                header.addView(TextView(dialog.context).apply { text="Foldlet";textSize=14f;setTextColor(Color.WHITE) },LinearLayout.LayoutParams(0,-2,1f))
+                input.addView(header,LinearLayout.LayoutParams(-1,Ui.dp(dialog.context,28)))
+                input.addView(CoverKeyboardView(dialog.context,target),LinearLayout.LayoutParams(-1,-2))
+                dialog.setContentView(input)
+            } else if (requested == Mode.RECENTS) {
                 dialog.setContentView(RecentAppsView(dialog.context,displayId,onMinimize))
             } else if (full) {
                 val dashboard = CoverView(dialog.context, window, displayId, onMinimize, onSamsungHome)
@@ -105,8 +116,9 @@ class CoverOverlay(
                 item(Glyph.Kind.GRID, I18n.text(R.string.ui_apps_2)) { onExpand() }
                 item(Glyph.Kind.NAV_RECENT, I18n.text(R.string.ui_recent_apps_across_the_phone)) { onRecents() }
                 item(Glyph.Kind.NAV_HOME, I18n.text(R.string.ui_return_to_samsung_home)) { onSamsungHome() }
+                if(Platform.preferences(service).getBoolean("force_cover_keyboard",false)) item(Glyph.Kind.KEYBOARD,I18n.text(R.string.ui_open_keyboard),onKeyboard)
                 item(Glyph.Kind.CLOSE, I18n.text(R.string.ui_hide_navigation)) { onMinimize() }
-                rail.getChildAt(4).setOnLongClickListener { onYieldToStock(); true }
+                rail.getChildAt(rail.childCount-1).setOnLongClickListener { onYieldToStock(); true }
                 dialog.setContentView(rail)
             }
             dialog.setCancelable(false)
@@ -115,7 +127,7 @@ class CoverOverlay(
             window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
             if (!full) window.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
-            if (requested == Mode.SIDEBAR) window.addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH)
+            if (requested == Mode.SIDEBAR || requested==Mode.KEYBOARD) window.addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH)
             @Suppress("DEPRECATION")
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
             window.setDecorFitsSystemWindows(false)
@@ -123,9 +135,9 @@ class CoverOverlay(
                 setTitle(title)
                 type = if (preferApplicationWindow) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
                 format = PixelFormat.TRANSLUCENT
-                width = if (full) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE) 18 else 48)
-                height = WindowManager.LayoutParams.MATCH_PARENT
-                gravity = Gravity.TOP or if (full) Gravity.LEFT else Gravity.RIGHT
+                width = if (full || requested==Mode.KEYBOARD) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE) 18 else 48)
+                height = if(requested==Mode.KEYBOARD) Ui.dp(a11yContext,164) else WindowManager.LayoutParams.MATCH_PARENT
+                gravity = if(requested==Mode.KEYBOARD) Gravity.BOTTOM or Gravity.LEFT else Gravity.TOP or if (full) Gravity.LEFT else Gravity.RIGHT
                 x = 0; y = 0
                 setFitInsetsTypes(0)
             }
@@ -139,7 +151,7 @@ class CoverOverlay(
                     return dialog.dispatchKeyEvent(event)
                 }
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-                    if (requested == Mode.SIDEBAR && event.action == MotionEvent.ACTION_OUTSIDE) { onMinimize(); return true }
+                    if ((requested == Mode.SIDEBAR || requested==Mode.KEYBOARD) && event.action == MotionEvent.ACTION_OUTSIDE) { onMinimize(); return true }
                     return dialog.dispatchTouchEvent(event)
                 }
             }
@@ -170,5 +182,6 @@ class CoverOverlay(
         const val EDGE_TITLE = "Foldlet · right edge"
         const val NAVIGATION_TITLE = "Foldlet · right navigation"
         const val RECENTS_TITLE = "Foldlet · recent applications"
+        const val KEYBOARD_TITLE = "Foldlet · cover keyboard"
     }
 }

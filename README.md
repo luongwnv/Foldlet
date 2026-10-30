@@ -1,10 +1,10 @@
-<p align="center"><img src="design/foldlet/exports/foldlet-app-icon-512.png" width="96" alt="Foldlet"></p>
+<p align="center"><img src="docs/images/app-icon.png" width="96" alt="Foldlet"></p>
 
 # Foldlet
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.5.6](https://github.com/luongwnv/Foldlet/releases/download/v0.5.6/Foldlet-0.5.6.apk)** · **0.5.6 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.6.0](https://github.com/luongwnv/Foldlet/releases/download/v0.6.0/Foldlet-0.6.0.apk)** · **0.6.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
 ## Screenshots
 
@@ -22,16 +22,17 @@ Actual captures of the native Android interface running on a dedicated test emul
 ## Features
 
 - Large icons, 4–6 columns, search, favorites, sorting, and hidden apps.
-- A toolbar that hides when scrolling down, with optional app labels.
+- A toolbar with adjustable size, top/left/right/bottom placement, and a hide option. It also hides when scrolling down.
 - Tap the right edge of the **Samsung clock page** to open the drawer. Samsung’s widget pages keep their normal touch controls.
 - Back, app drawer, Recent apps, and Samsung Home navigation while using an app on the cover screen.
 - Recent apps from across your phone, including apps opened on the inner screen.
 - English and Vietnamese following your system language; other languages fall back to English.
+- An optional cover keyboard for text fields in other apps, with offline swipe typing (Beta).
 - Optional portrait and landscape rotation through a USB connection to your computer.
 
 ## Getting started
 
-1. Download **Foldlet-0.5.6.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.6.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -62,13 +63,28 @@ Long-press **Hide** to give Samsung control until the next screen wake.
 
 ### Recent apps and Close all
 
+![Foldlet Recent apps on the cover screen](docs/images/recents.png)
+
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
 **Close all** clears the cards from Foldlet. An app appears again after you use it. This does not force-stop apps or remove tasks from Android’s system Recents.
 
 ### Customization
 
-Open **Settings** to choose the column count, app labels, sorting, filters, and launch orientation. The preview uses the actual drawer and your installed app icons to reflect your selected layout.
+Open **Settings** to choose the column count, app labels, sorting, filters, and launch orientation. Under **Toolbar**, select **Top**, **Left**, **Right**, or **Bottom**, choose a size from 28 to 56 dp, or turn off **Show toolbar**. Search temporarily uses a horizontal bar so the input field remains readable. Long-pressing an app still shows its actions when the normal toolbar is hidden.
+
+The preview uses the actual drawer and your installed app icons to reflect your selected layout.
+
+### Cover keyboard and swipe typing
+
+![Foldlet keyboard typing in another app on the test emulator](docs/images/keyboard.png)
+
+- **Drawer search:** tap Search to use Foldlet’s compact keyboard. Use Done to hide it while keeping your results visible.
+- **Other apps:** on Android 13 or newer, enable **Force cover keyboard** in Settings. Tap a text field on the cover screen to show the keyboard. An extra keyboard button in the navigation bar can reopen it. The close button hides it until another input session starts.
+- **Swipe typing (Beta):** enable it in Settings, then slide across letters. Foldlet enters the best match and offers alternatives you can tap to correct the word. The vocabulary contains basic English/Vietnamese words and, in drawer search, installed app names. It is an experimental offline recognizer with a limited vocabulary.
+- Tap **123** for symbols, Shift for capitals, or hold a vowel for accented characters. Hold Backspace to keep deleting.
+
+The cover keyboard writes only to the active cover-screen editor. It closes when the editor changes, the phone locks, or the screen turns off. Password fields use tap input without swipe suggestions. Some apps do not expose a compatible input connection; tap the field again or use that app’s own input controls in those cases.
 
 ## Permissions
 
@@ -77,12 +93,12 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 | Permission | Purpose |
 | --- | --- |
 | Display over other apps | Show the drawer and navigation bar on the cover screen |
-| Accessibility | Distinguish Samsung’s clock and widget pages, and handle Back when you press it |
+| Accessibility | Distinguish Samsung’s clock and widget pages, handle Back, and send keyboard input to the focused cover-screen editor when enabled |
 | Usage access (Optional) | Show Recent apps and help identify an app’s launcher page when handling Back |
 | Notifications (Optional) | Show the service status and Stop button |
 | Notification access (Optional) | Support notification and media features when used |
 
-Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet does not read text-field contents or save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
+Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
 
 ## Optional USB rotation
 

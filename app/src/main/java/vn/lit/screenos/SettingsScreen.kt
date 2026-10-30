@@ -139,6 +139,37 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         val hidden=prefs.getStringSet("hidden",emptySet())!!.size
         menu.addView(SettingsUi.row(c,SettingsGlyph.Kind.EYE,I18n.text(R.string.ui_hidden_apps),if(hidden==0) I18n.text(R.string.ui_no_hidden_apps) else I18n.text(R.string.ui_apps, hidden),SettingsUi.pill(c,hidden.toString())) { hiddenApps() })
         content.addView(menu)
+        content.addView(SettingsUi.section(c,I18n.text(R.string.ui_toolbar)))
+        val toolbar=SettingsUi.card(c)
+        toolbar.addView(SettingsUi.row(c,SettingsGlyph.Kind.EYE,I18n.text(R.string.ui_toolbar_visible),I18n.text(R.string.ui_toolbar_visible_help),SettingsUi.toggle(c,prefs.getBoolean("toolbar_visible",true),I18n.text(R.string.ui_toolbar_visible)) {
+            prefs.edit().putBoolean("toolbar_visible",it).apply(); refreshDrawer(); render()
+        }.apply { tag="toolbar-visible-switch" }))
+        toolbar.addView(SettingsUi.divider(c))
+        val positions=listOf("top","left","right","bottom")
+        val positionLabels=listOf(R.string.ui_top,R.string.ui_left,R.string.ui_right,R.string.ui_bottom).map { I18n.text(it) }
+        val position=positions.indexOf(prefs.getString("toolbar_position","top")).coerceAtLeast(0)
+        toolbar.addView(SettingsUi.row(c,SettingsGlyph.Kind.SWIPE,I18n.text(R.string.ui_toolbar_position),null,value(positionLabels[position])) {
+            choices(I18n.text(R.string.ui_toolbar_position),positionLabels,position) { prefs.edit().putString("toolbar_position",positions[it]).apply(); refreshDrawer(); render() }
+        }.apply { tag="row-toolbar-position" })
+        toolbar.addView(SettingsUi.divider(c))
+        val sizes=listOf(28,36,44,56)
+        val sizeLabels=listOf(R.string.ui_small,R.string.ui_medium,R.string.ui_large,R.string.ui_extra_large).mapIndexed { i,id -> "${I18n.text(id)} (${sizes[i]} dp)" }
+        val sizeIndex=sizes.indexOf(prefs.getInt("toolbar_size",36)).coerceAtLeast(0)
+        toolbar.addView(SettingsUi.row(c,SettingsGlyph.Kind.GRID,I18n.text(R.string.ui_toolbar_size),null,value(sizeLabels[sizeIndex])) {
+            choices(I18n.text(R.string.ui_toolbar_size),sizeLabels,sizeIndex) { prefs.edit().putInt("toolbar_size",sizes[it]).apply(); refreshDrawer(); render() }
+        }.apply { tag="row-toolbar-size" })
+        content.addView(toolbar)
+        content.addView(SettingsUi.section(c,I18n.text(R.string.ui_keyboard)))
+        val input=SettingsUi.card(c)
+        input.addView(SettingsUi.row(c,SettingsGlyph.Kind.KEYBOARD,I18n.text(R.string.ui_force_keyboard),I18n.text(if(Build.VERSION.SDK_INT>=33) R.string.ui_force_keyboard_help else R.string.ui_keyboard_android13),SettingsUi.toggle(c,Build.VERSION.SDK_INT>=33 && prefs.getBoolean("force_cover_keyboard",false),I18n.text(R.string.ui_force_keyboard)) {
+            prefs.edit().putBoolean("force_cover_keyboard",it).apply(); CoverMonitorService.current?.schedule()
+        }.apply { isEnabled=Build.VERSION.SDK_INT>=33; tag="force-keyboard-switch" }))
+        input.addView(SettingsUi.divider(c))
+        input.addView(SettingsUi.row(c,SettingsGlyph.Kind.SWIPE,I18n.text(R.string.ui_swipe_typing),I18n.text(R.string.ui_swipe_typing_help),SettingsUi.toggle(c,prefs.getBoolean("swipe_typing",false),I18n.text(R.string.ui_swipe_typing)) {
+            prefs.edit().putBoolean("swipe_typing",it).apply(); refreshDrawer(); CoverMonitorService.current?.reloadKeyboard()
+        }.apply { tag="swipe-typing-switch" }))
+        input.addView(SettingsUi.text(c,I18n.text(R.string.ui_keyboard_words_note),12f,SettingsUi.muted).apply { setPadding(SettingsUi.dp(c,16),0,SettingsUi.dp(c,16),SettingsUi.dp(c,16)) })
+        content.addView(input)
         content.addView(SettingsUi.row(c,SettingsGlyph.Kind.USB,I18n.text(R.string.ui_set_up_usb_rotation),if(CoverRotation.available) I18n.text(R.string.ui_connected_to_a_computer) else I18n.text(R.string.ui_view_adb_connection_instructions)) { c.startActivity(Intent(c,RotationSetupActivity::class.java)) }.apply { tag="row-adb" })
     }
     private fun value(label: String) = LinearLayout(c).apply {
@@ -151,7 +182,7 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         AlertDialog.Builder(c).setTitle(title).setSingleChoiceItems(labels.toTypedArray(),selected) { dialog,which -> dialog.dismiss(); choose(which) }.setNegativeButton(I18n.text(R.string.ui_close),null).show()
     }
     private fun refreshDrawer() {
-        CoverMonitorService.current?.let { if(it.overlay?.mode==CoverOverlay.Mode.DASHBOARD) it.openDrawer(prefs.getString("app_mode","all") ?: "all") }
+        CoverMonitorService.current?.reloadDrawer()
     }
     private fun hiddenApps() {
         val hidden=prefs.getStringSet("hidden",emptySet())!!.toList().sorted()
@@ -164,7 +195,7 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
     private fun information(content: LinearLayout) {
         title(content,I18n.text(R.string.ui_about),"Foldlet · ${BuildConfig.VERSION_NAME}")
         val about=SettingsUi.card(c).apply { gravity=Gravity.CENTER_HORIZONTAL; setPadding(SettingsUi.dp(c,20),SettingsUi.dp(c,24),SettingsUi.dp(c,20),SettingsUi.dp(c,24)) }
-        about.addView(logo(64)); about.addView(SettingsUi.text(c,I18n.text(R.string.ui_made_for_the_small_screen),20f,SettingsUi.ink,true),LinearLayout.LayoutParams(-2,-2).apply { topMargin=SettingsUi.dp(c,16) })
+        about.addView(logo(64)); about.addView(SettingsUi.text(c,I18n.text(R.string.app_name),20f,SettingsUi.ink,true),LinearLayout.LayoutParams(-2,-2).apply { topMargin=SettingsUi.dp(c,16) })
         about.addView(SettingsUi.text(c,I18n.text(R.string.ui_open_apps_on_the_cover_screen_alongside),14f,SettingsUi.muted).apply { gravity=Gravity.CENTER; setLineSpacing(SettingsUi.dp(c,3).toFloat(),1f) },LinearLayout.LayoutParams(-1,-2).apply { topMargin=SettingsUi.dp(c,10) })
         content.addView(about)
         content.addView(SettingsUi.section(c,I18n.text(R.string.ui_device_connection)))
@@ -196,7 +227,7 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
             help.addView(SettingsUi.row(c,SettingsGlyph.Kind.PHONE,I18n.text(R.string.ui_emulate_the_cover_screen),I18n.text(R.string.ui_only_for_the_dedicated_foldlet_emulator),SettingsUi.toggle(c,Platform.isEmulatorOverlay(c),I18n.text(R.string.ui_emulate_the_cover_screen)) { checked -> prefs.edit().putBoolean("emulator_overlay",checked).apply(); if(CoverMonitorService.running) CoverMonitorService.current?.schedule(); render() }))
         }
         content.addView(help)
-        content.addView(SettingsUi.text(c,"LIT / LABS  ·  ${BuildConfig.VERSION_NAME}",12f,SettingsUi.muted).apply { gravity=Gravity.CENTER; setPadding(0,SettingsUi.dp(c,12),0,SettingsUi.dp(c,16)) })
+        content.addView(SettingsUi.text(c,"luongwnv - ${BuildConfig.VERSION_NAME}",12f,SettingsUi.muted).apply { gravity=Gravity.CENTER; setPadding(0,SettingsUi.dp(c,12),0,SettingsUi.dp(c,16)) })
     }
     private fun gestureGuide() {
         AlertDialog.Builder(c).setTitle(I18n.text(R.string.ui_cover_screen_gestures))

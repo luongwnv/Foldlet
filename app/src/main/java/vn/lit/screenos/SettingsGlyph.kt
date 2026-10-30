@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 
 /** Original settings pictograms; the cover toolbar keeps its own white glyphs. */
 class SettingsGlyph(private val kind: Kind, private val tint: Int, private val pixels: Int) : Drawable() {
-    enum class Kind { HOME, SETTINGS, INFO, PHONE, OVERLAY, ACCESS, BELL, GRID, ROTATE, SORT, FILTER, LABEL, EYE, SWIPE, USB, CHECK, NEXT, POWER, PLAY, BACK, COPY }
+    enum class Kind { HOME, SETTINGS, INFO, PHONE, OVERLAY, ACCESS, BELL, GRID, ROTATE, SORT, FILTER, LABEL, EYE, SWIPE, USB, CHECK, NEXT, POWER, PLAY, BACK, COPY, KEYBOARD }
     override fun draw(canvas: Canvas) {
         val save = canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
@@ -13,6 +13,7 @@ class SettingsGlyph(private val kind: Kind, private val tint: Int, private val p
         val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = tint; style = Paint.Style.STROKE; strokeWidth = 1.8f; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
         fun line(vararg xy: Float) { val path = Path().apply { moveTo(xy[0],xy[1]); for (i in 2 until xy.size step 2) lineTo(xy[i],xy[i+1]) }; canvas.drawPath(path,p) }
         when(kind) {
+            Kind.KEYBOARD -> { canvas.drawRoundRect(2f,5f,22f,19f,2f,2f,p); for(y in listOf(9f,12f)) for(x in listOf(6f,10f,14f,18f)) canvas.drawPoint(x,y,p); line(8f,16f,16f,16f) }
             Kind.HOME -> { line(3f,11f,12f,3f,21f,11f); line(6f,10f,6f,21f,10f,21f,10f,15f,14f,15f,14f,21f,18f,21f,18f,10f) }
             Kind.SETTINGS -> {
                 canvas.drawPath(gearOutline,p)

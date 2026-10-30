@@ -8,6 +8,7 @@ import android.view.*
 import android.widget.*
 import java.text.Normalizer
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /** Compact icon drawer following the reference's five-command toolbar structure. */
 class AppDrawerView(context: Context, private val displayId: Int, private val close: () -> Unit) : LinearLayout(context) {
@@ -25,7 +26,11 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
     private var searching = false
     private var query = ""
     private var searchField: EditText? = null
-    private val toolbarHeight = Ui.dp(context, 36)
+    private val toolbarSize = prefs.getInt("toolbar_size",36).coerceIn(28,56)
+    private val toolbarHeight get() = Ui.dp(context,if(searching) maxOf(toolbarSize,36) else toolbarSize)
+    private val toolbarPosition get() = if(searching) "top" else prefs.getString("toolbar_position","top") ?: "top"
+    private val verticalToolbar get() = toolbarPosition == "left" || toolbarPosition == "right"
+    private val toolbarEnabled get() = searching || selected != null || prefs.getBoolean("toolbar_visible",true)
     private var toolbarShown = true
 
     init {
@@ -35,26 +40,48 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         toolbar.setBackgroundColor(Color.BLACK)
         browser.addView(toolbar, FrameLayout.LayoutParams(-1, toolbarHeight, Gravity.TOP))
         addView(keyboard, LayoutParams(-1, -2))
+        browser.addOnLayoutChangeListener { _,_,top,_,bottom,_,oldTop,_,oldBottom ->
+            if(searching && bottom-top!=oldBottom-oldTop) post { renderGrid() }
+        }
         renderToolbar(); renderGrid()
     }
 
     private fun command(kind: Glyph.Kind, label: String, selected: Boolean = false, action: () -> Unit) {
-        toolbar.addView(Glyph.button(context, kind, label, selected, action), LayoutParams(0, -1, 1f))
+        toolbar.addView(Glyph.button(context, kind, label, selected, action).apply {
+            setImageDrawable(Glyph(kind,selected,Ui.dp(context,(toolbarSize*.72f).roundToInt())))
+        },if(verticalToolbar) LayoutParams(-1,0,1f) else LayoutParams(0,-1,1f))
     }
+    private fun configureToolbar() {
+        toolbar.orientation=if(verticalToolbar) VERTICAL else HORIZONTAL
+        toolbar.layoutParams=FrameLayout.LayoutParams(if(verticalToolbar) toolbarHeight else -1,if(verticalToolbar) -1 else toolbarHeight,
+            when(toolbarPosition) { "left" -> Gravity.LEFT; "right" -> Gravity.RIGHT; "bottom" -> Gravity.BOTTOM; else -> Gravity.TOP })
+        toolbar.visibility=if(toolbarEnabled) VISIBLE else GONE
+    }
+    private fun insets() = intArrayOf(
+        if(toolbarEnabled && toolbarPosition=="left") toolbarHeight else 0,
+        if(toolbarEnabled && toolbarPosition=="top") toolbarHeight else 0,
+        if(toolbarEnabled && toolbarPosition=="right") toolbarHeight else 0,
+        if(toolbarEnabled && toolbarPosition=="bottom") toolbarHeight else 0)
     private fun showToolbar(show: Boolean, animate: Boolean = true) {
+        if(!toolbarEnabled) { toolbar.visibility=GONE; return }
+        toolbar.visibility=VISIBLE
         if (toolbarShown == show && animate) return
         toolbarShown = show
         toolbar.animate().cancel()
         toolbar.importantForAccessibility = if (show) IMPORTANT_FOR_ACCESSIBILITY_AUTO else IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        val target = if (show) 0f else -toolbarHeight.toFloat()
-        if (animate) toolbar.animate().translationY(target).setDuration(140).start() else toolbar.translationY = target
+        val distance=if(show) 0f else toolbarHeight.toFloat()
+        val x=when(toolbarPosition) { "left" -> -distance; "right" -> distance; else -> 0f }
+        val y=when(toolbarPosition) { "bottom" -> distance; "top" -> -distance; else -> 0f }
+        if (animate) toolbar.animate().translationX(x).translationY(y).setDuration(140).start()
+        else { toolbar.translationX=x; toolbar.translationY=y }
     }
     private fun renderToolbar() {
+        configureToolbar()
         showToolbar(true, false)
         toolbar.removeAllViews(); keyboard.removeAllViews()
         val selection = selected
         if (selection != null) {
-            command(Glyph.Kind.BACK, I18n.text(R.string.ui_deselect)) { selected = null; renderToolbar() }
+            command(Glyph.Kind.BACK, I18n.text(R.string.ui_deselect)) { selected = null; renderToolbar(); renderGrid() }
             command(Glyph.Kind.HIDE, I18n.text(R.string.ui_hide, selection.name)) {
                 prefs.edit().putStringSet("hidden", prefs.getStringSet("hidden", emptySet())!!.plus(selection.key)).apply()
                 selected = null; renderToolbar(); renderGrid()
@@ -75,6 +102,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
                 textSize = 17f; isSingleLine = true; minimumHeight = 0
                 setPadding(0, 0, 0, 0); setBackgroundColor(Color.TRANSPARENT)
                 showSoftInputOnFocus = false
+                if(android.os.Build.VERSION.SDK_INT>=33) setAutoHandwritingEnabled(false)
                 setOnClickListener { if (keyboard.childCount == 0) buildKeyboard() }
                 setText(query); setSelection(text.length)
                 addTextChangedListener(object : TextWatcher {
@@ -107,7 +135,8 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             column.addView(Ui.button(context, name, action).apply { setBackgroundColor(Color.BLACK) }, LayoutParams(-1, Ui.dp(context, 42)))
         }
         column.addView(Ui.button(context, I18n.text(R.string.ui_back)) { renderGrid() }.apply { setBackgroundColor(Color.BLACK) }, LayoutParams(-1, Ui.dp(context, 42)))
-        contents.addView(Ui.scroll(context, column), FrameLayout.LayoutParams(-1, -1).apply { topMargin = toolbarHeight })
+        val edge=insets()
+        contents.addView(Ui.scroll(context,column),FrameLayout.LayoutParams(-1,-1).apply { setMargins(edge[0],edge[1],edge[2],edge[3]) })
     }
     private fun orient(value: String, entry: Entry? = null) {
         if (!Platform.unlocked(context)) return
@@ -129,7 +158,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         val custom = prefs.getString("custom_order", "")!!.split('|')
         val mode = prefs.getString("app_mode", "all")
         val sort = prefs.getString("app_sort", "az")
-        val visible = entries.filter { it.key !in hidden && (mode != "favorite" || it.key in favorites) && (mode != "recent" || it.key in recent) && normalized(it.name).contains(normalized(query)) }
+        val visible = entries.filter { it.key !in hidden && (mode != "favorite" || it.key in favorites) && (mode != "recent" || it.key in recent) && normalized(it.name).contains(normalized(query).trim()) }
             .sortedWith { a, b ->
                 val order = when {
                     mode == "recent" -> recent.indexOf(a.key).compareTo(recent.indexOf(b.key))
@@ -140,11 +169,13 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
                 }
                 if (order != 0) order else normalized(a.name).compareTo(normalized(b.name))
             }
-        val availableWidth = width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
+        val edge=insets()
+        val availableWidth = ((width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels)-edge[0]-edge[2]).coerceAtLeast(Ui.dp(context,72))
         val widthDp = (availableWidth / resources.displayMetrics.density).toInt()
         val columns = prefs.getInt("columns", 4).coerceIn(4,6).coerceAtMost((widthDp / 72).coerceAtLeast(2))
         val cellWidth = availableWidth / columns
-        val iconSize = minOf(Ui.dp(context,112), cellWidth - Ui.dp(context,16)).coerceAtLeast(Ui.dp(context,32))
+        val searchLimit=if(searching && keyboard.childCount>0 && browser.height>0) (browser.height-toolbarHeight-Ui.dp(context,16)).coerceAtLeast(Ui.dp(context,40)) else Ui.dp(context,112)
+        val iconSize = minOf(searchLimit,cellWidth-Ui.dp(context,16)).coerceAtLeast(Ui.dp(context,32))
         val showNames = prefs.getBoolean("show_names",false)
         val cellHeight = iconSize + Ui.dp(context,if(showNames) 40 else 16)
         val grid = GridLayout(context).apply { columnCount = columns; useDefaultMargins = false; alignmentMode = GridLayout.ALIGN_BOUNDS }
@@ -186,10 +217,10 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
                 rowSpec = GridLayout.spec(index / columns, GridLayout.TOP)
             })
         }
-        if (visible.isEmpty()) contents.addView(Ui.text(context, I18n.text(R.string.ui_no_apps), 17f, Ui.muted), FrameLayout.LayoutParams(-1, -2).apply { topMargin = toolbarHeight })
+        if (visible.isEmpty()) contents.addView(Ui.text(context, I18n.text(R.string.ui_no_apps), 17f, Ui.muted), FrameLayout.LayoutParams(-1,-2).apply { setMargins(edge[0],edge[1],edge[2],edge[3]) })
         else {
             val list = FrameLayout(context).apply {
-                setPadding(0, toolbarHeight, 0, 0)
+                setPadding(edge[0],edge[1],edge[2],edge[3])
                 addView(grid, FrameLayout.LayoutParams(-1, -2))
             }
             val scroller = Ui.scroll(context, list).apply {
@@ -219,16 +250,46 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         }
     }
     private fun buildKeyboard() {
-        listOf("QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM").forEach { letters ->
-            val row = LinearLayout(context)
-            letters.forEach { letter -> row.addView(Ui.button(context, letter.toString()) { searchField?.text?.append(letter.lowercaseChar()) }.apply { minimumHeight=0; minHeight=0; setPadding(0,0,0,0); textSize=14f; setBackgroundColor(Color.BLACK) }, LayoutParams(0,Ui.dp(context,24),1f)) }
-            keyboard.addView(row)
+        val field=searchField ?: return
+        keyboard.removeAllViews()
+        val target=object: CoverInputTarget {
+            var anchor=-1
+            var committed=""
+            fun valid()=isAttachedToWindow && searchField===field && Platform.unlocked(context)
+            fun insert(value: String): Boolean {
+                if(!valid()) return false
+                val start=minOf(field.selectionStart,field.selectionEnd).coerceAtLeast(0)
+                val end=maxOf(field.selectionStart,field.selectionEnd).coerceAtLeast(start)
+                field.text.replace(start,end,value);field.setSelection(start+value.length)
+                return true
+            }
+            override fun text(value: String): Boolean { anchor=-1;return insert(value) }
+            override fun backspace(): Boolean {
+                if(!valid()) return false
+                anchor=-1
+                val start=minOf(field.selectionStart,field.selectionEnd).coerceAtLeast(0)
+                val end=maxOf(field.selectionStart,field.selectionEnd).coerceAtLeast(start)
+                if(start!=end) field.text.delete(start,end)
+                else if(start>0) field.text.delete(Character.offsetByCodePoints(field.text,start,-1),start)
+                return true
+            }
+            override fun word(value: String): Boolean {
+                if(!valid()) return false
+                val start=minOf(field.selectionStart,field.selectionEnd).coerceAtLeast(0)
+                committed=value+" "
+                if(!insert(committed)) return false
+                anchor=start;return true
+            }
+            override fun replaceWord(previous: String,replacement: String): Boolean {
+                if(!valid() || anchor<0 || field.selectionStart!=anchor+committed.length || field.selectionEnd!=field.selectionStart || anchor+committed.length>field.text.length || field.text.subSequence(anchor,anchor+committed.length).toString()!=committed) return false
+                val value=replacement+" "
+                field.text.replace(anchor,anchor+committed.length,value);field.setSelection(anchor+value.length);committed=value
+                return true
+            }
+            override fun action(): Boolean { keyboard.removeAllViews();renderGrid();return true }
         }
-        val row = LinearLayout(context)
-        listOf(I18n.text(R.string.ui_delete) to { searchField?.setText(""); Unit }, I18n.text(R.string.ui_space) to { searchField?.text?.append(' '); Unit }, "⌫" to { searchField?.text?.let { if (it.isNotEmpty()) it.delete(it.length-1,it.length) }; Unit }, I18n.text(R.string.ui_done) to { keyboard.removeAllViews(); Unit }).forEach { (label, action) ->
-            row.addView(Ui.button(context,label,action).apply { minimumHeight=0; minHeight=0; setPadding(0,0,0,0); textSize=14f; setBackgroundColor(Color.BLACK) }, LayoutParams(0,Ui.dp(context,24),1f))
-        }
-        keyboard.addView(row)
+        keyboard.addView(CoverKeyboardView(context,target,entries.map { it.name },I18n.text(R.string.ui_done)),LayoutParams(-1,-2))
+        field.post { if(field.isAttachedToWindow && field.hasFocus()) context.getSystemService(android.view.inputmethod.InputMethodManager::class.java).hideSoftInputFromWindow(field.windowToken,0) }
     }
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w,h,oldw,oldh)

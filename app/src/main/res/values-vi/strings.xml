@@ -5,7 +5,7 @@
     <string name="ui_running">đang chạy</string>
     <string name="ui_stopped">đã dừng</string>
     <string name="accessibility_service_label">Foldlet · Điều khiển màn hình ngoài</string>
-    <string name="accessibility_description">Hiển thị menu Foldlet và thanh điều hướng trên màn hình ngoài. Nhận biết trang đồng hồ Samsung để giữ vùng chạm ngoài các widget. Khi bạn nhấn Back, gửi phím Quay lại tới app đang mở hoặc tìm nút điều hướng của app. Không đọc nội dung ô nhập liệu, không lưu nội dung màn hình và không tự bật quyền. Dừng hoàn toàn trong Foldlet hoặc thông báo thường trực.</string>
+    <string name="accessibility_description">Hiển thị Foldlet trên màn hình ngoài, phân biệt trang đồng hồ Samsung với widget. Thực hiện Back và gửi phím tới ô nhập đang có focus trên màn hình ngoài khi bạn bật bàn phím. Không đọc hoặc lưu nội dung ô nhập của app khác hay nội dung màn hình. Dừng dịch vụ trong Foldlet hoặc thông báo.</string>
     <string name="ui_unlock_to_continue">Mở khóa để tiếp tục</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Dùng vân tay hoặc mở khóa điện thoại.</string>
     <string name="ui_unlock">Mở khóa</string>
@@ -153,8 +153,7 @@
     <string name="ui_got_it">Đã hiểu</string>
     <string name="ui_choose_apps_to_hide">Chọn ứng dụng cần ẩn</string>
     <string name="ui_save">Lưu</string>
-    <string name="ui_made_for_the_small_screen">Dành cho màn hình nhỏ</string>
-    <string name="ui_open_apps_on_the_cover_screen_alongside">Mở ứng dụng trên màn hình ngoài, đồng hành cùng giao diện Samsung.</string>
+    <string name="ui_open_apps_on_the_cover_screen_alongside">Mở app trên màn hình ngoài.</string>
     <string name="ui_device_connection">THIẾT BỊ &amp; KẾT NỐI</string>
     <string name="ui_cover_screen_3">Màn hình ngoài</string>
     <string name="ui_adb_rotation_connection">Kết nối xoay ADB</string>
@@ -204,4 +203,35 @@
     <plurals name="days_ago">
         <item quantity="other">%d ngày trước</item>
     </plurals>
+    <string name="ui_toolbar">Thanh công cụ</string>
+    <string name="ui_toolbar_position">Vị trí thanh công cụ</string>
+    <string name="ui_toolbar_size">Kích thước thanh công cụ</string>
+    <string name="ui_toolbar_visible">Hiện thanh công cụ</string>
+    <string name="ui_toolbar_visible_help">Ẩn thanh công cụ, giữ nguyên bố cục danh sách app</string>
+    <string name="ui_top">Trên</string>
+    <string name="ui_bottom">Dưới</string>
+    <string name="ui_left">Trái</string>
+    <string name="ui_right">Phải</string>
+    <string name="ui_small">Nhỏ</string>
+    <string name="ui_medium">Vừa</string>
+    <string name="ui_large">Lớn</string>
+    <string name="ui_extra_large">Rất lớn</string>
+    <string name="ui_keyboard">Bàn phím</string>
+    <string name="ui_force_keyboard">Force bàn phím màn ngoài</string>
+    <string name="ui_force_keyboard_help">Hiện bàn phím Foldlet khi chạm vào ô nhập trên màn hình ngoài</string>
+    <string name="ui_keyboard_android13">Cần Android 13 trở lên</string>
+    <string name="ui_swipe_typing">Gõ trượt (Beta)</string>
+    <string name="ui_swipe_typing_help">Trượt qua các chữ cái; chọn gợi ý khác để sửa từ</string>
+    <string name="ui_open_keyboard">Mở bàn phím màn ngoài</string>
+    <string name="ui_hide_keyboard">Ẩn bàn phím</string>
+    <string name="ui_keyboard_focus">Chạm vào ô nhập trên màn hình ngoài trước</string>
+    <string name="ui_keyboard_unavailable">Ô nhập không còn hoạt động trên màn hình ngoài</string>
+    <string name="ui_keyboard_private">Ô nhập riêng tư</string>
+    <string name="ui_keyboard_swipe_hint">Trượt qua các chữ cái</string>
+    <string name="ui_keyboard_tap_hint">Chạm để gõ</string>
+    <string name="ui_enter">Nhập</string>
+    <string name="ui_shift">Viết hoa</string>
+    <string name="ui_symbols">Ký hiệu</string>
+    <string name="ui_letters">Chữ cái</string>
+    <string name="ui_keyboard_words_note">Từ vựng Việt và Anh dùng offline, gồm tên app đã cài. Nhận diện gõ trượt đang ở giai đoạn thử nghiệm.</string>
 </resources>
