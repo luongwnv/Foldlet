@@ -7,7 +7,6 @@ import android.content.res.ColorStateList
 import android.os.*
 import android.view.*
 import android.widget.ImageView
-import android.widget.ImageButton
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 
@@ -35,7 +34,7 @@ class RecentClosingSurface private constructor(private val service: NavigationSe
         readyCallback=done;failedCallback=failed
         if(ready) { readyCallback=null;failedCallback=null;done() }
     }
-    private fun attach(source: View,loadingButton: ImageButton?) {
+    private fun attach(source: View,loadingButton: View?) {
         require(source.width>0 && source.height>0 && source.isAttachedToWindow)
         val bitmap=Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888)
         val loadingBounds=Rect()
@@ -43,8 +42,8 @@ class RecentClosingSurface private constructor(private val service: NavigationSe
             val origin=IntArray(2);source.getLocationOnScreen(origin)
             loadingBounds.offset(-origin[0],-origin[1])
         }
-        // The caller removes the pending button's glyph before rendering. A
-        // separate animated ProgressBar replaces it instead of covering an X.
+        // The caller removes the pending action's glyph or label before rendering.
+        // A separate animated ProgressBar replaces either X or Close all.
         source.draw(Canvas(bitmap)) // Own views only; no capture of other apps.
         val context=ContextThemeWrapper(service.createDisplayContext(display),R.style.CoverTheme)
         val view=ImageView(context).apply {
@@ -62,7 +61,7 @@ class RecentClosingSurface private constructor(private val service: NavigationSe
                 val size=minOf(Ui.dp(context,24),loadingBounds.width(),loadingBounds.height())
                 addView(ProgressBar(context,null,android.R.attr.progressBarStyleSmall).apply {
                     isIndeterminate=true;indeterminateTintList=ColorStateList.valueOf(android.graphics.Color.WHITE)
-                    contentDescription=I18n.text(R.string.ui_closing_app)
+                    contentDescription=loadingButton?.stateDescription ?: I18n.text(R.string.ui_closing_app)
                 },FrameLayout.LayoutParams(size,size).apply {
                     leftMargin=loadingBounds.centerX()-size/2;topMargin=loadingBounds.centerY()-size/2
                 })
@@ -98,7 +97,7 @@ class RecentClosingSurface private constructor(private val service: NavigationSe
     }
     companion object {
         var status="idle";private set
-        fun create(service: NavigationService,display: Display,source: View,loadingButton: ImageButton?=null): RecentClosingSurface? {
+        fun create(service: NavigationService,display: Display,source: View,loadingButton: View?=null): RecentClosingSurface? {
             if(Build.VERSION.SDK_INT<34) return null
             val value=RecentClosingSurface(service,display)
             return try { value.attach(source,loadingButton);status="attached";value } catch(e: RuntimeException) { status="${e.javaClass.simpleName}: ${e.message}".take(200);value.close();null }

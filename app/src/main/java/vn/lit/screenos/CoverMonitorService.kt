@@ -142,12 +142,29 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         if(closingRecentTask || !Platform.unlocked(this) || cover.state!=Display.STATE_ON) return
         val accessibility=NavigationService.current ?: return
         val source=overlay?.takeIf { it.mode==CoverOverlay.Mode.RECENTS }?.view ?: return
-        val loadingButton=entry?.let { source.findViewWithTag<android.widget.ImageButton>("recent-dismiss:${it.component.packageName}") }
-        val loadingIcon=loadingButton?.drawable
-        loadingButton?.apply { setImageDrawable(null);isEnabled=false;stateDescription=I18n.text(R.string.ui_closing_app) }
+        val loadingButton=source.findViewWithTag<android.view.View>(if(entry==null) "recent-clear-all" else "recent-dismiss:${entry.component.packageName}")
+        val loadingIcon=(loadingButton as? android.widget.ImageButton)?.drawable
+        val loadingText=(loadingButton as? android.widget.TextView)?.text
+        val loadingWidth=loadingButton?.layoutParams?.width
+        fun restoreLoadingButton() {
+            (loadingButton as? android.widget.ImageButton)?.setImageDrawable(loadingIcon)
+            (loadingButton as? android.widget.TextView)?.apply {
+                text=loadingText
+                if(loadingWidth!=null) layoutParams=layoutParams.apply { width=loadingWidth }
+            }
+            loadingButton?.apply { isEnabled=true;stateDescription=null }
+        }
+        (loadingButton as? android.widget.ImageButton)?.setImageDrawable(null)
+        (loadingButton as? android.widget.TextView)?.apply {
+            // Keep the action's measured slot while its label is replaced by a spinner.
+            val actionWidth=width
+            layoutParams=layoutParams.apply { width=actionWidth }
+            text=""
+        }
+        loadingButton?.apply { isEnabled=false;stateDescription=I18n.text(if(entry==null) R.string.ui_closing_all_apps else R.string.ui_closing_app) }
         recentClosingSurface?.close()
         val surface=RecentClosingSurface.create(accessibility,cover,source,loadingButton)
-        if(surface==null) { loadingButton?.apply { setImageDrawable(loadingIcon);isEnabled=true;stateDescription=null };Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_recent_task_surface_unavailable));return }
+        if(surface==null) { restoreLoadingButton();Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_recent_task_surface_unavailable));return }
         recentClosingSurface=surface;closingRecentTask=true
         surface.whenReady({
             if(current!==this || recentClosingSurface!==surface) return@whenReady
@@ -171,7 +188,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
                 },250)
             }
         },{
-            loadingButton?.apply { setImageDrawable(loadingIcon);isEnabled=true;stateDescription=null }
+            restoreLoadingButton()
             closingRecentTask=false;surface.close();if(recentClosingSurface===surface) recentClosingSurface=null
             Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_recent_task_surface_unavailable))
         })
