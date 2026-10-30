@@ -299,6 +299,7 @@
     <string name="ui_recent_task_not_closed">Samsung did not accept closing this task. Its history card has been kept.</string>
     <string name="ui_recent_task_surface_unavailable">Could not keep Foldlet visible. The task has not been closed.</string>
     <string name="ui_closing_app">Closing app</string>
+    <string name="ui_closing_all_apps">Closing all apps</string>
     <string name="ui_auto_sensor">Auto (sensor)</string>
     <string name="ui_use_general_orientation">Use general setting</string>
     <string name="ui_rotation_sensor_unavailable">Orientation sensor is unavailable on this device.</string>

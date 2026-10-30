@@ -295,6 +295,7 @@
     <string name="ui_recent_task_not_closed">Samsung chưa chấp nhận đóng task. Thẻ lịch sử vẫn được giữ lại.</string>
     <string name="ui_recent_task_surface_unavailable">Chưa giữ được giao diện Foldlet. Task chưa bị đóng.</string>
     <string name="ui_closing_app">Đang đóng ứng dụng</string>
+    <string name="ui_closing_all_apps">Đang đóng tất cả ứng dụng</string>
     <string name="ui_auto_sensor">Auto (cảm biến)</string>
     <string name="ui_use_general_orientation">Dùng thiết lập chung</string>
     <string name="ui_rotation_sensor_unavailable">Không có cảm biến hướng trên thiết bị này.</string>
