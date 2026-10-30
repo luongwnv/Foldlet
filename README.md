@@ -52,11 +52,11 @@ Captured directly on a Galaxy Z Flip3. Each control below is cropped from the sa
 
 | Control | Action |
 | --- | --- |
-| ![Back](docs/images/control-back.png) **Back** | Go back in the current app |
-| ![Apps](docs/images/control-apps.png) **Apps** | Open the Foldlet app drawer |
-| ![Recent apps](docs/images/control-recents.png) **Recent apps** | Open Recent apps |
-| ![Home](docs/images/control-home.png) **Home** | Return to the Samsung clock |
-| ![Hide](docs/images/control-hide.png) **Hide** | Hide the navigation bar |
+| <img src="docs/images/control-back.png" alt="Back" width="48" height="52" align="absmiddle"> **Back** | Go back in the current app |
+| <img src="docs/images/control-apps.png" alt="Apps" width="48" height="52" align="absmiddle"> **Apps** | Open the Foldlet app drawer |
+| <img src="docs/images/control-recents.png" alt="Recent apps" width="48" height="52" align="absmiddle"> **Recent apps** | Open Recent apps |
+| <img src="docs/images/control-home.png" alt="Home" width="48" height="52" align="absmiddle"> **Home** | Return to the Samsung clock |
+| <img src="docs/images/control-hide.png" alt="Hide" width="48" height="52" align="absmiddle"> **Hide** | Hide the navigation bar |
 
 Long-press **Hide** to give Samsung control until the next screen wake.
 
