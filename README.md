@@ -78,9 +78,9 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 | --- | --- |
 | Display over other apps | Show the drawer and navigation bar on the cover screen |
 | Accessibility | Distinguish Samsung’s clock and widget pages, and handle Back when you press it |
-| Usage access — optional | Show Recent apps and help identify an app’s launcher page when handling Back |
-| Notifications — optional | Show the service status and Stop button |
-| Notification access — optional | Support notification and media features when used |
+| Usage access (Optional) | Show Recent apps and help identify an app’s launcher page when handling Back |
+| Notifications (Optional) | Show the service status and Stop button |
+| Notification access (Optional) | Support notification and media features when used |
 
 Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet does not read text-field contents or save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
 
