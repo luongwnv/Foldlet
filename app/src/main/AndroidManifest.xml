@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <permission android:name="vn.lit.screenos.permission.CONTROL_RADIOS" android:protectionLevel="signature" />
+    <uses-permission android:name="vn.lit.screenos.permission.CONTROL_RADIOS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -10,6 +12,7 @@
     <!-- Raw sockets are restricted in code to the authenticated localhost ADB helper. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <queries>
+        <package android:name="vn.lit.screenos.controls" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

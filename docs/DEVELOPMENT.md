@@ -8,6 +8,7 @@ Requires JDK 17+, Android SDK 36, and ADB.
 
 ```sh
 ./gradlew :app:assembleDebug :app:assembleRelease :app:lintRelease
+./gradlew :controls:assembleRelease
 adb -s DEVICE_SERIAL install -r app/build/outputs/apk/release/app-release.apk
 ```
 
@@ -21,6 +22,7 @@ Beta release builds are not debuggable. They use the existing local development 
 | `CoverOverlay` | Drawer, edge handles, navigation, shortcuts, and keyboard windows |
 | `HomeGestureOverlay` / `HomeTouchConfig` | Bounded clock-only tap region and top swipe target |
 | `QuickShortcuts` | Exported system control entry points available on the device |
+| `RadioControls` / `controls:RadioService` | Signature-protected bound helper for legacy Wi-Fi/Bluetooth toggles |
 | `AppDrawerView` | Apps, filtering, configurable toolbar, and search |
 | `CoverKeyboardView` / `SwipeDecoder` | Shared keyboard and local swipe recognition |
 | `NavigationService` | Accessibility navigation and write-only input connection |
@@ -52,4 +54,4 @@ python3 scripts/emulator_locale_smoke.py
 
 Temporary captures and logs belong in ignored `artifacts/`. Public screenshots in `docs/images/` show native UI without personal phone data. Reference APKs, extracted resources, keystores, and build outputs are excluded from Git.
 
-System shortcuts use exported OS panels. Direct Wi-Fi and Bluetooth switching is restricted for regular apps: see [WifiManager](https://developer.android.com/reference/android/net/wifi/WifiManager#setWifiEnabled(boolean)) and [Android 13 Bluetooth changes](https://developer.android.com/about/versions/13/behavior-changes-13#bluetooth-adapter).
+Long-press shortcuts use exported OS panels. The optional `controls` APK targets API 28 to use the documented legacy Wi-Fi/Bluetooth toggle compatibility, while the main app targets API 35: see [WifiManager](https://developer.android.com/reference/android/net/wifi/WifiManager#setWifiEnabled(boolean)) and [Android 13 Bluetooth changes](https://developer.android.com/about/versions/13/behavior-changes-13#bluetooth-adapter). It has no network access and does not scan networks or devices, and binds only through a signature permission. Both APKs must use the same signing certificate. The helper also validates the Messenger sender UID/package/certificate and refuses toggles while locked. It accepts only state reads and Wi-Fi/Bluetooth toggles; hotspot/mobile data/network mode have no privileged helper backend.

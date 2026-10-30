@@ -256,7 +256,7 @@
     <string name="ui_home_shortcuts">Home shortcuts</string>
     <string name="ui_home_shortcuts_help">Choose and arrange the system controls shown on swipe down</string>
     <string name="ui_enable_shortcuts">Swipe down for shortcuts</string>
-    <string name="ui_shortcuts_system_note">Shortcuts open One UI controls. Some settings may require the inner screen.</string>
+    <string name="ui_shortcuts_system_note">Tap Wi-Fi/Bluetooth to switch with Foldlet Controls. Touch and hold for settings.</string>
     <string name="ui_no_shortcuts">Choose shortcuts in Settings</string>
     <string name="ui_shortcut_phone_required">One UI cannot open this control on the cover screen. Open it on your phone instead.</string>
     <string name="ui_open_on_phone">Open on phone</string>
@@ -271,6 +271,10 @@
     <string name="ui_shortcut_location">Location</string>
     <string name="ui_move_up">Move %1$s up</string>
     <string name="ui_shortcuts_drag">Touch and hold a shortcut, then drag to reorder.</string>
+    <string name="ui_controls_install">Install Foldlet Controls for one-tap Wi-Fi and Bluetooth. Touch and hold for settings.</string>
+    <string name="ui_toggle_unavailable">The system could not switch this control. Touch and hold for settings.</string>
+    <string name="ui_toggle_restricted">One UI restricts one-tap switching for this control. Touch and hold for settings.</string>
     <string name="ui_move_down">Move %1$s down</string>
     <string name="ui_off">Off</string>
+    <string name="ui_on">On</string>
 </resources>

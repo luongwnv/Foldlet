@@ -252,7 +252,7 @@
     <string name="ui_home_shortcuts">Shortcut trên home</string>
     <string name="ui_home_shortcuts_help">Chọn và sắp xếp điều khiển hệ thống khi vuốt xuống</string>
     <string name="ui_enable_shortcuts">Vuốt xuống mở shortcut</string>
-    <string name="ui_shortcuts_system_note">Shortcut mở điều khiển One UI. Một số mục có thể cần màn hình trong.</string>
+    <string name="ui_shortcuts_system_note">Chạm bật/tắt Wi-Fi/Bluetooth bằng Foldlet Controls. Nhấn giữ để mở cài đặt.</string>
     <string name="ui_no_shortcuts">Chọn shortcut trong Cài đặt</string>
     <string name="ui_shortcut_phone_required">One UI không cho mở điều khiển này trên màn ngoài. Mở trên điện thoại để thay đổi.</string>
     <string name="ui_open_on_phone">Mở trên điện thoại</string>
@@ -267,6 +267,10 @@
     <string name="ui_shortcut_location">Vị trí</string>
     <string name="ui_move_up">Đưa %1$s lên</string>
     <string name="ui_shortcuts_drag">Nhấn giữ shortcut rồi kéo thả để sắp xếp.</string>
+    <string name="ui_controls_install">Cài Foldlet Controls để chạm bật/tắt Wi-Fi và Bluetooth. Nhấn giữ để mở cài đặt.</string>
+    <string name="ui_toggle_unavailable">Hệ thống chưa chuyển được trạng thái. Nhấn giữ để mở cài đặt.</string>
+    <string name="ui_toggle_restricted">One UI giới hạn bật/tắt một chạm cho mục này. Nhấn giữ để mở cài đặt.</string>
     <string name="ui_move_down">Đưa %1$s xuống</string>
     <string name="ui_off">Tắt</string>
+    <string name="ui_on">Bật</string>
 </resources>
