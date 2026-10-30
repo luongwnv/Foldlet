@@ -20,6 +20,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     private var keyboardGeneration=-1L
     private var dismissedKeyboard=-1L
     private var section = "apps"
+    private var closingRecentTask=false
     private var restoringRotation = false
     private var restoreGeneration = 0
     private var yieldedUntilSleep = false
@@ -134,6 +135,29 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         if (!Platform.unlocked(this)) { Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_unlock_your_phone_to_continue)); return }
         openPanel("system-recent")
     }
+    fun foldedForTaskControl()=folded
+    fun closeRecentTask(entry: RecentApps.Entry?) {
+        val cover=Platform.overlayDisplay(this) ?: return
+        if(closingRecentTask || !Platform.unlocked(this) || cover.state!=Display.STATE_ON) return
+        closingRecentTask=true;minimized=true;navigationVisible=false;keyboardVisible=false;samsungHome=false
+        clearOverlay()
+        SamsungRecentTasks.close(this,cover.displayId,entry) { result ->
+            closingRecentTask=false
+            if(result==SamsungRecentTasks.Result.CLOSED) {
+                if(entry==null) RecentApps.clear(this) else RecentApps.dismiss(this,entry.component.packageName)
+            }
+            if(current!==this) return@close
+            if(Platform.cover(this)?.state!=Display.STATE_ON || folded==false || !Platform.unlocked(this)) { schedule();return@close }
+            Platform.samsungHome(this,cover.displayId)
+            handler.postDelayed({
+                if(current===this && !closingRecentTask) {
+                    showSystemRecents()
+                    if(result!=SamsungRecentTasks.Result.CLOSED && result!=SamsungRecentTasks.Result.CANCELED)
+                        Platform.messageOnDisplay(this,cover.displayId,I18n.text(if(result==SamsungRecentTasks.Result.NOT_FOUND) R.string.ui_recent_task_not_found else R.string.ui_recent_task_not_closed))
+                }
+            },250)
+        }
+    }
     fun showNavigation() {
         keyboardVisible=false
         if (samsungHome) {
@@ -211,6 +235,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     }
     private fun reconcile() {
         if (restoringRotation) return
+        if (closingRecentTask) { clearOverlay();return }
         if (!prefs.getBoolean("monitor", false)) { clearOverlay(); return }
         val cover = Platform.overlayDisplay(this)
         val accessibility = NavigationService.current
@@ -287,6 +312,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("samsungPage=${SamsungCoverPage.diagnostic}")
         writer.println("backRoute=${NavigationService.current?.backRoute}")
         writer.println("samsungRoutineControl=${SamsungRoutineControls.status}")
+        writer.println("samsungRecentTask=${SamsungRecentTasks.status} closing=$closingRecentTask")
         writer.println("keyboardEnabled=${prefs.getBoolean("force_cover_keyboard",false)} keyboardVisible=$keyboardVisible inputSession=${NavigationService.current?.inputGeneration}")
         writer.println("window=${overlay?.window?.attributes} status=${prefs.getString("monitor_status", "")} error=${prefs.getString("monitor_error", null)}")
     }
@@ -296,7 +322,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         sensors.unregisterListener(this)
         clearOverlay()
         CoverRotation.clear()
-        if (current === this) current = null
+        if (current === this) { current = null;SamsungRecentTasks.cancel() }
         // Preserve the enabled setting if the system reclaims the process.
         super.onDestroy()
     }

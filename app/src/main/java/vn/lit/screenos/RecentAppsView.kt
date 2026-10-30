@@ -16,7 +16,7 @@ class RecentAppsView(context: Context, private val displayId: Int, private val c
     private val clearAll = label(I18n.text(R.string.ui_close_all),16f,true).apply {
         gravity=Gravity.CENTER; setPadding(Ui.dp(context,12),0,Ui.dp(context,12),0)
         isClickable=true; isFocusable=true; tag="recent-clear-all"
-        setOnClickListener { if(unlocked && RecentApps.hasAccess(context)) { RecentApps.clear(context); refresh() } }
+        setOnClickListener { if(unlocked && RecentApps.hasAccess(context)) CoverMonitorService.current?.closeRecentTask(null) }
     }
     private val privacy = object : Runnable {
         override fun run() {
@@ -81,12 +81,14 @@ class RecentAppsView(context: Context, private val displayId: Int, private val c
             content.addView(label(age,12f).apply { gravity=Gravity.CENTER; setTextColor(0xFFAFAFAF.toInt()) },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,7) })
             card.addView(Glyph.button(context,Glyph.Kind.CLOSE,I18n.text(R.string.ui_close_recent_app,entry.label),action={
                 if(Platform.unlocked(context) && RecentApps.hasAccess(context)) {
-                    RecentApps.dismiss(context,entry.component.packageName)
-                    row.removeView(card)
-                    if(row.childCount==0) render(emptyList())
+                    CoverMonitorService.current?.closeRecentTask(entry)
                 }
             }).apply {
                 tag="recent-dismiss:${entry.component.packageName}"
+                setOnLongClickListener {
+                    if(Platform.unlocked(context) && RecentApps.hasAccess(context)) { RecentApps.dismiss(context,entry.component.packageName);refresh() }
+                    true
+                }
                 background=android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x40FFFFFF),GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(0xFF303030.toInt()) },null)
             },FrameLayout.LayoutParams(Ui.dp(context,36),Ui.dp(context,36),Gravity.TOP or Gravity.RIGHT).apply {
                 topMargin=Ui.dp(context,4);rightMargin=Ui.dp(context,4)

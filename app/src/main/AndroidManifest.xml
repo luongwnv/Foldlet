@@ -16,6 +16,7 @@
     <queries>
         <package android:name="vn.lit.screenos.controls" />
         <package android:name="com.android.systemui" />
+        <package android:name="com.sec.android.app.launcher" />
         <package android:name="com.samsung.android.app.routines" />
         <package android:name="com.samsung.android.app.routineplus" />
         <intent>
