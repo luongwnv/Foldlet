@@ -297,4 +297,6 @@
     <string name="ui_samsung_routine_no_change">The routine did not change this control. Check its Samsung actions and reverse setting.</string>
     <string name="ui_recent_task_not_found">Task not found in Samsung Recent. Hold × to remove its history card.</string>
     <string name="ui_recent_task_not_closed">Samsung did not accept closing this task. Its history card has been kept.</string>
+    <string name="ui_recent_task_surface_unavailable">Could not keep Foldlet visible. The task has not been closed.</string>
+    <string name="ui_closing_app">Closing app</string>
 </resources>
