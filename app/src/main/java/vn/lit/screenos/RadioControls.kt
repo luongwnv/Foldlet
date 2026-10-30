@@ -7,7 +7,7 @@ import android.os.*
 /** Each short-lived request is bound to the helper signed with our certificate. */
 object RadioControls {
     private const val helper="vn.lit.screenos.controls"
-    data class Result(val installed: Boolean,val accepted: Boolean=false,val wifi: Int=-1,val bluetooth: Int=-1)
+    data class Result(val installed: Boolean,val accepted: Boolean=false,val wifi: Int=-1,val bluetooth: Int=-1,val hotspot: Int=-1,val networkMode: Int=-1)
     fun request(context: Context,kind: String?=null,complete: (Result)->Unit) {
         val app=context.applicationContext
         if(app.packageManager.checkSignatures(app.packageName,helper)!=PackageManager.SIGNATURE_MATCH) { complete(Result(false));return }
@@ -25,7 +25,7 @@ object RadioControls {
         val reply=Messenger(object: Handler(Looper.getMainLooper()) {
             override fun handleMessage(message: Message) {
                 val data=message.data
-                finish(Result(true,data.getBoolean("accepted"),data.getInt("wifi",-1),data.getInt("bluetooth",-1)))
+                finish(Result(true,data.getBoolean("accepted"),data.getInt("wifi",-1),data.getInt("bluetooth",-1),data.getInt("hotspot",-1),data.getInt("networkMode",-1)))
             }
         })
         connection=object: ServiceConnection {

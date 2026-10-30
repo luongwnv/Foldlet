@@ -10,8 +10,8 @@ android {
         minSdk = 28
         // Keep the documented legacy Wi-Fi/Bluetooth toggle APIs available.
         targetSdk = 28
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
     }
     buildTypes {
         getByName("release") {

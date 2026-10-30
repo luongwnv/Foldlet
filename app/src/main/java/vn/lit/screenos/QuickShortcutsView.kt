@@ -13,10 +13,12 @@ import android.widget.*
 
 class QuickShortcutsView(context: Context,private val displayId: Int,private val close: ()->Unit,private val launched: ()->Unit): LinearLayout(context) {
     private val body=FrameLayout(context)
-    private val radioTiles=mutableMapOf<String,android.view.View>()
+    private data class Tile(val action: QuickShortcuts.Action,val view: android.view.View,val icon: ImageView,val detail: TextView,var state: ShortcutStates.State?=null)
+    private val tiles=mutableListOf<Tile>()
+    private val icons=QuickSettingsIcons(context)
     private val handler=Handler(Looper.getMainLooper())
     private var radioState=RadioControls.Result(false)
-    private var radioBusy=false
+    private var pendingRadio: String?=null
     private var readingRadios=false
     private val poll=Runnable { refreshRadios() }
     private var downX=0f
@@ -33,22 +35,38 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
     override fun onDetachedFromWindow() { handler.removeCallbacks(poll);super.onDetachedFromWindow() }
     private fun refreshRadios() {
         if(!isAttachedToWindow || readingRadios) return
+        updateTiles()
         readingRadios=true
         RadioControls.request(context) { state ->
             readingRadios=false
             if(isAttachedToWindow) {
-                radioState=state;updateRadioTiles()
+                radioState=state;updateTiles()
                 handler.removeCallbacks(poll);handler.postDelayed(poll,1000)
             }
         }
     }
-    private fun updateRadioTiles() {
-        radioTiles.forEach { (kind,tile) ->
-            val state=if(kind=="wifi") radioState.wifi else radioState.bluetooth
-            ((tile.background as android.graphics.drawable.RippleDrawable).getDrawable(0) as GradientDrawable).setColor(if(state==1) 0xFF006F95.toInt() else 0xFF1C252E.toInt())
-            tile.alpha=if(state==2 || radioBusy) .55f else 1f
-            val label=I18n.text(if(kind=="wifi") R.string.ui_shortcut_wifi else R.string.ui_shortcut_bluetooth)
-            tile.contentDescription=if(state in 0..1) "$label, ${I18n.text(if(state==1) R.string.ui_on else R.string.ui_off)}" else label
+    private fun updateTiles() {
+        val states=ShortcutStates.read(context,radioState)
+        tiles.forEach { tile ->
+            val state=states[tile.action.id] ?: ShortcutStates.State()
+            val changing=state.enabled==2 || pendingRadio==tile.action.id
+            val color=if(state.enabled==1) 0xFF3D70DC.toInt() else 0xFF23262C.toInt()
+            val background=(tile.view.background as android.graphics.drawable.RippleDrawable).getDrawable(0) as GradientDrawable
+            if(background.color?.defaultColor!=color) background.setColor(color)
+            tile.view.alpha=if(changing) .6f else 1f
+            val detail=if(changing) I18n.text(R.string.ui_state_changing) else state.detail ?: I18n.text(when(state.enabled) {
+                1 -> R.string.ui_on
+                0 -> R.string.ui_off
+                else -> R.string.ui_state_unavailable
+            })
+            tile.detail.text=detail
+            tile.detail.visibility=if(detail.isEmpty()) android.view.View.INVISIBLE else android.view.View.VISIBLE
+            val label=I18n.text(tile.action.title)
+            tile.view.contentDescription=if(detail.isEmpty()) label else "$label, $detail"
+            if(tile.state!=state) {
+                tile.icon.setImageDrawable(icons.get(tile.action,state,Ui.dp(context,36)))
+                tile.state=state
+            }
         }
     }
     private fun openDetails(action: QuickShortcuts.Action) {
@@ -58,12 +76,12 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         if(!Platform.unlocked(context)) { render();return }
         when(action.id) {
             "wifi","bluetooth" -> {
-                if(radioBusy) return
-                radioBusy=true;updateRadioTiles()
+                if(pendingRadio!=null) return
+                pendingRadio=action.id;updateTiles()
                 RadioControls.request(context,action.id) { state ->
-                    radioBusy=false
+                    pendingRadio=null
                     if(!isAttachedToWindow) return@request
-                    radioState=state;updateRadioTiles()
+                    radioState=state;updateTiles()
                     if(!state.installed) Platform.message(context,I18n.text(R.string.ui_controls_install))
                     else if(!state.accepted) Platform.message(context,I18n.text(R.string.ui_toggle_unavailable))
                     handler.removeCallbacks(poll);handler.postDelayed(poll,300)
@@ -73,6 +91,7 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
                 val audio=context.getSystemService(AudioManager::class.java)
                 try { audio.ringerMode=if(audio.ringerMode==AudioManager.RINGER_MODE_NORMAL) AudioManager.RINGER_MODE_VIBRATE else AudioManager.RINGER_MODE_NORMAL }
                 catch(_: SecurityException) { Platform.message(context,I18n.text(R.string.ui_toggle_unavailable)) }
+                updateTiles()
             }
             "display","settings" -> openDetails(action)
             else -> Platform.message(context,I18n.text(R.string.ui_toggle_restricted))
@@ -108,10 +127,10 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
     }
     override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) {
         super.onSizeChanged(w,h,oldw,oldh)
-        if(w!=oldw) post { render() }
+        if(w!=oldw || h!=oldh) post { render() }
     }
     private fun render() {
-        body.removeAllViews();radioTiles.clear()
+        body.removeAllViews();tiles.clear()
         if(!Platform.unlocked(context)) {
             body.addView(Ui.text(context,I18n.text(R.string.ui_unlock_to_continue),17f).apply { gravity=Gravity.CENTER },FrameLayout.LayoutParams(-1,-1));return
         }
@@ -120,8 +139,11 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
             body.addView(Ui.text(context,I18n.text(R.string.ui_no_shortcuts),16f).apply { gravity=Gravity.CENTER },FrameLayout.LayoutParams(-1,-1));return
         }
         val widthPx=width.takeIf { it>0 } ?: resources.displayMetrics.widthPixels
-        val cell=widthPx/4
-        val grid=GridLayout(context).apply { columnCount=4;setPadding(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,48)) }
+        val heightPx=height.takeIf { it>0 } ?: resources.displayMetrics.heightPixels
+        val cell=(widthPx-Ui.dp(context,8))/4
+        val visibleRows=((actions.size+3)/4).coerceIn(1,2)
+        val cellHeight=((heightPx-Ui.dp(context,8))/visibleRows-Ui.dp(context,8)).coerceAtLeast(Ui.dp(context,88))
+        val grid=GridLayout(context).apply { columnCount=4;setPadding(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4)) }
         actions.forEachIndexed { index,action ->
             val tile=LinearLayout(context).apply {
                 orientation=VERTICAL;gravity=Gravity.CENTER;isClickable=true;isFocusable=true
@@ -130,17 +152,20 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
                 setOnClickListener { activate(action) }
                 setOnLongClickListener { openDetails(action);true }
             }
-            tile.addView(ImageView(context).apply { setImageDrawable(Glyph(action.icon,false,Ui.dp(context,28)));scaleType=ImageView.ScaleType.CENTER_INSIDE },LayoutParams(Ui.dp(context,32),Ui.dp(context,32)))
+            val icon=ImageView(context).apply { scaleType=ImageView.ScaleType.FIT_CENTER;importantForAccessibility=android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO }
+            tile.addView(icon,LayoutParams(Ui.dp(context,36),Ui.dp(context,36)))
             tile.addView(Ui.text(context,I18n.text(action.title),14f).apply { gravity=Gravity.CENTER;maxLines=2;ellipsize=android.text.TextUtils.TruncateAt.END },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,6) })
-            grid.addView(tile,GridLayout.LayoutParams().apply { width=cell-Ui.dp(context,10);height=Ui.dp(context,88);columnSpec=GridLayout.spec(index%4);rowSpec=GridLayout.spec(index/4);setMargins(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4)) })
-            if(action.id in setOf("wifi","bluetooth")) radioTiles[action.id]=tile
+            val detail=TextView(context).apply { textSize=12f;setTextColor(0xDDFFFFFF.toInt());includeFontPadding=false;gravity=Gravity.CENTER;maxLines=1;ellipsize=android.text.TextUtils.TruncateAt.END }
+            tile.addView(detail,LayoutParams(-1,Ui.dp(context,17)))
+            grid.addView(tile,GridLayout.LayoutParams().apply { width=cell-Ui.dp(context,8);height=cellHeight;columnSpec=GridLayout.spec(index%4);rowSpec=GridLayout.spec(index/4);setMargins(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4)) })
+            tiles.add(Tile(action,tile,icon,detail))
         }
         body.addView(Ui.scroll(context,grid),FrameLayout.LayoutParams(-1,-1))
-        updateRadioTiles()
+        updateTiles()
     }
     private fun openOnPhone(action: QuickShortcuts.Action) {
         if(!Platform.unlocked(context)) { render();return }
-        body.removeAllViews();radioTiles.clear()
+        body.removeAllViews();tiles.clear()
         val content=Ui.column(context,12)
         content.addView(Ui.text(context,I18n.text(R.string.ui_shortcut_phone_required),16f))
         content.addView(Ui.button(context,I18n.text(R.string.ui_open_on_phone)) {

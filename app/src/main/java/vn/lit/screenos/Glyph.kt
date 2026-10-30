@@ -7,7 +7,7 @@ import android.widget.ImageButton
 
 /** Small original vector glyphs, drawn with platform Canvas. */
 class Glyph(private val kind: Kind, private val selected: Boolean = false, private val size: Int = 24) : Drawable() {
-    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT, KEYBOARD, WIFI, BLUETOOTH, CELLULAR, HOTSPOT, NETWORK_MODE, VOLUME, BRIGHTNESS, SETTINGS, AIRPLANE, LOCATION }
+    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT, KEYBOARD, WIFI, BLUETOOTH, CELLULAR, HOTSPOT, NETWORK_MODE, VOLUME, VIBRATE, MUTE, BRIGHTNESS, SETTINGS, AIRPLANE, LOCATION }
     override fun draw(canvas: Canvas) {
         val save = canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
@@ -21,6 +21,8 @@ class Glyph(private val kind: Kind, private val selected: Boolean = false, priva
             Kind.NETWORK_MODE -> { line(4f,19f,4f,16f);line(9f,19f,9f,12f);line(14f,19f,14f,8f);line(19f,19f,19f,4f) }
             Kind.HOTSPOT -> { canvas.drawArc(2f,2f,22f,22f,135f,270f,false,p);canvas.drawArc(6f,6f,18f,18f,135f,270f,false,p);p.style=Paint.Style.FILL;canvas.drawCircle(12f,12f,2f,p) }
             Kind.VOLUME -> { line(3f,9f,7f,9f,12f,5f,12f,19f,7f,15f,3f,15f,3f,9f);canvas.drawArc(11f,6f,23f,18f,-60f,120f,false,p);canvas.drawArc(13f,9f,19f,15f,-60f,120f,false,p) }
+            Kind.VIBRATE -> { canvas.drawRoundRect(7f,4f,17f,20f,2f,2f,p);line(3f,7f,1f,10f,3f,13f,1f,16f);line(21f,7f,23f,10f,21f,13f,23f,16f) }
+            Kind.MUTE -> { line(3f,9f,7f,9f,12f,5f,12f,19f,7f,15f,3f,15f,3f,9f);line(16f,9f,22f,15f);line(22f,9f,16f,15f) }
             Kind.BRIGHTNESS -> { canvas.drawCircle(12f,12f,4f,p);for(i in 0..7) { val a=i*Math.PI/4;line(12+7*kotlin.math.cos(a).toFloat(),12+7*kotlin.math.sin(a).toFloat(),12+10*kotlin.math.cos(a).toFloat(),12+10*kotlin.math.sin(a).toFloat()) } }
             Kind.SETTINGS -> SettingsGlyph(SettingsGlyph.Kind.SETTINGS,Color.WHITE,24).apply { setBounds(0,0,24,24) }.draw(canvas)
             Kind.AIRPLANE -> { line(12f,2f,12f,21f);line(3f,12f,12f,8f,21f,12f);line(7f,21f,12f,18f,17f,21f) }

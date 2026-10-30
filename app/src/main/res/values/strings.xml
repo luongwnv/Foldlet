@@ -277,4 +277,10 @@
     <string name="ui_move_down">Move %1$s down</string>
     <string name="ui_off">Off</string>
     <string name="ui_on">On</string>
+    <string name="ui_state_changing">Changing</string>
+    <string name="ui_state_unavailable">Unavailable</string>
+    <string name="ui_vibrate">Vibrate</string>
+    <string name="ui_muted">Muted</string>
+    <string name="ui_automatic">Auto</string>
+    <string name="ui_manual">Manual</string>
 </resources>

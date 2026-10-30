@@ -12,7 +12,7 @@ object QuickShortcuts {
     val actions=listOf(
         Action("wifi",R.string.ui_shortcut_wifi,Glyph.Kind.WIFI,listOf(Settings.Panel.ACTION_WIFI,Settings.ACTION_WIFI_SETTINGS)),
         Action("bluetooth",R.string.ui_shortcut_bluetooth,Glyph.Kind.BLUETOOTH,listOf(Settings.ACTION_BLUETOOTH_SETTINGS)),
-        Action("mobile",R.string.ui_shortcut_mobile,Glyph.Kind.CELLULAR,listOf(Settings.Panel.ACTION_INTERNET_CONNECTIVITY,Settings.ACTION_DATA_ROAMING_SETTINGS)),
+        Action("mobile",R.string.ui_shortcut_mobile,Glyph.Kind.CELLULAR,listOf(Settings.ACTION_DATA_USAGE_SETTINGS,Settings.Panel.ACTION_INTERNET_CONNECTIVITY,Settings.ACTION_DATA_ROAMING_SETTINGS)),
         Action("hotspot",R.string.ui_shortcut_hotspot,Glyph.Kind.HOTSPOT,listOf("android.settings.WIFI_AP_SETTINGS","android.settings.TETHER_SETTINGS")),
         Action("network",R.string.ui_shortcut_network,Glyph.Kind.NETWORK_MODE,listOf(Settings.ACTION_NETWORK_OPERATOR_SETTINGS,Settings.ACTION_DATA_ROAMING_SETTINGS,Settings.ACTION_WIRELESS_SETTINGS)),
         Action("sound",R.string.ui_shortcut_sound,Glyph.Kind.VOLUME,listOf(Settings.Panel.ACTION_VOLUME,Settings.ACTION_SOUND_SETTINGS)),

@@ -273,4 +273,10 @@
     <string name="ui_move_down">Đưa %1$s xuống</string>
     <string name="ui_off">Tắt</string>
     <string name="ui_on">Bật</string>
+    <string name="ui_state_changing">Đang đổi</string>
+    <string name="ui_state_unavailable">Chưa rõ</string>
+    <string name="ui_vibrate">Rung</string>
+    <string name="ui_muted">Tắt tiếng</string>
+    <string name="ui_automatic">Tự động</string>
+    <string name="ui_manual">Thủ công</string>
 </resources>
