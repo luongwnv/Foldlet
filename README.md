@@ -10,9 +10,12 @@ Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, s
 
 Actual captures of the native Android interface running on a dedicated test emulator. The drawer runs at **512 × 260**, matching the Flip3 cover screen. The apps shown depend on what is installed on your phone.
 
-| App drawer | Search |
-| --- | --- |
-| ![Foldlet app drawer](docs/images/drawer.png) | ![App search](docs/images/search.png) |
+<table align="center">
+<thead><tr><th>App drawer</th><th>Search</th></tr></thead>
+<tbody>
+<tr><td valign="middle"><img src="docs/images/drawer.png" alt="Foldlet app drawer" width="380"></td><td valign="middle"><img src="docs/images/search.png" alt="App search" width="380"></td></tr>
+</tbody>
+</table>
 
 <p align="center">
   <img src="docs/images/overview.png" width="260" alt="Overview and permissions">
@@ -47,23 +50,26 @@ To update, install the new APK over your existing version and open Foldlet once.
 
 **Inside an app:** swipe from the right edge toward the left to reveal the navigation bar.
 
-![Foldlet navigation bar on a Galaxy Z Flip3, shown over Samsung Calculator](docs/images/navigation.png)
+<p align="center"><img src="docs/images/navigation.png" width="512" alt="Foldlet navigation bar on a Galaxy Z Flip3, shown over Samsung Calculator"></p>
 
 Captured directly on a Galaxy Z Flip3. Each control below is cropped from the same screenshot, in top-to-bottom order.
 
-| Control | Action |
-| --- | --- |
-| <img src="docs/images/control-back.png" alt="Back" width="48" height="52" align="absmiddle"> **Back** | Go back in the current app |
-| <img src="docs/images/control-apps.png" alt="Apps" width="48" height="52" align="absmiddle"> **Apps** | Open the Foldlet app drawer |
-| <img src="docs/images/control-recents.png" alt="Recent apps" width="48" height="52" align="absmiddle"> **Recent apps** | Open Recent apps |
-| <img src="docs/images/control-home.png" alt="Home" width="48" height="52" align="absmiddle"> **Home** | Return to the Samsung clock |
-| <img src="docs/images/control-hide.png" alt="Hide" width="48" height="52" align="absmiddle"> **Hide** | Hide the navigation bar |
+<table align="center">
+<thead><tr><th>Control</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td valign="middle"><img src="docs/images/control-back.png" alt="Back" width="48" height="52" align="absmiddle"> <strong>Back</strong></td><td valign="middle">Go back in the current app</td></tr>
+<tr><td valign="middle"><img src="docs/images/control-apps.png" alt="Apps" width="48" height="52" align="absmiddle"> <strong>Apps</strong></td><td valign="middle">Open the Foldlet app drawer</td></tr>
+<tr><td valign="middle"><img src="docs/images/control-recents.png" alt="Recent apps" width="48" height="52" align="absmiddle"> <strong>Recent apps</strong></td><td valign="middle">Open Recent apps</td></tr>
+<tr><td valign="middle"><img src="docs/images/control-home.png" alt="Home" width="48" height="52" align="absmiddle"> <strong>Home</strong></td><td valign="middle">Return to the Samsung clock</td></tr>
+<tr><td valign="middle"><img src="docs/images/control-hide.png" alt="Hide" width="48" height="52" align="absmiddle"> <strong>Hide</strong></td><td valign="middle">Hide the navigation bar</td></tr>
+</tbody>
+</table>
 
 Long-press **Hide** to give Samsung control until the next screen wake.
 
 ### Recent apps and Close all
 
-![Foldlet Recent apps on the cover screen](docs/images/recents.png)
+<p align="center"><img src="docs/images/recents.png" width="512" alt="Foldlet Recent apps on the cover screen"></p>
 
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
@@ -77,7 +83,7 @@ The preview uses the actual drawer and your installed app icons to reflect your 
 
 ### Cover keyboard and swipe typing
 
-![Foldlet keyboard typing in another app on the test emulator](docs/images/keyboard.png)
+<p align="center"><img src="docs/images/keyboard.png" width="512" alt="Foldlet keyboard typing in another app on the test emulator"></p>
 
 - **Drawer search:** tap Search to use Foldlet’s compact keyboard. Use Done to hide it while keeping your results visible.
 - **Other apps:** on Android 13 or newer, enable **Force cover keyboard** in Settings. Tap a text field on the cover screen to show the keyboard. An extra keyboard button in the navigation bar can reopen it. The close button hides it until another input session starts.
@@ -90,13 +96,16 @@ The cover keyboard writes only to the active cover-screen editor. It closes when
 
 Permission shortcuts are available in **Overview**. You can revoke permissions in Android Settings.
 
-| Permission | Purpose |
-| --- | --- |
-| Display over other apps | Show the drawer and navigation bar on the cover screen |
-| Accessibility | Distinguish Samsung’s clock and widget pages, handle Back, and send keyboard input to the focused cover-screen editor when enabled |
-| Usage access (Optional) | Show Recent apps and help identify an app’s launcher page when handling Back |
-| Notifications (Optional) | Show the service status and Stop button |
-| Notification access (Optional) | Support notification and media features when used |
+<table align="center">
+<thead><tr><th>Permission</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td valign="middle">Display over other apps</td><td valign="middle">Show the drawer and navigation bar on the cover screen</td></tr>
+<tr><td valign="middle">Accessibility</td><td valign="middle">Distinguish Samsung’s clock and widget pages, handle Back, and send keyboard input to the focused cover-screen editor when enabled</td></tr>
+<tr><td valign="middle">Usage access (Optional)</td><td valign="middle">Show Recent apps and help identify an app’s launcher page when handling Back</td></tr>
+<tr><td valign="middle">Notifications (Optional)</td><td valign="middle">Show the service status and Stop button</td></tr>
+<tr><td valign="middle">Notification access (Optional)</td><td valign="middle">Support notification and media features when used</td></tr>
+</tbody>
+</table>
 
 Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
 
