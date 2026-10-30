@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.10.2](https://github.com/luongwnv/Foldlet/releases/download/v0.10.2/Foldlet-0.10.2.apk)** · **0.10.2 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.10.3](https://github.com/luongwnv/Foldlet/releases/download/v0.10.3/Foldlet-0.10.3.apk)** · **0.10.3 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.2/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.3/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -35,11 +35,11 @@ Actual captures of the native Android interface running on a dedicated test emul
 - Recent apps from across your phone, including apps opened on the inner screen.
 - English and Vietnamese following your system language; other languages fall back to English.
 - An optional cover keyboard for text fields in other apps, with offline swipe typing (Beta).
-- Optional portrait and landscape rotation through a USB connection to your computer.
+- Optional sensor-driven Auto, portrait, and landscape rotation through a USB connection to your computer.
 
 ## Getting started
 
-1. Download **Foldlet-0.10.2.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.10.3.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -175,13 +175,23 @@ adb devices
 python3 scripts/adb_rotation_bridge.py --serial DEVICE_SERIAL
 ```
 
-Replace `DEVICE_SERIAL` with the device ID shown by `adb devices`, authorize the USB connection on your phone, and keep the process running. Choose **Landscape** or **Portrait** in Foldlet. When the helper stops or the connection ends, it restores the previous rotation policy. Apps can still open when the helper is unavailable.
+Replace `DEVICE_SERIAL` with the device ID shown by `adb devices`, authorize the USB connection on your phone, and keep the process running. After updating Foldlet, restart this script so the helper uses the installed version.
+
+In **Settings > App orientation**, or the drawer's rotation menu, choose:
+
+- **Auto (sensor):** rotate the cover-screen app as you turn the folded phone. Hold the cover upright; when the phone lies flat, Foldlet keeps the last direction. A short settling delay prevents small movements from repeatedly rotating the app.
+- **Landscape** or **Portrait:** keep the cover app in that direction.
+- **App default:** let the app and Samsung choose their normal orientation. This does not force sensor rotation.
+
+An app's own saved orientation takes priority. Long-press its drawer icon, open **App orientation**, and select **Use general setting** to follow your global choice, or **Auto (sensor)** for that app.
+
+Sensor rotation runs while using an app on the cover screen. Returning to Samsung Home, turning the cover screen off, unfolding, locking the phone, or stopping Foldlet stops it and restores the previous cover rotation policy. The inner display and your system auto-rotate switch keep their settings. Stopping the computer helper or losing USB also restores the previous policy. Apps can still open when the helper is unavailable.
 
 ## Troubleshooting
 
 - **Tapping home does not open the drawer:** return to the Samsung clock, check **Settings > Home touch area**, and tap inside the configured region. Check the service switch, Accessibility, and Display over other apps permissions. After an update, open Foldlet on the inner screen once.
 - **Recent apps is empty:** grant Usage access and open another app. After Close all, use an app again for its card to reappear.
 - **Back does not work in an app:** some apps do not expose a usable navigation path on the cover screen. Use the app’s own back control when Foldlet prompts you.
-- **Rotation does not change:** check the USB connection and the helper running on your computer.
+- **Rotation does not change:** check USB and the running helper; restart the script after an update. Choose **Auto (sensor)** rather than **App default**, check per-app overrides, and hold the cover upright while turning it.
 
 This beta focuses on the **Galaxy Z Flip3**; other models have not been verified. Samsung controls its own clock, widgets, and date formatting. Some apps and protected Android screens may restrict cover-screen operation.

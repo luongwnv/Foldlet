@@ -28,9 +28,10 @@ class RotationShellService @JvmOverloads constructor(
         check(process.exitValue() == 0 && !output.startsWith("Error") && !output.contains("Exception")) { output }
         return output
     }
-    @Synchronized fun rotate(displayId: Int, mode: String): String {
+    @Synchronized fun rotate(displayId: Int, mode: String,sensorRotation: Int=-1): String {
         require(validDisplay(displayId)) { "Only the cover display can be controlled" }
-        require(mode in setOf("auto","portrait","landscape"))
+        require(mode in setOf("auto","portrait","landscape","sensor"))
+        if(mode=="sensor") require(sensorRotation in 0..3)
         if (mode == "auto") { restoreInternal(); return "auto" }
         if (original?.display != displayId) {
             restoreInternal()
@@ -43,7 +44,7 @@ class RotationShellService @JvmOverloads constructor(
             recovery.setReadable(true,true); recovery.setWritable(true,true)
         }
         // Flip3's cover panel is naturally landscape. Its portrait rotation is 270°.
-        val rotation = if (mode == "portrait") 3 else 0
+        val rotation = if(mode=="sensor") sensorRotation else if (mode == "portrait") 3 else 0
         try {
             command("fixed-to-user-rotation", "-d", "$displayId", "enabled")
             command("user-rotation", "-d", "$displayId", "lock", "$rotation")

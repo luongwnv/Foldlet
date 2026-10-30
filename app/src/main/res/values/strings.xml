@@ -139,7 +139,7 @@
     <string name="ui_all">All</string>
     <string name="ui_favorites">Favorites</string>
     <string name="ui_app_filter">App filter</string>
-    <string name="ui_auto">Auto</string>
+    <string name="ui_auto">App default</string>
     <string name="ui_landscape">Landscape</string>
     <string name="ui_portrait">Portrait</string>
     <string name="ui_app_orientation">App orientation</string>
@@ -299,4 +299,8 @@
     <string name="ui_recent_task_not_closed">Samsung did not accept closing this task. Its history card has been kept.</string>
     <string name="ui_recent_task_surface_unavailable">Could not keep Foldlet visible. The task has not been closed.</string>
     <string name="ui_closing_app">Closing app</string>
+    <string name="ui_auto_sensor">Auto (sensor)</string>
+    <string name="ui_use_general_orientation">Use general setting</string>
+    <string name="ui_rotation_sensor_unavailable">Orientation sensor is unavailable on this device.</string>
+    <string name="ui_update_rotation_helper">Restart the ADB rotation helper with the updated APK to use Auto (sensor).</string>
 </resources>

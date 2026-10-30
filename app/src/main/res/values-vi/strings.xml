@@ -138,7 +138,7 @@
     <string name="ui_all">Tất cả</string>
     <string name="ui_favorites">Yêu thích</string>
     <string name="ui_app_filter">Bộ lọc ứng dụng</string>
-    <string name="ui_auto">Tự động</string>
+    <string name="ui_auto">Theo ứng dụng</string>
     <string name="ui_landscape">Ngang</string>
     <string name="ui_portrait">Dọc</string>
     <string name="ui_app_orientation">Hướng mở ứng dụng</string>
@@ -295,4 +295,8 @@
     <string name="ui_recent_task_not_closed">Samsung chưa chấp nhận đóng task. Thẻ lịch sử vẫn được giữ lại.</string>
     <string name="ui_recent_task_surface_unavailable">Chưa giữ được giao diện Foldlet. Task chưa bị đóng.</string>
     <string name="ui_closing_app">Đang đóng ứng dụng</string>
+    <string name="ui_auto_sensor">Auto (cảm biến)</string>
+    <string name="ui_use_general_orientation">Dùng thiết lập chung</string>
+    <string name="ui_rotation_sensor_unavailable">Không có cảm biến hướng trên thiết bị này.</string>
+    <string name="ui_update_rotation_helper">Khởi động lại helper xoay ADB bằng APK mới để dùng Auto (cảm biến).</string>
 </resources>

@@ -143,7 +143,7 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
             choices(I18n.text(R.string.ui_app_filter),filterLabels,filterIndex) { prefs.edit().putString("app_mode",filters[it]).apply(); refreshDrawer(); render() }
         }.apply { tag="row-filter" })
         menu.addView(SettingsUi.divider(c))
-        val orientations=listOf("auto","landscape","portrait"); val orientationLabels=listOf(I18n.text(R.string.ui_auto),I18n.text(R.string.ui_landscape),I18n.text(R.string.ui_portrait))
+        val orientations=listOf("sensor","auto","landscape","portrait"); val orientationLabels=listOf(I18n.text(R.string.ui_auto_sensor),I18n.text(R.string.ui_auto),I18n.text(R.string.ui_landscape),I18n.text(R.string.ui_portrait))
         val orientIndex=orientations.indexOf(prefs.getString("orientation","auto")).coerceAtLeast(0)
         menu.addView(SettingsUi.row(c,SettingsGlyph.Kind.ROTATE,I18n.text(R.string.ui_app_orientation),I18n.text(R.string.ui_forcing_orientation_requires_an_adb_connection),value(orientationLabels[orientIndex])) {
             choices(I18n.text(R.string.ui_app_orientation),orientationLabels,orientIndex) { prefs.edit().putString("orientation",orientations[it]).apply(); render() }

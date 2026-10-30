@@ -93,6 +93,9 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             }
             command(Glyph.Kind.LANDSCAPE, I18n.text(R.string.ui_open_in_landscape, selection.name)) { orient("landscape", selection) }
             command(Glyph.Kind.PORTRAIT, I18n.text(R.string.ui_open_in_portrait, selection.name)) { orient("portrait", selection) }
+            command(Glyph.Kind.ROTATE,I18n.text(R.string.ui_app_orientation)) {
+                sheet(listOf(I18n.text(R.string.ui_use_general_orientation) to { orient("inherit",selection) },I18n.text(R.string.ui_auto_sensor) to { orient("sensor",selection) },I18n.text(R.string.ui_auto) to { orient("auto",selection) }))
+            }
             return
         }
         if (searching) {
@@ -118,7 +121,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         }
         val orientation = prefs.getString("orientation", "auto")
         command(when (orientation) { "portrait" -> Glyph.Kind.PORTRAIT; "landscape" -> Glyph.Kind.LANDSCAPE; else -> Glyph.Kind.ROTATE }, I18n.text(R.string.ui_rotate_screen)) {
-            sheet(listOf(I18n.text(R.string.ui_auto) to { orient("auto") }, I18n.text(R.string.ui_landscape) to { orient("landscape") }, I18n.text(R.string.ui_portrait) to { orient("portrait") }))
+            sheet(listOf(I18n.text(R.string.ui_auto_sensor) to { orient("sensor") },I18n.text(R.string.ui_auto) to { orient("auto") }, I18n.text(R.string.ui_landscape) to { orient("landscape") }, I18n.text(R.string.ui_portrait) to { orient("portrait") }))
         }
         command(Glyph.Kind.SEARCH, I18n.text(R.string.ui_search)) { prefs.edit().putString("app_mode", "all").apply(); searching = true; renderToolbar(); renderGrid() }
         command(Glyph.Kind.SORT, I18n.text(R.string.ui_sort)) {
@@ -140,7 +143,8 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
     }
     private fun orient(value: String, entry: Entry? = null) {
         if (!Platform.unlocked(context)) return
-        prefs.edit().putString(if (entry == null) "orientation" else "orientation.${entry.key}", value).apply()
+        val key=if(entry==null) "orientation" else "orientation.${entry.key}"
+        if(value=="inherit" && entry!=null) prefs.edit().remove(key).apply() else prefs.edit().putString(key,value).apply()
         if (entry != null) { selected = null; launch(entry) } else { renderToolbar(); renderGrid() }
     }
     private fun sort(value: String) { prefs.edit().putString("app_sort", value).apply(); renderGrid() }
@@ -245,7 +249,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             prefs.edit().putString("recents", (listOf(entry.key) + recent).distinct().take(40).joinToString("|"))
                 .putInt("launches.${entry.key}", prefs.getInt("launches.${entry.key}", 0) + 1).apply()
             close()
-            CoverRotation.apply(context, displayId, if (success) rotation else "auto")
+            CoverRotation.apply(context, displayId, if (success) rotation else "auto",ownerPackage=entry.component.packageName)
         }
         }
     }
