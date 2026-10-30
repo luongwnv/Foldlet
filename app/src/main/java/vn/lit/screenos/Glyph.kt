@@ -7,7 +7,7 @@ import android.widget.ImageButton
 
 /** Small original vector glyphs, drawn with platform Canvas. */
 class Glyph(private val kind: Kind, private val selected: Boolean = false, private val size: Int = 24) : Drawable() {
-    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT, KEYBOARD }
+    enum class Kind { ROTATE, SEARCH, SORT, RECENT, STAR, BACK, GRID, HOME, HIDE, PORTRAIT, LANDSCAPE, CLOSE, FORWARD, NAV_BACK, NAV_HOME, NAV_RECENT, KEYBOARD, WIFI, BLUETOOTH, CELLULAR, HOTSPOT, NETWORK_MODE, VOLUME, BRIGHTNESS, SETTINGS, AIRPLANE, LOCATION }
     override fun draw(canvas: Canvas) {
         val save = canvas.save()
         canvas.translate(bounds.left.toFloat(), bounds.top.toFloat())
@@ -15,6 +15,17 @@ class Glyph(private val kind: Kind, private val selected: Boolean = false, priva
         val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; style = Paint.Style.STROKE; strokeWidth = 2f; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
         fun line(vararg points: Float) { val path = Path(); path.moveTo(points[0], points[1]); for (i in 2 until points.size step 2) path.lineTo(points[i], points[i + 1]); canvas.drawPath(path, p) }
         when (kind) {
+            Kind.WIFI -> { canvas.drawArc(2f,5f,22f,25f,218f,104f,false,p);canvas.drawArc(6f,9f,18f,21f,218f,104f,false,p);p.style=Paint.Style.FILL;canvas.drawCircle(12f,18f,1.4f,p) }
+            Kind.BLUETOOTH -> { line(12f,2f,18f,7f,7f,17f);line(7f,7f,18f,17f,12f,22f,12f,2f) }
+            Kind.CELLULAR -> { line(6f,4f,6f,20f);line(3f,7f,6f,4f,9f,7f);line(18f,4f,18f,20f);line(15f,17f,18f,20f,21f,17f) }
+            Kind.NETWORK_MODE -> { line(4f,19f,4f,16f);line(9f,19f,9f,12f);line(14f,19f,14f,8f);line(19f,19f,19f,4f) }
+            Kind.HOTSPOT -> { canvas.drawArc(2f,2f,22f,22f,135f,270f,false,p);canvas.drawArc(6f,6f,18f,18f,135f,270f,false,p);p.style=Paint.Style.FILL;canvas.drawCircle(12f,12f,2f,p) }
+            Kind.VOLUME -> { line(3f,9f,7f,9f,12f,5f,12f,19f,7f,15f,3f,15f,3f,9f);canvas.drawArc(11f,6f,23f,18f,-60f,120f,false,p);canvas.drawArc(13f,9f,19f,15f,-60f,120f,false,p) }
+            Kind.BRIGHTNESS -> { canvas.drawCircle(12f,12f,4f,p);for(i in 0..7) { val a=i*Math.PI/4;line(12+7*kotlin.math.cos(a).toFloat(),12+7*kotlin.math.sin(a).toFloat(),12+10*kotlin.math.cos(a).toFloat(),12+10*kotlin.math.sin(a).toFloat()) } }
+            Kind.SETTINGS -> SettingsGlyph(SettingsGlyph.Kind.SETTINGS,Color.WHITE,24).apply { setBounds(0,0,24,24) }.draw(canvas)
+            Kind.AIRPLANE -> { line(12f,2f,12f,21f);line(3f,12f,12f,8f,21f,12f);line(7f,21f,12f,18f,17f,21f) }
+            Kind.LOCATION -> { val path=Path().apply { moveTo(12f,22f);cubicTo(9f,17f,4f,13f,4f,9f);cubicTo(4f,0f,20f,0f,20f,9f);cubicTo(20f,13f,15f,17f,12f,22f);close() };canvas.drawPath(path,p);canvas.drawCircle(12f,9f,2.5f,p) }
+
             Kind.KEYBOARD -> { canvas.drawRoundRect(2f,5f,22f,19f,2f,2f,p); for(y in listOf(9f,12f)) for(x in listOf(6f,10f,14f,18f)) canvas.drawPoint(x,y,p); line(8f,16f,16f,16f) }
             Kind.SEARCH -> { canvas.drawCircle(10f, 10f, 6f, p); line(15f, 15f, 21f, 21f) }
             Kind.BACK -> line(14f, 4f, 6f, 12f, 14f, 20f)

@@ -103,13 +103,15 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     fun minimize() {
         if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputGeneration ?: -1L
         keyboardVisible=false
-        val leavingLauncher = overlay?.mode == CoverOverlay.Mode.DASHBOARD || overlay?.mode == CoverOverlay.Mode.RECENTS
-        minimized = true; navigationVisible = false; samsungHome = false
+        val homeNavigation=overlay?.mode==CoverOverlay.Mode.SIDEBAR && samsungHome
+        val leavingLauncher = overlay?.mode == CoverOverlay.Mode.DASHBOARD || overlay?.mode == CoverOverlay.Mode.RECENTS || overlay?.mode==CoverOverlay.Mode.SHORTCUTS
+        minimized = true; navigationVisible = false; samsungHome = homeNavigation
         if (leavingLauncher) CoverRotation.clear()
         reconcile()
     }
     fun expand() { openDrawer(prefs.getString("app_mode", "all") ?: "all") }
     fun navigateBack() {
+        if(samsungHome && overlay?.mode==CoverOverlay.Mode.SIDEBAR) { minimize();return }
         val cover = Platform.overlayDisplay(this) ?: return
         val service = NavigationService.current ?: return
         if (cover.state != Display.STATE_ON || (!Platform.isEmulatorOverlay(this) && folded == false)) return
@@ -138,9 +140,25 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             val cover = Platform.overlayDisplay(this) ?: return
             val service = NavigationService.current ?: return
             if (!Platform.isEmulatorOverlay(this) && !SamsungCoverPage.isClock(service, cover.displayId)) { reconcile(); return }
-            openDrawer(prefs.getString("app_mode", "all") ?: "all"); return
         }
         minimized = true; navigationVisible = true; reconcile()
+    }
+    private fun homeGestureAllowed(): Boolean {
+        val cover=Platform.overlayDisplay(this) ?: return false
+        val service=NavigationService.current ?: return false
+        if(cover.state!=Display.STATE_ON || (!Platform.isEmulatorOverlay(this) && folded==false)) return false
+        if(!Platform.isEmulatorOverlay(this) && !SamsungCoverPage.isClock(service,cover.displayId)) { reconcile();return false }
+        return true
+    }
+    fun openDrawerFromHome() {
+        if(homeGestureAllowed()) openDrawer(prefs.getString("app_mode","all") ?: "all")
+    }
+    fun openHomeShortcuts() {
+        if(prefs.getBoolean("home_shortcuts_enabled",true) && homeGestureAllowed()) openPanel("shortcuts")
+    }
+    fun reloadHomeControls() {
+        if(overlay?.mode in setOf(CoverOverlay.Mode.HOME_EDGE,CoverOverlay.Mode.SHORTCUTS) || samsungHome) clearOverlay()
+        schedule()
     }
     fun showSamsungHome() {
         val cover = Platform.overlayDisplay(this) ?: return
@@ -221,7 +239,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             }
         }
         if (yieldedUntilSleep) { clearOverlay(); report(I18n.text(R.string.ui_samsung_has_control_until_the_next_screen), null); return }
-        if (minimized && !navigationVisible && !keyboardVisible && !emulatorPreview) {
+        if (minimized && !keyboardVisible && !emulatorPreview && (!navigationVisible || samsungHome)) {
             // Events remove the handle while the page moves; polling also covers
             // firmware that omits a final accessibility scroll event.
             handler.removeCallbacks(update); handler.postDelayed(update, 200)
@@ -229,6 +247,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             // Back inside an app can return to Samsung without our Home button.
             if (SamsungCoverPage.isSamsungPage) samsungHome = true
             if (samsungHome && !clock) {
+                navigationVisible=false
                 clearOverlay(); report(I18n.text(R.string.ui_samsung_widget_or_page_has_control), null); return
             }
         }
@@ -236,12 +255,12 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             if (overlay?.displayId != cover.displayId || owner !== accessibility) {
                 clearOverlay()
                 owner = accessibility
-                overlay = CoverOverlay(accessibility, cover, ::minimize, ::expand, ::yieldToStock, ::showNavigation, ::showSystemRecents, section, ::showSamsungHome, ::navigateBack, ::showKeyboard)
+                overlay = CoverOverlay(accessibility, cover, ::minimize, ::expand, ::yieldToStock, ::showNavigation, ::showSystemRecents, section, ::showSamsungHome, ::navigateBack, ::showKeyboard, ::openDrawerFromHome, ::openHomeShortcuts)
             }
             overlay!!.show(when {
                 keyboardVisible -> CoverOverlay.Mode.KEYBOARD
                 navigationVisible -> CoverOverlay.Mode.SIDEBAR
-                !minimized -> if(section == "system-recent") CoverOverlay.Mode.RECENTS else CoverOverlay.Mode.DASHBOARD
+                !minimized -> when(section) { "system-recent" -> CoverOverlay.Mode.RECENTS;"shortcuts" -> CoverOverlay.Mode.SHORTCUTS;else -> CoverOverlay.Mode.DASHBOARD }
                 samsungHome -> CoverOverlay.Mode.HOME_EDGE
                 else -> CoverOverlay.Mode.EDGE
             })

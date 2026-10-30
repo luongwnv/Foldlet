@@ -4,7 +4,7 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.6.1](https://github.com/luongwnv/Foldlet/releases/download/v0.6.1/Foldlet-0.6.1.apk)** · **0.6.1 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.7.0](https://github.com/luongwnv/Foldlet/releases/download/v0.7.0/Foldlet-0.7.0.apk)** · **0.7.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
 ## Screenshots
 
@@ -26,7 +26,8 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 - Large icons, 4–6 columns, search, favorites, sorting, and hidden apps.
 - A toolbar with adjustable size, top/left/right/bottom placement, and a hide option. It also hides when scrolling down.
-- Tap the right edge of the **Samsung clock page** to open the drawer. Samsung’s widget pages keep their normal touch controls.
+- A configurable tap area on the **Samsung clock page** opens the drawer; swiping from the right edge opens navigation.
+- Swipe down from the clock’s top edge for customizable One UI shortcuts, including Wi-Fi, Bluetooth, mobile data, hotspot, and 4G/5G settings. Widget pages keep Samsung controls.
 - Back, app drawer, Recent apps, and Samsung Home navigation while using an app on the cover screen.
 - Recent apps from across your phone, including apps opened on the inner screen.
 - English and Vietnamese following your system language; other languages fall back to English.
@@ -35,7 +36,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.6.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.7.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -44,7 +45,7 @@ To update, install the new APK over your existing version and open Foldlet once.
 
 ## Using Foldlet
 
-**From the Samsung clock:** tap or swipe inward from the right edge to open the app drawer. Foldlet places this touch area only on the clock page, leaving widget pages to Samsung.
+**From the Samsung clock:** tap the configured touch area to open apps. Swipe inward from the right edge for navigation, or swipe down from the top edge for Shortcuts. Foldlet removes these touch areas on Samsung’s widget pages.
 
 **In the app drawer:** tap an icon to open an app and swipe vertically to scroll. Use the toolbar to search, filter, or sort. Long-press an icon to favorite it, hide it, or choose its launch orientation. Swipe inward from either the left or right edge to return to Samsung Home.
 
@@ -74,6 +75,19 @@ Long-press **Hide** to give Samsung control until the next screen wake.
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
 Tap **×** at the top-right of a card to close that card, or **Close all** to clear the list. An app appears again after you use it. These controls dismiss Foldlet cards without force-stopping apps or removing Android system tasks.
+
+### Home touch area and Shortcuts
+
+<p align="center"><img src="docs/images/shortcuts.png" width="512" alt="Foldlet system shortcuts"></p>
+
+In **Settings > Home touch area**, choose the rectangle’s width, height, horizontal position, and vertical position using the preview. You can disable tap-to-open or hide its small indicator. Swiping from the right edge still opens navigation.
+
+<p align="center">
+  <img src="docs/images/home-touch-area.png" width="260" alt="Configure the home touch area">
+  <img src="docs/images/home-shortcuts-settings.png" width="260" alt="Choose and arrange home shortcuts">
+</p>
+
+In **Settings > Home shortcuts**, enable or disable the top-edge swipe, select available system shortcuts, then touch and hold a shortcut and drag it to reorder. Shortcuts open One UI’s own controls. If the OS cannot show a control on the cover screen, Foldlet offers **Open on phone**.
 
 ### Customization
 
@@ -124,7 +138,7 @@ Replace `DEVICE_SERIAL` with the device ID shown by `adb devices`, authorize the
 
 ## Troubleshooting
 
-- **The right edge does not open the drawer:** return to the Samsung clock page and check the service switch, Accessibility, and Display over other apps permissions. After updating the APK, open Foldlet on the inner screen once.
+- **Tapping home does not open the drawer:** return to the Samsung clock, check **Settings > Home touch area**, and tap inside the configured region. Check the service switch, Accessibility, and Display over other apps permissions. After an update, open Foldlet on the inner screen once.
 - **Recent apps is empty:** grant Usage access and open another app. After Close all, use an app again for its card to reappear.
 - **Back does not work in an app:** some apps do not expose a usable navigation path on the cover screen. Use the app’s own back control when Foldlet prompts you.
 - **Rotation does not change:** check the USB connection and the helper running on your computer.

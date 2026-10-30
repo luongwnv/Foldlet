@@ -107,6 +107,15 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         display.addView(SettingsUi.row(c,SettingsGlyph.Kind.HOME,I18n.text(R.string.ui_samsung_home_screen),I18n.text(R.string.ui_keep_the_native_clock_and_widgets),SettingsUi.pill(c,I18n.text(R.string.ui_default))) { c.samsungHome() })
         display.addView(SettingsUi.divider(c))
         display.addView(SettingsUi.row(c,SettingsGlyph.Kind.SWIPE,I18n.text(R.string.ui_edge_gestures),I18n.text(R.string.ui_swipe_in_the_menu_to_return_to)) { gestureGuide() })
+        display.addView(SettingsUi.divider(c))
+        val touch=HomeTouchConfig.read(c)
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.OVERLAY,I18n.text(R.string.ui_home_touch_area),I18n.text(R.string.ui_home_touch_help),value(if(touch.enabled) "${touch.widthPercent}% × ${touch.heightPercent}%" else I18n.text(R.string.ui_off))) {
+            HomeControlSettings.touchArea(c) { CoverMonitorService.current?.reloadHomeControls();render() }
+        }.apply { tag="row-home-touch-area" })
+        display.addView(SettingsUi.divider(c))
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.GRID,I18n.text(R.string.ui_home_shortcuts),I18n.text(R.string.ui_home_shortcuts_help),SettingsUi.icon(c,SettingsGlyph.Kind.NEXT,SettingsUi.muted,20)) {
+            HomeControlSettings.shortcuts(c) { CoverMonitorService.current?.reloadHomeControls();render() }
+        }.apply { tag="row-home-shortcuts" })
         content.addView(display)
         content.addView(SettingsUi.section(c,I18n.text(R.string.ui_app_drawer)))
         val menu=SettingsUi.card(c)

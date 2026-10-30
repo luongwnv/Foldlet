@@ -23,18 +23,30 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
         val oldRecents = prefs.getString("recents", null)
         val oldCleared = prefs.getLong("recent_cleared_at",0)
         val oldFavorites = prefs.getStringSet("favorites", null)?.toSet()
+        val oldForceKeyboard=prefs.getBoolean("force_cover_keyboard",false)
+        val oldHome=prefs.all.filterKeys { it.startsWith("home_") }
         try {
             check(BuildConfig.DEBUG && Build.MODEL.startsWith("sdk_gphone")) { "Overlay input test is only for the owned emulator" }
             getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
-            prefs.edit().putBoolean("emulator_overlay", true).apply()
+            prefs.edit().putBoolean("force_cover_keyboard",false).putBoolean("emulator_overlay", true).putBoolean("home_tap_enabled",true).putBoolean("home_shortcuts_enabled",true)
+                .putInt("home_tap_width",10).putInt("home_tap_height",60).putInt("home_tap_horizontal",100).putInt("home_tap_vertical",50).apply()
             underlay = startActivitySync(Intent(targetContext, OverlayUnderlayActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as OverlayUnderlayActivity
             File(targetContext.cacheDir, "overlay-await-accessibility").writeText("ready")
             await("accessibility connection") { NavigationService.current != null }
             runOnMainSync {
                 targetContext.startForegroundService(Intent(targetContext, CoverMonitorService::class.java).setAction(CoverMonitorService.ACTION_START))
             }
-            await("Samsung default edge") { CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && CoverMonitorService.current?.overlay?.view?.width == 48 }
+            await("Samsung default edge") { CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && CoverMonitorService.current?.overlay?.view?.width == 18 }
             capture("overlay-samsung-default", requireNotNull(CoverMonitorService.current?.overlay?.window))
+            swipeLeftFromRightEdge()
+            await("home swipe opens navigation") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.SIDEBAR }
+            tap(488f,234f)
+            await("close home navigation") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.HOME_EDGE }
+            swipe(256f,30f,256f,100f)
+            await("top swipe opens shortcuts") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.SHORTCUTS }
+            tap(20f,18f)
+            await("shortcuts back returns home") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.HOME_EDGE }
+
             swipe(480f, 220f, 480f, 80f)
             waitForIdleSync(); SystemClock.sleep(300)
             check(CoverMonitorService.current?.overlay?.mode == CoverOverlay.Mode.HOME_EDGE) { "Vertical home-edge drag opened the menu" }
@@ -64,15 +76,15 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             capture("overlay-dashboard", requireNotNull(engine.overlay?.window))
             val historyBeforeSwipes = prefs.all.filterKeys { it == "recents" || it.startsWith("launches.") }
             swipe(2f, 80f, 82f, 80f)
-            await("left menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
+            await("left menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 18 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
-            swipeLeftFromRightEdge()
+            tap(480f,130f)
             await("reopen after left menu edge") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
             capture("overlay-dashboard", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
-            await("right menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
+            await("right menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 18 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
-            swipeLeftFromRightEdge()
+            tap(480f,130f)
             await("reopen after right menu edge") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
             capture("overlay-dashboard", requireNotNull(engine.overlay?.window))
             prefs.edit().putStringSet("favorites", emptySet()).apply()
@@ -80,7 +92,7 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             await("empty favorites menu") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD && engine.overlay?.view?.width == 512 }
             capture("overlay-empty-favorites", requireNotNull(engine.overlay?.window))
             swipeLeftFromRightEdge()
-            await("empty menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
+            await("empty menu edge returns to Samsung") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 18 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
             prefs.edit().putStringSet("favorites", oldFavorites).apply()
             runOnMainSync { engine.openDrawer(oldMode ?: "all") }
@@ -157,7 +169,7 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             check(underlay.taps == 1) { "Restored dashboard did not intercept touches" }
 
             runOnMainSync { engine.showSamsungHome() }
-            await("Samsung home edge") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 48 }
+            await("Samsung home edge") { engine.overlay?.mode == CoverOverlay.Mode.HOME_EDGE && engine.overlay?.view?.width == 18 }
             capture("overlay-samsung-edge", requireNotNull(engine.overlay?.window))
             tap(440f, 120f)
             waitForIdleSync()
@@ -175,15 +187,19 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             await("explicit restore") { engine.overlay?.mode == CoverOverlay.Mode.DASHBOARD }
             runOnMainSync { targetContext.startService(Intent(targetContext, CoverMonitorService::class.java).setAction(CoverMonitorService.ACTION_STOP)) }
             await("overlay teardown") { CoverMonitorService.current == null && engine.overlay == null }
-            result.putString("stream", "PASS: Samsung home 48px tap target; app edge 18px and rail 48px; real Back reaches underlying app; X hides rail; global Recent lists Clock opened outside LIT with local history empty and opens its card; both menu edges return to Samsung; vertical drags/taps do not exit; pending roots removed; real overlay input interception/pass-through; menu/Home/yield/stop switch modes; underlay taps=3\n")
+            result.putString("stream", "PASS: configurable Samsung home tap target; home swipe opens navigation and top swipe opens shortcuts; app edge 18px and rail 48px; real Back reaches underlying app; X hides rail; global Recent lists Clock opened outside LIT with local history empty and opens its card; both menu edges return to Samsung; vertical drags/taps do not exit; pending roots removed; real overlay input interception/pass-through; menu/Home/yield/stop switch modes; underlay taps=3\n")
         } catch (e: Throwable) {
             code = Activity.RESULT_CANCELED
             result.putString("stream", "FAIL: ${e.stackTraceToString()}\n")
         } finally {
             runOnMainSync {
                 targetContext.stopService(Intent(targetContext, CoverMonitorService::class.java))
-                prefs.edit().putBoolean("monitor", oldMonitor).putBoolean("emulator_overlay", oldPreview)
+                prefs.edit().putBoolean("force_cover_keyboard",oldForceKeyboard).putBoolean("monitor", oldMonitor).putBoolean("emulator_overlay", oldPreview)
                     .putString("app_mode", oldMode).putString("recents",oldRecents).putLong("recent_cleared_at",oldCleared).putStringSet("favorites", oldFavorites).apply()
+                val restoreHome=prefs.edit()
+                prefs.all.keys.filter { it.startsWith("home_") }.forEach { restoreHome.remove(it) }
+                oldHome.forEach { (key,value) -> when(value) { is Int -> restoreHome.putInt(key,value);is Boolean -> restoreHome.putBoolean(key,value);is String -> restoreHome.putString(key,value) } }
+                restoreHome.apply()
                 underlay?.finish()
                 File(targetContext.cacheDir, "overlay-await-accessibility").delete()
             }

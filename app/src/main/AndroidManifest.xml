@@ -14,6 +14,21 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
+        <intent><action android:name="android.settings.panel.action.WIFI" /></intent>
+        <intent><action android:name="android.settings.WIFI_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.panel.action.INTERNET_CONNECTIVITY" /></intent>
+        <intent><action android:name="android.settings.BLUETOOTH_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.WIFI_AP_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.TETHER_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.NETWORK_OPERATOR_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.DATA_ROAMING_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.WIRELESS_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.panel.action.VOLUME" /></intent>
+        <intent><action android:name="android.settings.SOUND_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.DISPLAY_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.SETTINGS" /></intent>
+        <intent><action android:name="android.settings.AIRPLANE_MODE_SETTINGS" /></intent>
+        <intent><action android:name="android.settings.LOCATION_SOURCE_SETTINGS" /></intent>
     </queries>
     <application android:name=".FoldletApplication" android:label="@string/app_name" android:theme="@style/AppTheme" android:localeConfig="@xml/locales_config"
         android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:dataExtractionRules="@xml/backup_rules"

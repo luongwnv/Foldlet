@@ -26,10 +26,13 @@ class CoverOverlay(
         }
     },
     private val onKeyboard: () -> Unit = {},
+    private val onHomeTap: () -> Unit = onExpand,
+    private val onShortcuts: () -> Unit = {},
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD }
+    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD, SHORTCUTS }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
+    private var homeGestures: HomeGestureOverlay?=null
     private var attached: View? = null
     private var applicationWindow = false
     private var preferApplicationWindow = false
@@ -49,12 +52,14 @@ class CoverOverlay(
         hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
-        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS
-        val title = if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
+        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS
+        val title = if(requested==Mode.SHORTCUTS) SHORTCUTS_TITLE else if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
         val homeEdge = requested == Mode.HOME_EDGE
         val edge = homeEdge || requested == Mode.EDGE
         try {
-            if(requested == Mode.KEYBOARD) {
+            if(requested==Mode.SHORTCUTS) {
+                dialog.setContentView(QuickShortcutsView(dialog.context,displayId,onSamsungHome,onMinimize))
+            } else if(requested == Mode.KEYBOARD) {
                 val target=service.coverInputTarget(displayId) ?: return
                 val input=LinearLayout(dialog.context).apply { orientation=LinearLayout.VERTICAL;setBackgroundColor(Color.BLACK) }
                 val header=LinearLayout(dialog.context).apply { gravity=Gravity.CENTER_VERTICAL }
@@ -70,42 +75,19 @@ class CoverOverlay(
                 if (initialSection != "apps") dashboard.openSection(initialSection)
                 dialog.setContentView(dashboard)
             } else if (edge) {
-                var downX = 0f; var downY = 0f; var revealed = false
-                var tapCandidate = false; var verticalGesture = false
-                val tapSlop = ViewConfiguration.get(a11yContext).scaledTouchSlop.coerceAtLeast(Ui.dp(a11yContext,12))
                 val strip = object : View(dialog.context) {
+                    private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { color=0x60FFFFFF }
                     override fun onDraw(canvas: Canvas) {
                         super.onDraw(canvas)
-                        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x60FFFFFF }
-                        canvas.drawRoundRect(width - Ui.dp(context,4).toFloat(), height / 2f - 20, width - 1f, height / 2f + 20, 2f, 2f, paint)
+                        if(homeEdge && HomeTouchConfig.read(context).enabled) return
+                        canvas.drawRoundRect(width-Ui.dp(context,4).toFloat(),height/2f-20,width-1f,height/2f+20,2f,2f,paint)
                     }
-                    override fun performClick(): Boolean { super.performClick(); onNavigation(); return true }
+                    override fun performClick(): Boolean { super.performClick();onNavigation();return true }
                 }
-                strip.isClickable = true
-                strip.contentDescription = if (homeEdge) I18n.text(R.string.ui_tap_or_swipe_the_right_edge_to) else I18n.text(R.string.ui_tap_or_swipe_the_right_edge_to_2)
-                strip.setOnTouchListener { _, event ->
-                    when (event.actionMasked) {
-                        MotionEvent.ACTION_DOWN -> {
-                            downX = event.rawX; downY = event.rawY; revealed = false
-                            tapCandidate = true; verticalGesture = false
-                        }
-                        MotionEvent.ACTION_MOVE -> {
-                            val dx = downX - event.rawX
-                            val dy = kotlin.math.abs(event.rawY - downY)
-                            if (kotlin.math.abs(dx) > tapSlop || dy > tapSlop) tapCandidate = false
-                            if (dy > tapSlop && dy > kotlin.math.abs(dx)) verticalGesture = true
-                            if (!revealed && !verticalGesture && dx > Ui.dp(a11yContext,24) && dx > dy * 1.25f) {
-                                revealed = true; onNavigation()
-                            }
-                        }
-                        MotionEvent.ACTION_UP -> {
-                            if (!revealed && tapCandidate && kotlin.math.abs(event.rawX - downX) <= tapSlop && kotlin.math.abs(event.rawY - downY) <= tapSlop) strip.performClick()
-                            tapCandidate = false
-                        }
-                        MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> { tapCandidate = false; verticalGesture = true }
-                    }
-                    true
-                }
+                strip.isClickable=true
+                strip.contentDescription=I18n.text(if(homeEdge) R.string.ui_home_swipe_navigation else R.string.ui_tap_or_swipe_the_right_edge_to_2)
+                strip.setOnTouchListener(HomeGestureOverlay.listener(a11yContext,{ if(!homeEdge) strip.performClick() },onNavigation,
+                    if(homeEdge && Platform.preferences(service).getBoolean("home_shortcuts_enabled",true)) onShortcuts else null))
                 dialog.setContentView(strip)
             } else {
                 val rail = LinearLayout(dialog.context).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
@@ -135,7 +117,7 @@ class CoverOverlay(
                 setTitle(title)
                 type = if (preferApplicationWindow) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
                 format = PixelFormat.TRANSLUCENT
-                width = if (full || requested==Mode.KEYBOARD) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE) 18 else 48)
+                width = if (full || requested==Mode.KEYBOARD) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE || requested==Mode.HOME_EDGE) 18 else 48)
                 height = if(requested==Mode.KEYBOARD) Ui.dp(a11yContext,164) else WindowManager.LayoutParams.MATCH_PARENT
                 gravity = if(requested==Mode.KEYBOARD) Gravity.BOTTOM or Gravity.LEFT else Gravity.TOP or if (full) Gravity.LEFT else Gravity.RIGHT
                 x = 0; y = 0
@@ -147,7 +129,7 @@ class CoverOverlay(
                     if (attached === decor && decor.isAttachedToWindow) manager.updateViewLayout(decor, attributes)
                 }
                 override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) onMinimize(); return true }
+                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) { if(requested==Mode.SHORTCUTS) onSamsungHome() else onMinimize() }; return true }
                     return dialog.dispatchKeyEvent(event)
                 }
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -166,10 +148,15 @@ class CoverOverlay(
             }
             applicationWindow = window.attributes.type == WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             attached = decor; panel = dialog; mode = requested
+            if(homeEdge) {
+                homeGestures=HomeGestureOverlay(a11yContext,manager,window.attributes,display,onHomeTap,onNavigation,onShortcuts)
+                homeGestures!!.show()
+            }
         } catch (error: RuntimeException) { hide(); throw error }
     }
 
     fun hide() {
+        homeGestures?.hide();homeGestures=null
         val decor = attached
         attached = null; panel = null; mode = Mode.HIDDEN
         // WindowManager registers the root before the first traversal attaches
@@ -183,5 +170,6 @@ class CoverOverlay(
         const val NAVIGATION_TITLE = "Foldlet · right navigation"
         const val RECENTS_TITLE = "Foldlet · recent applications"
         const val KEYBOARD_TITLE = "Foldlet · cover keyboard"
+        const val SHORTCUTS_TITLE = "Foldlet · shortcuts"
     }
 }
