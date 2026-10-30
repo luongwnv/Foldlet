@@ -46,15 +46,19 @@ To update, install the new APK over your existing version and open Foldlet once.
 
 **Inside an app:** swipe from the right edge toward the left to reveal the navigation bar.
 
+![Foldlet navigation bar on a Galaxy Z Flip3, shown over Samsung Calculator](docs/images/navigation.png)
+
+Captured directly on a Galaxy Z Flip3. Each control below is cropped from the same screenshot, in top-to-bottom order.
+
 | Control | Action |
 | --- | --- |
-| **‹** | Go back in the current app |
-| **Dot grid** | Open the Foldlet app drawer |
-| **Three vertical bars** | Open Recent apps |
-| **Rounded square** | Return to the Samsung clock |
-| **×** | Hide the navigation bar |
+| ![Back](docs/images/control-back.png) **Back** | Go back in the current app |
+| ![Apps](docs/images/control-apps.png) **Apps** | Open the Foldlet app drawer |
+| ![Recent apps](docs/images/control-recents.png) **Recent apps** | Open Recent apps |
+| ![Home](docs/images/control-home.png) **Home** | Return to the Samsung clock |
+| ![Hide](docs/images/control-hide.png) **Hide** | Hide the navigation bar |
 
-Long-press **×** to give Samsung control until the next screen wake.
+Long-press **Hide** to give Samsung control until the next screen wake.
 
 ### Recent apps and Close all
 
