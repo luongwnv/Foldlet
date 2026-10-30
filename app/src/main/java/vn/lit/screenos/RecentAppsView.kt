@@ -64,18 +64,33 @@ class RecentAppsView(context: Context, private val displayId: Int, private val c
         }
         val row = LinearLayout(context).apply { setPadding(Ui.dp(context,6),0,Ui.dp(context,6),0) }
         entries.forEach { entry ->
-            val card = LinearLayout(context).apply {
-                orientation=VERTICAL; gravity=Gravity.CENTER
-                setPadding(Ui.dp(context,10),Ui.dp(context,10),Ui.dp(context,10),Ui.dp(context,10))
+            val card = FrameLayout(context).apply {
                 background=GradientDrawable().apply { setColor(0xFF1C1C1C.toInt()); cornerRadius=Ui.dp(context,18).toFloat() }
                 contentDescription=I18n.text(R.string.ui_open, entry.label); tag="recent:${entry.component.packageName}"; isClickable=true; isFocusable=true
                 setOnClickListener { launch(entry) }
             }
-            card.addView(ImageView(context).apply { setImageDrawable(entry.icon); scaleType=ImageView.ScaleType.FIT_CENTER },LayoutParams(Ui.dp(context,64),Ui.dp(context,64)))
-            card.addView(label(entry.label,16f,true).apply { gravity=Gravity.CENTER; maxLines=2; ellipsize=android.text.TextUtils.TruncateAt.END },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,12) })
+            val content = LinearLayout(context).apply {
+                orientation=VERTICAL; gravity=Gravity.CENTER
+                setPadding(Ui.dp(context,10),Ui.dp(context,34),Ui.dp(context,10),Ui.dp(context,10))
+            }
+            card.addView(content,FrameLayout.LayoutParams(-1,-1))
+            content.addView(ImageView(context).apply { setImageDrawable(entry.icon); scaleType=ImageView.ScaleType.FIT_CENTER },LayoutParams(Ui.dp(context,64),Ui.dp(context,64)))
+            content.addView(label(entry.label,16f,true).apply { gravity=Gravity.CENTER; maxLines=2; ellipsize=android.text.TextUtils.TruncateAt.END },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,12) })
             val minutes = ((System.currentTimeMillis()-entry.lastUsed).coerceAtLeast(0)/60_000).toInt()
             val age = when { minutes<1 -> I18n.text(R.string.ui_just_used); minutes<60 -> resources.getQuantityString(R.plurals.minutes_ago,minutes,minutes); minutes<1440 -> resources.getQuantityString(R.plurals.hours_ago,minutes/60,minutes/60); else -> resources.getQuantityString(R.plurals.days_ago,minutes/1440,minutes/1440) }
-            card.addView(label(age,12f).apply { gravity=Gravity.CENTER; setTextColor(0xFFAFAFAF.toInt()) },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,7) })
+            content.addView(label(age,12f).apply { gravity=Gravity.CENTER; setTextColor(0xFFAFAFAF.toInt()) },LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,7) })
+            card.addView(Glyph.button(context,Glyph.Kind.CLOSE,I18n.text(R.string.ui_close_recent_app,entry.label),action={
+                if(Platform.unlocked(context) && RecentApps.hasAccess(context)) {
+                    RecentApps.dismiss(context,entry.component.packageName)
+                    row.removeView(card)
+                    if(row.childCount==0) render(emptyList())
+                }
+            }).apply {
+                tag="recent-dismiss:${entry.component.packageName}"
+                background=android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x40FFFFFF),GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(0xFF303030.toInt()) },null)
+            },FrameLayout.LayoutParams(Ui.dp(context,36),Ui.dp(context,36),Gravity.TOP or Gravity.RIGHT).apply {
+                topMargin=Ui.dp(context,4);rightMargin=Ui.dp(context,4)
+            })
             row.addView(card,LayoutParams(Ui.dp(context,140),-1).apply { setMargins(Ui.dp(context,5),Ui.dp(context,8),Ui.dp(context,5),Ui.dp(context,8)) })
         }
         body.addView(HorizontalScrollView(context).apply { isHorizontalScrollBarEnabled=false; addView(row,FrameLayout.LayoutParams(-2,-1)) },FrameLayout.LayoutParams(-1,-1))

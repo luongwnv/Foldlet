@@ -80,6 +80,7 @@
     <string name="ui_samsung_widget_or_page_has_control">Samsung widget or page has control</string>
     <string name="ui_could_not_show_the_overlay">Could not show the overlay</string>
     <string name="ui_close_all">Close all</string>
+    <string name="ui_close_recent_app">Close %1$s</string>
     <string name="ui_close_recent_apps">Close Recent apps</string>
     <string name="ui_recent_apps">Recent apps</string>
     <string name="ui_unlock_your_phone_to_see_recent_apps">Unlock your phone to see recent apps</string>

@@ -21,13 +21,14 @@ object RecentApps {
         if (!hasAccess(context)) return emptyList()
         val now = System.currentTimeMillis()
         val since = now - 7 * 24 * 60 * 60 * 1000L
-        val cleared = Platform.preferences(context).getLong("recent_cleared_at",0)
+        val prefs = Platform.preferences(context)
+        val cleared = prefs.getLong("recent_cleared_at",0)
         val pm = context.packageManager
         val launchable = pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
             .map { it.activityInfo.packageName }.toSet()
         val usage = context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(since, now)
         return usage.values.asSequence()
-            .filter { it.lastTimeUsed >= since && it.lastTimeUsed > cleared && it.packageName in launchable && it.packageName !in excluded && it.packageName != context.packageName }
+            .filter { it.lastTimeUsed >= since && it.lastTimeUsed > maxOf(cleared,prefs.getLong("recent_dismissed.${it.packageName}",0)) && it.packageName in launchable && it.packageName !in excluded && it.packageName != context.packageName }
             .sortedByDescending { it.lastTimeUsed }.take(30)
             .mapNotNull { stat ->
                 try {
@@ -38,7 +39,16 @@ object RecentApps {
             }.toList()
     }
 
-    fun clear(context: Context) { Platform.preferences(context).edit().putLong("recent_cleared_at",System.currentTimeMillis()).apply() }
+    fun dismiss(context: Context,pkg: String) {
+        Platform.preferences(context).edit().putLong("recent_dismissed.$pkg",System.currentTimeMillis()).apply()
+    }
+
+    fun clear(context: Context) {
+        val prefs=Platform.preferences(context)
+        val edit=prefs.edit().putLong("recent_cleared_at",System.currentTimeMillis())
+        prefs.all.keys.filter { it.startsWith("recent_dismissed.") }.forEach { edit.remove(it) }
+        edit.apply()
+    }
 
     fun isLauncherRoot(context: Context, pkg: String): Boolean {
         if (!hasAccess(context)) return false
