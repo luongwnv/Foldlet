@@ -5,7 +5,7 @@
     <string name="ui_running">đang chạy</string>
     <string name="ui_stopped">đã dừng</string>
     <string name="accessibility_service_label">Foldlet · Điều khiển màn hình ngoài</string>
-    <string name="accessibility_description">Hiển thị Foldlet trên màn hình ngoài, phân biệt trang đồng hồ Samsung với widget. Thực hiện Back và gửi phím tới ô nhập đang có focus trên màn hình ngoài khi bạn bật bàn phím. Không đọc hoặc lưu nội dung ô nhập của app khác hay nội dung màn hình. Dừng dịch vụ trong Foldlet hoặc thông báo.</string>
+    <string name="accessibility_description">Hiển thị Foldlet trên màn hình ngoài, phân biệt trang đồng hồ Samsung với widget. Thực hiện Back và gửi phím tới ô nhập đang có focus khi bạn bật bàn phím. Khi bạn nhấn × hoặc Đóng tất cả, dùng tên app và nút điều khiển trong Gần đây Samsung để đóng task. Không đọc hoặc lưu nội dung ô nhập hay nội dung màn hình app khác. Dừng dịch vụ trong Foldlet hoặc thông báo.</string>
     <string name="ui_unlock_to_continue">Mở khóa để tiếp tục</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Dùng vân tay hoặc mở khóa điện thoại.</string>
     <string name="ui_unlock">Mở khóa</string>
@@ -291,4 +291,6 @@
     <string name="ui_samsung_routines_unavailable">Không mở được thiết lập Routine Samsung trên máy này.</string>
     <string name="ui_samsung_link_first">Liên kết Routine trong Cài đặt &gt; Điều khiển Samsung trước.</string>
     <string name="ui_samsung_routine_no_change">Routine chưa đổi nút này. Kiểm tra hành động và thiết lập đảo ngược trong Samsung.</string>
+    <string name="ui_recent_task_not_found">Không tìm thấy task trong Gần đây Samsung. Giữ × để xóa thẻ lịch sử.</string>
+    <string name="ui_recent_task_not_closed">Samsung chưa chấp nhận đóng task. Thẻ lịch sử vẫn được giữ lại.</string>
 </resources>

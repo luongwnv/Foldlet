@@ -6,7 +6,7 @@
     <string name="ui_stopped">stopped</string>
     <string name="app_name" translatable="false">Foldlet</string>
     <string name="accessibility_service_label">Foldlet · Cover screen controls</string>
-    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock page without covering widgets. Handle Back and, when enabled, send keyboard input to the focused cover-screen editor. Existing field text and screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
+    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock page without covering widgets. Handle Back and, when enabled, send keyboard input to the focused cover-screen editor. When you tap × or Close all, use app labels and controls in Samsung Recent to close tasks. Existing field text and app screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
     <string name="ui_unlock_to_continue">Unlock to continue</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Use your fingerprint or unlock your phone.</string>
     <string name="ui_unlock">Unlock</string>
@@ -295,4 +295,6 @@
     <string name="ui_samsung_routines_unavailable">Samsung routine setup is unavailable on this device.</string>
     <string name="ui_samsung_link_first">Link a routine in Settings &gt; Samsung controls first.</string>
     <string name="ui_samsung_routine_no_change">The routine did not change this control. Check its Samsung actions and reverse setting.</string>
+    <string name="ui_recent_task_not_found">Task not found in Samsung Recent. Hold × to remove its history card.</string>
+    <string name="ui_recent_task_not_closed">Samsung did not accept closing this task. Its history card has been kept.</string>
 </resources>

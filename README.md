@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.10.0](https://github.com/luongwnv/Foldlet/releases/download/v0.10.0/Foldlet-0.10.0.apk)** · **0.10.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.10.1](https://github.com/luongwnv/Foldlet/releases/download/v0.10.1/Foldlet-0.10.1.apk)** · **0.10.1 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.0/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.1/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -39,7 +39,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.10.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.10.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -79,7 +79,11 @@ Long-press **Hide** to give Samsung control until the next screen wake.
 
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
-Tap **×** at the top-right of a card to close that card, or **Close all** to clear the list. An app appears again after you use it. These controls dismiss Foldlet cards without force-stopping apps or removing Android system tasks.
+On the Galaxy Z Flip3, tap **×** at the top-right of a card to close its task through **Samsung Recent**. **Close all** runs Samsung's native Close all action. The native Recent interface appears briefly, then Foldlet returns automatically. These actions close tasks like dismissing cards in Samsung Recent; they do not Force stop apps in Android Settings. Samsung's rules for locked tasks still apply.
+
+Foldlet only dismisses the individual history card after Samsung accepts the Close action. If Samsung refuses or the task cannot be found, the card stays and Foldlet reports the problem. **Hold ×** to remove only a history card, useful for an app whose task was already closed. A card appears again after you use the app. The list is usage history, so some entries may have no active system task.
+
+Task closing requires the existing Accessibility service and the supported Samsung Recent interface. It runs on the phone without USB, root, or Shizuku. Other phone models and launcher versions have not been verified.
 
 ### Home touch area and Shortcuts
 
@@ -148,7 +152,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 <tbody>
 <tr><td valign="middle">Display over other apps</td><td valign="middle">Show the drawer and navigation bar on the cover screen</td></tr>
 <tr><td valign="middle">Network state</td><td valign="middle">Read the mobile-data switch state; granted automatically by Android</td></tr>
-<tr><td valign="middle">Accessibility</td><td valign="middle">Distinguish Samsung’s clock and widget pages, handle Back, and send keyboard input to the focused cover-screen editor when enabled</td></tr>
+<tr><td valign="middle">Accessibility</td><td valign="middle">Distinguish Samsung’s clock and widget pages, handle Back, close tasks through Samsung Recent when requested, and send keyboard input to the focused cover-screen editor when enabled</td></tr>
 <tr><td valign="middle">Usage access (Optional)</td><td valign="middle">Show Recent apps and help identify an app’s launcher page when handling Back</td></tr>
 <tr><td valign="middle">Notifications (Optional)</td><td valign="middle">Show the service status and Stop button</td></tr>
 <tr><td valign="middle">Notification access (Optional)</td><td valign="middle">Support notification and media features when used</td></tr>
