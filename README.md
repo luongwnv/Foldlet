@@ -4,7 +4,7 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.6.0](https://github.com/luongwnv/Foldlet/releases/download/v0.6.0/Foldlet-0.6.0.apk)** · **0.6.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.6.1](https://github.com/luongwnv/Foldlet/releases/download/v0.6.1/Foldlet-0.6.1.apk)** · **0.6.1 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
 ## Screenshots
 
@@ -32,7 +32,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.6.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.6.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -67,7 +67,7 @@ Long-press **Hide** to give Samsung control until the next screen wake.
 
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
-**Close all** clears the cards from Foldlet. An app appears again after you use it. This does not force-stop apps or remove tasks from Android’s system Recents.
+Tap **×** at the top-right of a card to close that card, or **Close all** to clear the list. An app appears again after you use it. These controls dismiss Foldlet cards without force-stopping apps or removing Android system tasks.
 
 ### Customization
 
@@ -98,7 +98,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 | Notifications (Optional) | Show the service status and Stop button |
 | Notification access (Optional) | Support notification and media features when used |
 
-Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
+Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
 
 ## Optional USB rotation
 
