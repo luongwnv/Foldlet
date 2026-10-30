@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.9.0](https://github.com/luongwnv/Foldlet/releases/download/v0.9.0/Foldlet-0.9.0.apk)** · **0.9.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.10.0](https://github.com/luongwnv/Foldlet/releases/download/v0.10.0/Foldlet-0.10.0.apk)** · **0.10.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.9.0/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.0/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -39,7 +39,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.9.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.10.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -104,7 +104,23 @@ Blue indicates on; a dimmed tile indicates a change in progress. Hotspot, mobile
 
 Reading these states works on the phone without USB. Foldlet Controls 1.1.0 is needed for hotspot and configured network-mode readings.
 
-One UI restricts direct switching for mobile data, hotspot, 4G/5G, airplane mode, and location: touch and hold those tiles to change them in system settings. If the OS cannot show a control on the cover screen, Foldlet offers **Open on phone**.
+**Mobile data and Hotspot** can switch on tap after the Samsung routine setup below. For 4G/5G, airplane mode, and location, touch and hold the tile to change it in system settings. If the OS cannot show a control on the cover screen, Foldlet offers **Open on phone**.
+
+### Samsung routines for Mobile data and Hotspot (Optional)
+
+Set this up once on the inner screen. Afterward, the cover-screen buttons work without USB, root, or Shizuku.
+
+1. Open **Settings > Samsung controls** in Foldlet.
+2. Tap **Add routine** under an On/Off action. Foldlet opens the ready-made preset directly in Samsung Routines+. If the module is missing, install it from the Galaxy Store page that opens, then tap **Add routine** again.
+3. Samsung shows the routine for your review. Choose **Edit**, open **When routine ends > Set actions**, and turn off reverse actions. Save the routine. Samsung's import format does not preserve this setting, so it needs to be changed once for each preset.
+4. Back in Foldlet, tap **Link**, allow access to that single routine widget, and select the matching saved routine.
+5. Repeat for **Foldlet Data On**, **Foldlet Data Off**, **Foldlet Hotspot On**, and **Foldlet Hotspot Off**. Existing routines with these actions and reverse actions disabled can be linked directly.
+
+<p align="center"><img src="docs/images/samsung-routine-import.png" width="260" alt="Actual Samsung import screen opened by Add routine in Foldlet, with Mobile data On already configured"></p>
+
+The image above is captured from the Galaxy Z Flip3. Samsung requires confirmation for importing routines and allowing widget access; Foldlet does not add routines silently. Tap a cover-screen tile to apply its On or Off routine. Long-press still opens system settings. Unlinking in Foldlet removes the widget link; the saved routine remains in Samsung Modes and Routines.
+
+Hotspot state detection requires **Foldlet Controls 1.1.0**. If a routine cannot change the setting, Foldlet reports it instead of showing a successful toggle. This integration has been checked on the Flip3's Android 14 / One UI 6.1.1 with Samsung Routines+; availability can differ on other Samsung versions.
 
 ### Customization
 
@@ -136,6 +152,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 <tr><td valign="middle">Usage access (Optional)</td><td valign="middle">Show Recent apps and help identify an app’s launcher page when handling Back</td></tr>
 <tr><td valign="middle">Notifications (Optional)</td><td valign="middle">Show the service status and Stop button</td></tr>
 <tr><td valign="middle">Notification access (Optional)</td><td valign="middle">Support notification and media features when used</td></tr>
+<tr><td valign="middle">Samsung routine widget access (Optional)</td><td valign="middle">Run the specific routine widgets you link for Mobile data and Hotspot; Android asks for permission when linking</td></tr>
 </tbody>
 </table>
 

@@ -279,4 +279,16 @@
     <string name="ui_muted">Tắt tiếng</string>
     <string name="ui_automatic">Tự động</string>
     <string name="ui_manual">Thủ công</string>
+    <string name="ui_samsung_controls">Điều khiển Samsung</string>
+    <string name="ui_samsung_controls_help">Liên kết Routine cho Dữ liệu di động và Hotspot</string>
+    <string name="ui_samsung_routines_help">Nhấn Thêm routine để mở mẫu có sẵn trong Samsung, rồi lưu. Tắt đảo ngược hành động nếu Samsung bật sẵn. Sau đó liên kết từng routine Bật/Tắt một lần. Cần Samsung Routines+. Sau thiết lập không cần USB hay root.</string>
+    <string name="ui_add_samsung_routine">Thêm routine</string>
+    <string name="ui_samsung_link">Liên kết</string>
+    <string name="ui_samsung_install_routines_plus">Cài Samsung Routines+, rồi nhấn Thêm routine lần nữa.</string>
+    <string name="ui_samsung_linked">Đã liên kết - chạm để đổi</string>
+    <string name="ui_samsung_not_linked">Chạm để liên kết Routine Samsung</string>
+    <string name="ui_samsung_unlink">Bỏ liên kết</string>
+    <string name="ui_samsung_routines_unavailable">Không mở được thiết lập Routine Samsung trên máy này.</string>
+    <string name="ui_samsung_link_first">Liên kết Routine trong Cài đặt &gt; Điều khiển Samsung trước.</string>
+    <string name="ui_samsung_routine_no_change">Routine chưa đổi nút này. Kiểm tra hành động và thiết lập đảo ngược trong Samsung.</string>
 </resources>

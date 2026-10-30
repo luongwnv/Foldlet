@@ -283,4 +283,16 @@
     <string name="ui_muted">Muted</string>
     <string name="ui_automatic">Auto</string>
     <string name="ui_manual">Manual</string>
+    <string name="ui_samsung_controls">Samsung controls</string>
+    <string name="ui_samsung_controls_help">Link routines for Mobile data and Hotspot</string>
+    <string name="ui_samsung_routines_help">Tap Add routine to open a ready-made preset in Samsung, then save it. Disable reverse actions if Samsung enables them. Link each saved On/Off routine below once. Requires Samsung Routines+. No USB or root needed after setup.</string>
+    <string name="ui_add_samsung_routine">Add routine</string>
+    <string name="ui_samsung_link">Link</string>
+    <string name="ui_samsung_install_routines_plus">Install Samsung Routines+, then tap Add routine again.</string>
+    <string name="ui_samsung_linked">Linked - tap to change</string>
+    <string name="ui_samsung_not_linked">Tap to link a Samsung routine</string>
+    <string name="ui_samsung_unlink">Unlink</string>
+    <string name="ui_samsung_routines_unavailable">Samsung routine setup is unavailable on this device.</string>
+    <string name="ui_samsung_link_first">Link a routine in Settings &gt; Samsung controls first.</string>
+    <string name="ui_samsung_routine_no_change">The routine did not change this control. Check its Samsung actions and reverse setting.</string>
 </resources>

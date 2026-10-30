@@ -1,0 +1,21 @@
+{
+  "document_id": "com.samsung.android.app.routines/routine",
+  "version": "1",
+  "name": "Foldlet Hotspot Off",
+  "conditions": [
+    {
+      "package": "com.samsung.android.app.routines",
+      "tag": "manual_execute",
+      "intent_param": "",
+      "is_negative": 0
+    }
+  ],
+  "actions": [
+    {
+      "package": "com.samsung.android.app.routines",
+      "tag": "hotspot_on",
+      "intent_param": "1",
+      "is_negative": 1
+    }
+  ]
+}
