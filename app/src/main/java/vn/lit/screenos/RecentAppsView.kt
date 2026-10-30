@@ -98,11 +98,14 @@ class RecentAppsView(context: Context, private val displayId: Int, private val c
         body.addView(HorizontalScrollView(context).apply { isHorizontalScrollBarEnabled=false; addView(row,FrameLayout.LayoutParams(-2,-1)) },FrameLayout.LayoutParams(-1,-1))
     }
     private fun launch(entry: RecentApps.Entry) {
-        if (!Platform.launch(context,Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(entry.component),displayId)) return
-        close()
         val prefs=Platform.preferences(context)
         val rotation=prefs.getString("orientation.${entry.component.flattenToString()}",prefs.getString("orientation","auto")) ?: "auto"
-        if (CoverRotation.available) CoverRotation.apply(context,displayId,rotation)
+        CoverRotation.prepare(context,displayId,rotation) { ready ->
+            if(!isAttachedToWindow || !Platform.unlocked(context)) return@prepare
+            if(!Platform.launch(context,Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setComponent(entry.component),displayId)) return@prepare
+            close()
+            CoverRotation.apply(context,displayId,if(ready) rotation else "auto",ownerPackage=entry.component.packageName)
+        }
     }
     private fun label(value: String,size: Float,bold: Boolean=false) = TextView(context).apply {
         text=value; textSize=size; setTextColor(Color.WHITE)

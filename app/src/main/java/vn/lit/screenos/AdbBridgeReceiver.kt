@@ -17,7 +17,7 @@ class AdbBridgeReceiver : BroadcastReceiver() {
                 if (BuildConfig.DEBUG && android.os.Build.MODEL.startsWith("sdk_gphone") && intent.getBooleanExtra("emulator",false)) {
                     prefs.edit().putBoolean("emulator_overlay",true).apply()
                 }
-                CoverRotation.invalidate()
+                CoverRotation.bridgeConfigured(context)
             }
             "vn.lit.screenos.CLEAR_ADB_BRIDGE" -> {
                 val current = prefs.getString("adb_bridge_token", "")!!

@@ -339,6 +339,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("engine=cover-overlay enabled=${prefs.getBoolean("monitor", false)}")
         writer.println("display=${overlay?.displayId} mode=${overlay?.mode ?: CoverOverlay.Mode.HIDDEN} backend=${overlay?.backend} folded=$folded lidSensor=${lidSensor?.type} samsungHome=$samsungHome")
         writer.println("rotationRequest=${CoverRotation.mode} actualRotation=${Platform.overlayDisplay(this)?.rotation} adbBridgeConfigured=${CoverRotation.authorized} adbBridgeAvailable=${CoverRotation.available}")
+        writer.println("rotationSensorActive=${CoverRotation.sensorActive} sensorAngle=${CoverRotation.sensorAngle}")
         writer.println("samsungPage=${SamsungCoverPage.diagnostic}")
         writer.println("backRoute=${NavigationService.current?.backRoute}")
         writer.println("samsungRoutineControl=${SamsungRoutineControls.status}")

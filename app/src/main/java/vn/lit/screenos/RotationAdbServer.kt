@@ -4,6 +4,7 @@ import android.os.Process
 import android.os.SystemClock
 import org.json.JSONObject
 import java.io.File
+import java.io.RandomAccessFile
 import java.net.*
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicBoolean
@@ -18,6 +19,8 @@ object RotationAdbServer {
         val targetDisplay = args.getOrNull(3)?.toInt() ?: 1
         require((targetDisplay == 1 && android.os.Build.MODEL.startsWith("SM-F711")) || (BuildConfig.DEBUG && targetDisplay == 0 && android.os.Build.MODEL.startsWith("sdk_gphone")))
         require(appToken.length >= 32 && ownerToken.length >= 32 && appToken != ownerToken)
+        val leaseFile=RandomAccessFile("/data/local/tmp/lit-screenos-adb-rotation-${Process.myUid()}.lock","rw")
+        val leaseLock=leaseFile.channel.tryLock() ?: run { leaseFile.close();error("A rotation helper is still stopping") }
         val rotation = RotationShellService(File("/data/local/tmp/lit-screenos-adb-rotation-${Process.myUid()}"))
         val running = AtomicBoolean(true)
         val lastHeartbeat = AtomicLong(SystemClock.elapsedRealtime())
@@ -53,9 +56,9 @@ object RotationAdbServer {
                             when (op) {
                                 "heartbeat" -> { require(owner); leased.set(true); lastHeartbeat.set(SystemClock.elapsedRealtime()); JSONObject().put("ok",true) }
                                 "stop" -> { require(owner); synchronized(rotation) { running.set(false); rotation.restore() }; listener.close(); JSONObject().put("ok",true) }
-                                "ping" -> JSONObject().put("ok",running.get())
+                                "ping" -> JSONObject().put("ok",running.get()).put("sensorRotation",true)
                                 "restore" -> synchronized(rotation) { check(running.get()); rotation.restore(); JSONObject().put("ok",true) }
-                                "rotate" -> synchronized(rotation) { check(running.get()); JSONObject().put("ok",true).put("result",rotation.rotate(targetDisplay,request.getString("mode"))) }
+                                "rotate" -> synchronized(rotation) { check(running.get()); JSONObject().put("ok",true).put("result",rotation.rotate(targetDisplay,request.getString("mode"),request.optInt("rotation",-1))) }
                                 else -> error("Unsupported operation")
                             }
                         } catch (_: Exception) { JSONObject().put("ok",false).put("error","Request rejected") }
@@ -63,6 +66,6 @@ object RotationAdbServer {
                     }
                 }.apply { isDaemon = true; start() }
             }
-        } finally { running.set(false); listener.close(); rotation.restore() }
+        } finally { running.set(false); listener.close();try { rotation.restore() } finally { leaseLock.release();leaseFile.close() } }
     }
 }
