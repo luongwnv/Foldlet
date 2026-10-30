@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.BIND_APPWIDGET" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- The user grants GET_USAGE_STATS through Usage Access, not a signature permission. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
@@ -15,6 +16,8 @@
     <queries>
         <package android:name="vn.lit.screenos.controls" />
         <package android:name="com.android.systemui" />
+        <package android:name="com.samsung.android.app.routines" />
+        <package android:name="com.samsung.android.app.routineplus" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -49,6 +52,9 @@
             android:theme="@style/CoverTheme" android:showWhenLocked="true"
             android:excludeFromRecents="true" />
         <activity android:name=".RotationSetupActivity" android:exported="false" android:theme="@style/SettingsTheme" />
+        <activity android:name=".SamsungControlsActivity" android:exported="false" android:theme="@style/SettingsTheme" />
+        <provider android:name=".SamsungRoutinePresetProvider" android:authorities="${applicationId}.routine-presets"
+            android:exported="false" android:grantUriPermissions="true" />
         <receiver android:name=".AdbBridgeReceiver" android:exported="true" android:permission="android.permission.DUMP" />
         <service android:name=".CoverMonitorService" android:exported="false"
             android:foregroundServiceType="specialUse">

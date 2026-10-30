@@ -1,0 +1,21 @@
+{
+  "document_id": "com.samsung.android.app.routines/routine",
+  "version": "1",
+  "name": "Foldlet Data On",
+  "conditions": [
+    {
+      "package": "com.samsung.android.app.routines",
+      "tag": "manual_execute",
+      "intent_param": "",
+      "is_negative": 0
+    }
+  ],
+  "actions": [
+    {
+      "package": "com.samsung.android.app.routines",
+      "tag": "mobile_data_on",
+      "intent_param": "1",
+      "is_negative": 0
+    }
+  ]
+}

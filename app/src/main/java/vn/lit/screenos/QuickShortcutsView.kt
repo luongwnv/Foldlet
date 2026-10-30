@@ -32,7 +32,11 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         render()
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow();refreshRadios() }
-    override fun onDetachedFromWindow() { handler.removeCallbacks(poll);super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() {
+        SamsungRoutineControls.cancel(this);handler.removeCallbacks(poll)
+        for(kind in SamsungRoutineControls.keys) SamsungRoutineControls.view(context,kind)?.let { if(it.parent===body) body.removeView(it) }
+        super.onDetachedFromWindow()
+    }
     private fun refreshRadios() {
         if(!isAttachedToWindow || readingRadios) return
         updateTiles()
@@ -75,6 +79,20 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
     private fun activate(action: QuickShortcuts.Action) {
         if(!Platform.unlocked(context)) { render();return }
         when(action.id) {
+            "mobile","hotspot" -> {
+                if(pendingRadio!=null) return
+                pendingRadio=action.id;updateTiles()
+                SamsungRoutineControls.toggle(this,context,action.id) { result ->
+                    pendingRadio=null
+                    if(!isAttachedToWindow) return@toggle
+                    updateTiles();refreshRadios()
+                    when(result) {
+                        SamsungRoutineControls.Result.SUCCESS, SamsungRoutineControls.Result.CANCELED -> Unit
+                        SamsungRoutineControls.Result.NOT_LINKED -> Platform.messageOnDisplay(context,displayId,I18n.text(R.string.ui_samsung_link_first))
+                        else -> Platform.messageOnDisplay(context,displayId,I18n.text(R.string.ui_samsung_routine_no_change))
+                    }
+                }
+            }
             "wifi","bluetooth" -> {
                 if(pendingRadio!=null) return
                 pendingRadio=action.id;updateTiles()
@@ -137,6 +155,12 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         val actions=QuickShortcuts.selected(context)
         if(actions.isEmpty()) {
             body.addView(Ui.text(context,I18n.text(R.string.ui_no_shortcuts),16f).apply { gravity=Gravity.CENTER },FrameLayout.LayoutParams(-1,-1));return
+        }
+        for(kind in SamsungRoutineControls.keys) SamsungRoutineControls.view(context,kind)?.let { widget ->
+            (widget.parent as? android.view.ViewGroup)?.removeView(widget)
+            widget.visibility=android.view.View.INVISIBLE
+            widget.importantForAccessibility=android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+            body.addView(widget,FrameLayout.LayoutParams(Ui.dp(context,120),Ui.dp(context,120)))
         }
         val widthPx=width.takeIf { it>0 } ?: resources.displayMetrics.widthPixels
         val heightPx=height.takeIf { it>0 } ?: resources.displayMetrics.heightPixels

@@ -116,6 +116,10 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         display.addView(SettingsUi.row(c,SettingsGlyph.Kind.GRID,I18n.text(R.string.ui_home_shortcuts),I18n.text(R.string.ui_home_shortcuts_help),SettingsUi.icon(c,SettingsGlyph.Kind.NEXT,SettingsUi.muted,20)) {
             HomeControlSettings.shortcuts(c) { CoverMonitorService.current?.reloadHomeControls();render() }
         }.apply { tag="row-home-shortcuts" })
+        display.addView(SettingsUi.divider(c))
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.PLAY,I18n.text(R.string.ui_samsung_controls),I18n.text(R.string.ui_samsung_controls_help),SettingsUi.icon(c,SettingsGlyph.Kind.NEXT)) {
+            c.startActivity(android.content.Intent(c,SamsungControlsActivity::class.java))
+        })
         content.addView(display)
         content.addView(SettingsUi.section(c,I18n.text(R.string.ui_app_drawer)))
         val menu=SettingsUi.card(c)
