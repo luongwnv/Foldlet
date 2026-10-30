@@ -1,62 +1,51 @@
-# Phát triển Foldlet
+# Developing Foldlet
 
-## Build và cài đặt
+Foldlet is a native Android Views/Canvas application for the Galaxy Z Flip3 cover screen. The package ID stays `vn.lit.screenos` so compatible updates preserve data and permissions.
 
-Yêu cầu **JDK 17+**, Android SDK 36 và ADB. Dự án dùng Kotlin, Android Views/Canvas và Gradle Wrapper; không dùng Compose.
+## Build
+
+Requires JDK 17+, Android SDK 36, and ADB.
 
 ```sh
-./gradlew :app:assembleDebug :app:lintDebug
-adb -s DEVICE_SERIAL install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew :app:assembleDebug :app:assembleRelease :app:lintRelease
+adb -s DEVICE_SERIAL install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-- APK debug: `app/build/outputs/apk/debug/app-debug.apk`.
-- Package ID: `vn.lit.screenos`.
-- Tên hiển thị: **Foldlet**. Package ID được giữ ổn định để cập nhật app, dữ liệu và quyền đã cấp.
-- Nếu cài lần đầu, mở Foldlet và hoàn tất thiết lập quyền trên điện thoại.
+Beta release builds are not debuggable. They use the existing local development certificate to preserve compatibility with installed test builds. Keystores stay outside Git. Builds signed with another key cannot update an installed APK with this package ID.
 
-## Kiểm tra
+## Main components
 
-Các script dưới đây chỉ chạy trên AVD dành riêng cho dự án, có tên `LIT_Cover_API_36_1`. Tên AVD là định danh kiểm tra cũ, độc lập với tên hiển thị Foldlet. Chạy lần lượt vì các suite dùng chung máy ảo.
+| Component | Purpose |
+| --- | --- |
+| `CoverMonitorService` | Cover lifecycle and overlay coordination |
+| `CoverOverlay` | Drawer, edge handle, navigation, and cover keyboard windows |
+| `AppDrawerView` | Apps, filtering, configurable toolbar, and search |
+| `CoverKeyboardView` / `SwipeDecoder` | Shared keyboard and local swipe recognition |
+| `NavigationService` | Accessibility navigation and write-only input connection |
+| `RecentApps` / `RecentAppsView` | Recent usage cards and Close all |
+| `SamsungCoverPage` | Samsung clock/widget coexistence |
+| `SettingsScreen` | Settings and the actual drawer preview |
+
+The keyboard verifies the focused cover package and input-session generation before each write. Existing editor contents are not read. Candidate replacement is restricted to the known word length and expected cursor position. Password fields disable gesture suggestions. The bundled basic swipe vocabulary is original, with no external dictionary dependency.
+
+## USB rotation
 
 ```sh
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
+python3 scripts/adb_rotation_bridge.py --serial DEVICE_SERIAL
+```
+
+The authenticated localhost helper only handles cover rotation. Its lease ends when the tethered process stops. Keyboard input does not use this bridge.
+
+## Optional development checks
+
+The emulator scripts accept only the project-owned `LIT_Cover_API_36_1` AVD. Run sequentially if needed:
+
+```sh
+./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 python3 scripts/emulator_smoke.py --suite drawer
 python3 scripts/emulator_overlay_smoke.py
 python3 scripts/emulator_settings_smoke.py
-```
-
-Các kiểm tra bao gồm mở app khi thiếu helper xoay, tìm kiếm/lưu cài đặt, Back tới app bên dưới, Gần đây từ Usage Access khi lịch sử LIT rỗng, điều hướng, chạm xuyên vùng ngoài overlay và vòng đời cửa sổ. Các quyền/kích thước thay đổi tạm trên AVD được phục hồi sau kiểm tra.
-
-Ảnh, báo cáo và log nằm trong `artifacts/` — thư mục này không đưa vào Git. Các phép thử trên máy thật được ghi riêng trong [ghi chú kỹ thuật](research/REFERENCE_ANALYSIS.md).
-
-## Cấu trúc dự án
-
-```text
-app/src/main/java/vn/lit/screenos/
-  CoverMonitorService.kt   Vòng đời cover và điều phối giao diện
-  CoverOverlay.kt          Drawer, vùng chạm và thanh điều hướng
-  AppDrawerView.kt         Danh sách app và tìm kiếm
-  RecentApps.kt            Dữ liệu app vừa dùng từ Android
-  RecentAppsView.kt        Giao diện Gần đây và Đóng tất cả
-  NavigationService.kt     Back và nhận biết giao diện qua trợ năng
-  SamsungCoverPage.kt      Phân biệt đồng hồ/widget Samsung
-  SettingsScreen.kt        Thiết lập trên màn hình chính
-app/src/main/res/          Icon, theme và bản dịch Việt/Anh
-scripts/                  Cầu nối USB và các kiểm tra AVD
-design/foldlet/            Thiết kế nhận diện Foldlet
-research/                 Ghi chú phân tích và kiểm chứng
-```
-
-
-## Kiểm tra ngôn ngữ và release
-
-```sh
 python3 scripts/emulator_locale_smoke.py
-./gradlew :app:assembleRelease :app:lintRelease
 ```
 
-Release 0.5.6 là bản beta, `debuggable=false`, ký bằng chứng chỉ phát triển cục bộ hiện có để cập nhật được bản đã cài. Keystore nằm ngoài repository; không chia sẻ khóa hoặc APK trong Git. Với bản phân phối lâu dài, cấu hình chứng chỉ riêng và giữ khóa ổn định. Hai máy build khác nhau dùng debug keystore khác nhau sẽ không tạo APK cập nhật tương thích.
-
-Mở Foldlet sau khi cập nhật để khôi phục dịch vụ nếu công tắc trước đó đang bật. Các quyền Android đã cấp được giữ khi chữ ký tương thích.
-
-Ảnh trong `docs/images/` là ảnh chụp giao diện native từ AVD riêng 512 × 260 và màn hình thiết lập 648 × 1536; không có dữ liệu điện thoại cá nhân.
+Temporary captures and logs belong in ignored `artifacts/`. Public screenshots in `docs/images/` show native UI without personal phone data. Reference APKs, extracted resources, keystores, and build outputs are excluded from Git.

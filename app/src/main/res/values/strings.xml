@@ -6,7 +6,7 @@
     <string name="ui_stopped">stopped</string>
     <string name="app_name" translatable="false">Foldlet</string>
     <string name="accessibility_service_label">Foldlet · Cover screen controls</string>
-    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock page without covering widgets. When you press Back, send Back to the focused app or use its navigation control. Input text and screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
+    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock page without covering widgets. Handle Back and, when enabled, send keyboard input to the focused cover-screen editor. Existing field text and screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
     <string name="ui_unlock_to_continue">Unlock to continue</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Use your fingerprint or unlock your phone.</string>
     <string name="ui_unlock">Unlock</string>
@@ -154,8 +154,7 @@
     <string name="ui_got_it">Got it</string>
     <string name="ui_choose_apps_to_hide">Choose apps to hide</string>
     <string name="ui_save">Save</string>
-    <string name="ui_made_for_the_small_screen">Made for the small screen</string>
-    <string name="ui_open_apps_on_the_cover_screen_alongside">Open apps on the cover screen alongside Samsung home.</string>
+    <string name="ui_open_apps_on_the_cover_screen_alongside">Apps on your cover screen.</string>
     <string name="ui_device_connection">DEVICE &amp; CONNECTION</string>
     <string name="ui_cover_screen_3">Cover screen</string>
     <string name="ui_adb_rotation_connection">ADB rotation connection</string>
@@ -208,4 +207,35 @@
         <item quantity="one">%d day ago</item>
         <item quantity="other">%d days ago</item>
     </plurals>
+    <string name="ui_toolbar">Toolbar</string>
+    <string name="ui_toolbar_position">Toolbar position</string>
+    <string name="ui_toolbar_size">Toolbar size</string>
+    <string name="ui_toolbar_visible">Show toolbar</string>
+    <string name="ui_toolbar_visible_help">Hide the toolbar without changing your app layout</string>
+    <string name="ui_top">Top</string>
+    <string name="ui_bottom">Bottom</string>
+    <string name="ui_left">Left</string>
+    <string name="ui_right">Right</string>
+    <string name="ui_small">Small</string>
+    <string name="ui_medium">Medium</string>
+    <string name="ui_large">Large</string>
+    <string name="ui_extra_large">Extra large</string>
+    <string name="ui_keyboard">Keyboard</string>
+    <string name="ui_force_keyboard">Force cover keyboard</string>
+    <string name="ui_force_keyboard_help">Show Foldlet’s keyboard when a text field on the cover screen is focused</string>
+    <string name="ui_keyboard_android13">Requires Android 13 or newer</string>
+    <string name="ui_swipe_typing">Swipe typing (Beta)</string>
+    <string name="ui_swipe_typing_help">Slide across letters; choose another suggestion to correct a word</string>
+    <string name="ui_open_keyboard">Open cover keyboard</string>
+    <string name="ui_hide_keyboard">Hide keyboard</string>
+    <string name="ui_keyboard_focus">Tap a text field on the cover screen first</string>
+    <string name="ui_keyboard_unavailable">The text field is no longer active on the cover screen</string>
+    <string name="ui_keyboard_private">Private field</string>
+    <string name="ui_keyboard_swipe_hint">Slide across letters</string>
+    <string name="ui_keyboard_tap_hint">Tap to type</string>
+    <string name="ui_enter">Enter</string>
+    <string name="ui_shift">Shift</string>
+    <string name="ui_symbols">Symbols</string>
+    <string name="ui_letters">Letters</string>
+    <string name="ui_keyboard_words_note">Offline English and Vietnamese vocabulary; names of installed apps are included. Swipe recognition is still experimental.</string>
 </resources>
