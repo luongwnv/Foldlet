@@ -17,7 +17,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     private var samsungHome = true
     private var navigationVisible = false
     private var keyboardVisible=false
-    private var keyboardGeneration=-1L
+    private var keyboardSession=-1L
     private var dismissedKeyboard=-1L
     private var section = "apps"
     private var closingRecentTask=false
@@ -103,7 +103,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     }
 
     fun minimize() {
-        if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputGeneration ?: -1L
+        if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         keyboardVisible=false
         val homeNavigation=overlay?.mode==CoverOverlay.Mode.SIDEBAR && samsungHome
         val leavingLauncher = overlay?.mode == CoverOverlay.Mode.DASHBOARD || overlay?.mode == CoverOverlay.Mode.RECENTS || overlay?.mode==CoverOverlay.Mode.SHORTCUTS
@@ -186,6 +186,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         } else handler.postDelayed({ releaseRecentSurfaceWhenMenuAttached(surface,attempt+1) },50)
     }
     fun showNavigation() {
+        if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         keyboardVisible=false
         if (samsungHome) {
             val cover = Platform.overlayDisplay(this) ?: return
@@ -214,7 +215,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     fun showSamsungHome() {
         val cover = Platform.overlayDisplay(this) ?: return
         if (!Platform.isEmulatorOverlay(this) && !Platform.samsungHome(this, cover.displayId)) return
-        keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputGeneration ?: -1L
+        keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         samsungHome = true; minimized = true; navigationVisible = false; yieldedUntilSleep = false
         ++restoreGeneration; restoringRotation = false
         clearOverlay()
@@ -256,7 +257,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         val cover=Platform.overlayDisplay(this) ?: return
         val service=NavigationService.current ?: return
         if(!service.hasCoverEditor(cover.displayId)) { Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_keyboard_focus));return }
-        dismissedKeyboard=-1L;keyboardGeneration=service.inputGeneration;keyboardVisible=true
+        dismissedKeyboard=-1L;keyboardSession=service.inputSession;keyboardVisible=true
         minimized=true;navigationVisible=false;samsungHome=false
         clearOverlay();reconcile()
     }
@@ -286,11 +287,11 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         }
         val forceKeyboard=prefs.getBoolean("force_cover_keyboard",false)
         val editor=forceKeyboard && accessibility.hasCoverEditor(cover.displayId)
-        if(keyboardVisible && (!editor || keyboardGeneration!=accessibility.inputGeneration)) { keyboardVisible=false;clearOverlay() }
+        if(keyboardVisible && (!editor || keyboardSession!=accessibility.inputSession)) { keyboardVisible=false;clearOverlay() }
         if(forceKeyboard && minimized && !navigationVisible && !yieldedUntilSleep) {
             handler.removeCallbacks(update);handler.postDelayed(update,150)
-            if(editor && dismissedKeyboard!=accessibility.inputGeneration && !keyboardVisible) {
-                keyboardVisible=true;keyboardGeneration=accessibility.inputGeneration;samsungHome=false;clearOverlay()
+            if(editor && dismissedKeyboard!=accessibility.inputSession && !keyboardVisible && accessibility.canAutomaticallyShowKeyboard(cover.displayId)) {
+                keyboardVisible=true;keyboardSession=accessibility.inputSession;samsungHome=false;clearOverlay()
             }
         }
         if (yieldedUntilSleep) { clearOverlay(); report(I18n.text(R.string.ui_samsung_has_control_until_the_next_screen), null); return }
@@ -345,7 +346,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("samsungRoutineControl=${SamsungRoutineControls.status}")
         writer.println("samsungRecentTask=${SamsungRecentTasks.status} closing=$closingRecentTask")
         writer.println("recentClosingSurface=${recentClosingSurface!=null} status=${RecentClosingSurface.status}")
-        writer.println("keyboardEnabled=${prefs.getBoolean("force_cover_keyboard",false)} keyboardVisible=$keyboardVisible inputSession=${NavigationService.current?.inputGeneration}")
+        writer.println("keyboardEnabled=${prefs.getBoolean("force_cover_keyboard",false)} keyboardVisible=$keyboardVisible inputSession=${NavigationService.current?.inputSession} inputConnection=${NavigationService.current?.inputGeneration}")
         writer.println("window=${overlay?.window?.attributes} status=${prefs.getString("monitor_status", "")} error=${prefs.getString("monitor_error", null)}")
     }
     override fun onDestroy() {

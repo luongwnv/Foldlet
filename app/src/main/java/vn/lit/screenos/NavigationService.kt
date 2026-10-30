@@ -9,6 +9,8 @@ import android.view.accessibility.AccessibilityEvent
 
 class NavigationService : AccessibilityService() {
     var inputGeneration=0L; private set
+    private val editorSession=CoverInputSession()
+    val inputSession get()=editorSession.generation
     private var selectionStart=-1
     private var selectionEnd=-1
     private var selectionRevision=0L
@@ -17,11 +19,12 @@ class NavigationService : AccessibilityService() {
     override fun onCreateInputMethod(): android.accessibilityservice.InputMethod = object: android.accessibilityservice.InputMethod(this) {
         override fun onStartInput(attribute: android.view.inputmethod.EditorInfo,restarting: Boolean) {
             super.onStartInput(attribute,restarting)
+            editorSession.start(CoverInputSession.Editor(attribute.packageName,attribute.fieldId,attribute.fieldName,attribute.inputType),restarting)
             inputGeneration++;selectionRevision++;selectionStart=attribute.initialSelStart;selectionEnd=attribute.initialSelEnd
             CoverMonitorService.current?.schedule()
         }
         override fun onFinishInput() {
-            super.onFinishInput();inputGeneration++;selectionRevision++;selectionStart=-1;selectionEnd=-1
+            super.onFinishInput();editorSession.finish();inputGeneration++;selectionRevision++;selectionStart=-1;selectionEnd=-1
             CoverMonitorService.current?.schedule()
         }
         override fun onUpdateSelection(oldSelStart: Int,oldSelEnd: Int,newSelStart: Int,newSelEnd: Int,candidatesStart: Int,candidatesEnd: Int) {
@@ -40,7 +43,7 @@ class NavigationService : AccessibilityService() {
     }
     fun coverInputTarget(displayId: Int): CoverInputTarget? {
         if(Build.VERSION.SDK_INT<33 || !hasCoverEditor(displayId)) return null
-        val generation=inputGeneration
+        val session=inputSession
         val info=inputMethod!!.currentInputEditorInfo!!
         val editorPackage=info.packageName
         val variation=info.inputType and android.text.InputType.TYPE_MASK_VARIATION
@@ -52,8 +55,9 @@ class NavigationService : AccessibilityService() {
             private var wordEnd=-1
             private var wordLength=0
             private var wordRevision=-1L
+            private var wordConnectionGeneration=-1L
             private fun connection(): android.accessibilityservice.InputMethod.AccessibilityInputConnection? {
-                if(inputGeneration!=generation || !hasCoverEditor(displayId) || inputMethod?.currentInputEditorInfo?.packageName!=editorPackage) return null
+                if(inputSession!=session || !hasCoverEditor(displayId) || inputMethod?.currentInputEditorInfo?.packageName!=editorPackage) return null
                 return inputMethod?.currentInputConnection
             }
             override fun text(value: String): Boolean {
@@ -73,13 +77,14 @@ class NavigationService : AccessibilityService() {
                 val start=minOf(selectionStart,selectionEnd)
                 val text=value+space
                 wordRevision=selectionRevision
+                wordConnectionGeneration=inputGeneration
                 connection.commitText(text,1,null)
                 wordLength=text.length;wordEnd=if(start>=0) start+text.length else -1
                 return true
             }
             override fun replaceWord(previous: String,replacement: String): Boolean {
                 val connection=connection() ?: return false
-                if(wordEnd<0 || selectionRevision !in wordRevision..wordRevision+1 || selectionStart!=wordEnd || selectionEnd!=wordEnd || wordLength!=previous.length+space.length) return false
+                if(wordConnectionGeneration!=inputGeneration || wordEnd<0 || selectionRevision !in wordRevision..wordRevision+1 || selectionStart!=wordEnd || selectionEnd!=wordEnd || wordLength!=previous.length+space.length) return false
                 wordRevision=selectionRevision
                 connection.deleteSurroundingText(wordLength,0)
                 val text=replacement+space
@@ -99,6 +104,21 @@ class NavigationService : AccessibilityService() {
                 wordEnd=-1;return true
             }
         }
+    }
+    fun canAutomaticallyShowKeyboard(displayId: Int): Boolean {
+        if(Build.VERSION.SDK_INT<33 || !hasCoverEditor(displayId)) return false
+        val info=inputMethod?.currentInputEditorInfo ?: return false
+        if(!CoverKeyboardPolicy.allowsAutomatic(info.packageName,info.inputType)) return false
+        // Inspect focus metadata only, never the editor's text or description.
+        @Suppress("DEPRECATION")
+        return try {
+            val root=windowsOnAllDisplays[displayId]?.firstOrNull { it.isFocused }?.root ?: return false
+            try {
+                val focused=root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT) ?: return false
+                try { focused.packageName?.toString()==info.packageName && focused.isEditable && focused.isEnabled && focused.isVisibleToUser }
+                finally { focused.recycle() }
+            } finally { root.recycle() }
+        } catch(_: RuntimeException) { false }
     }
     enum class BackResult { SENT, LAUNCHER_ROOT, UNAVAILABLE }
     var backRoute = "none"; private set

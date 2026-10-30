@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.10.3](https://github.com/luongwnv/Foldlet/releases/download/v0.10.3/Foldlet-0.10.3.apk)** · **0.10.3 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.10.4](https://github.com/luongwnv/Foldlet/releases/download/v0.10.4/Foldlet-0.10.4.apk)** · **0.10.4 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.3/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.4/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -39,7 +39,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.10.3.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.10.4.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -137,7 +137,7 @@ The preview uses the actual drawer and your installed app icons to reflect your 
 <p align="center"><img src="docs/images/keyboard.png" width="512" alt="Foldlet keyboard typing in another app on the test emulator"></p>
 
 - **Drawer search:** tap Search to use Foldlet’s compact keyboard. Use Done to hide it while keeping your results visible.
-- **Other apps:** on Android 13 or newer, enable **Force cover keyboard** in Settings. Tap a text field on the cover screen to show the keyboard. An extra keyboard button in the navigation bar can reopen it. The close button hides it until another input session starts.
+- **Other apps:** on Android 13 or newer, enable **Force cover keyboard** in Settings. Foldlet auto-shows for a visible, focused, editable text field. Number, phone, and date fields keep their app’s keypad. Recognized calculator apps also keep their own keypad, including Samsung’s formula editor, which identifies itself as a text field. Use the keyboard button in navigation to open Foldlet’s keyboard manually when needed. Closing it keeps it hidden for the same editor, including when the app restarts its input connection while typing.
 - **Swipe typing (Beta):** enable it in Settings, then slide across letters. Foldlet enters the best match and offers alternatives you can tap to correct the word. The vocabulary contains basic English/Vietnamese words and, in drawer search, installed app names. It is an experimental offline recognizer with a limited vocabulary.
 - Tap **123** for symbols, Shift for capitals, or hold a vowel for accented characters. Hold Backspace to keep deleting.
 
