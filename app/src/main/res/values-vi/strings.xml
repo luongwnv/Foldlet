@@ -293,4 +293,6 @@
     <string name="ui_samsung_routine_no_change">Routine chưa đổi nút này. Kiểm tra hành động và thiết lập đảo ngược trong Samsung.</string>
     <string name="ui_recent_task_not_found">Không tìm thấy task trong Gần đây Samsung. Giữ × để xóa thẻ lịch sử.</string>
     <string name="ui_recent_task_not_closed">Samsung chưa chấp nhận đóng task. Thẻ lịch sử vẫn được giữ lại.</string>
+    <string name="ui_recent_task_surface_unavailable">Chưa giữ được giao diện Foldlet. Task chưa bị đóng.</string>
+    <string name="ui_closing_app">Đang đóng ứng dụng</string>
 </resources>

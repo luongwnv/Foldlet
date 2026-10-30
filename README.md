@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.10.1](https://github.com/luongwnv/Foldlet/releases/download/v0.10.1/Foldlet-0.10.1.apk)** · **0.10.1 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.10.2](https://github.com/luongwnv/Foldlet/releases/download/v0.10.2/Foldlet-0.10.2.apk)** · **0.10.2 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.1/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.2/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -39,7 +39,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.10.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.10.2.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -79,11 +79,11 @@ Long-press **Hide** to give Samsung control until the next screen wake.
 
 Recent apps shows up to **30 apps used within the past 7 days**, based on Android’s usage history. Tap a card to reopen the app on the cover screen.
 
-On the Galaxy Z Flip3, tap **×** at the top-right of a card to close its task through **Samsung Recent**. **Close all** runs Samsung's native Close all action. The native Recent interface appears briefly, then Foldlet returns automatically. These actions close tasks like dismissing cards in Samsung Recent; they do not Force stop apps in Android Settings. Samsung's rules for locked tasks still apply.
+On the Galaxy Z Flip3, tap **×** at the top-right of a card to close its task through **Samsung Recent**. **Close all** runs Samsung's native Close all action. Foldlet keeps its own menu visible while Samsung handles the action underneath, then updates the cards. These actions close tasks like dismissing cards in Samsung Recent; they do not Force stop apps in Android Settings. Samsung's rules for locked tasks still apply.
 
-Foldlet only dismisses the individual history card after Samsung accepts the Close action. If Samsung refuses or the task cannot be found, the card stays and Foldlet reports the problem. **Hold ×** to remove only a history card, useful for an app whose task was already closed. A card appears again after you use the app. The list is usage history, so some entries may have no active system task.
+While an app is closing, its **× becomes a spinning loading indicator** and repeated taps are blocked. Foldlet only dismisses the individual history card after Samsung accepts the Close action. If Samsung refuses or the task cannot be found, the card stays, × returns, and Foldlet reports the problem. **Hold ×** to remove only a history card, useful for an app whose task was already closed. A card appears again after you use the app. The list is usage history, so some entries may have no active system task.
 
-Task closing requires the existing Accessibility service and the supported Samsung Recent interface. It runs on the phone without USB, root, or Shizuku. Other phone models and launcher versions have not been verified.
+Task closing requires **Android 14 or newer**, the existing Accessibility service, and the supported Samsung Recent interface. It runs on the phone without USB, root, Shizuku, or additional permission setup. If Foldlet cannot keep its menu visible, it leaves the task untouched and reports the problem. Other phone models and launcher versions have not been verified.
 
 ### Home touch area and Shortcuts
 
@@ -160,7 +160,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 </tbody>
 </table>
 
-Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
+Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. While closing tasks, Foldlet holds a temporary rendering of its own menu in memory and discards it afterward; it does not capture other apps or save screenshots. Its network connection is used only for the ADB rotation bridge on localhost.
 
 **Foldlet Controls (Optional)** uses Wi-Fi state/change and legacy Bluetooth permissions to switch those two radios and read Wi-Fi, Bluetooth, hotspot, and configured network-mode state. It does not scan networks or devices, read their names, access location, or connect to the internet. Only Foldlet signed with the matching certificate can call its service. The helper uses Android’s older compatibility APIs; Foldlet itself continues to target modern Android.
 
