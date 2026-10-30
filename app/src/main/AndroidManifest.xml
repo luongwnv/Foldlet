@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- The user grants GET_USAGE_STATS through Usage Access, not a signature permission. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
@@ -13,6 +14,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <queries>
         <package android:name="vn.lit.screenos.controls" />
+        <package android:name="com.android.systemui" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -20,6 +22,7 @@
         <intent><action android:name="android.settings.panel.action.WIFI" /></intent>
         <intent><action android:name="android.settings.WIFI_SETTINGS" /></intent>
         <intent><action android:name="android.settings.panel.action.INTERNET_CONNECTIVITY" /></intent>
+        <intent><action android:name="android.settings.DATA_USAGE_SETTINGS" /></intent>
         <intent><action android:name="android.settings.BLUETOOTH_SETTINGS" /></intent>
         <intent><action android:name="android.settings.WIFI_AP_SETTINGS" /></intent>
         <intent><action android:name="android.settings.TETHER_SETTINGS" /></intent>
