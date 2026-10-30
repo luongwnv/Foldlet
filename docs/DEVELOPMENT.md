@@ -18,7 +18,9 @@ Beta release builds are not debuggable. They use the existing local development 
 | Component | Purpose |
 | --- | --- |
 | `CoverMonitorService` | Cover lifecycle and overlay coordination |
-| `CoverOverlay` | Drawer, edge handle, navigation, and cover keyboard windows |
+| `CoverOverlay` | Drawer, edge handles, navigation, shortcuts, and keyboard windows |
+| `HomeGestureOverlay` / `HomeTouchConfig` | Bounded clock-only tap region and top swipe target |
+| `QuickShortcuts` | Exported system control entry points available on the device |
 | `AppDrawerView` | Apps, filtering, configurable toolbar, and search |
 | `CoverKeyboardView` / `SwipeDecoder` | Shared keyboard and local swipe recognition |
 | `NavigationService` | Accessibility navigation and write-only input connection |
@@ -49,3 +51,5 @@ python3 scripts/emulator_locale_smoke.py
 ```
 
 Temporary captures and logs belong in ignored `artifacts/`. Public screenshots in `docs/images/` show native UI without personal phone data. Reference APKs, extracted resources, keystores, and build outputs are excluded from Git.
+
+System shortcuts use exported OS panels. Direct Wi-Fi and Bluetooth switching is restricted for regular apps: see [WifiManager](https://developer.android.com/reference/android/net/wifi/WifiManager#setWifiEnabled(boolean)) and [Android 13 Bluetooth changes](https://developer.android.com/about/versions/13/behavior-changes-13#bluetooth-adapter).
