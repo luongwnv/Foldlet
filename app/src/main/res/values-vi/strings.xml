@@ -219,7 +219,7 @@
     <string name="ui_extra_large">Rất lớn</string>
     <string name="ui_keyboard">Bàn phím</string>
     <string name="ui_force_keyboard">Force bàn phím màn ngoài</string>
-    <string name="ui_force_keyboard_help">Hiện bàn phím Foldlet khi chạm vào ô nhập trên màn hình ngoài</string>
+    <string name="ui_force_keyboard_help">Tự hiện cho ô nhập chữ. Ô số, gọi điện và máy tính dùng nút bàn phím trong thanh điều hướng.</string>
     <string name="ui_keyboard_android13">Cần Android 13 trở lên</string>
     <string name="ui_swipe_typing">Gõ trượt (Beta)</string>
     <string name="ui_swipe_typing_help">Trượt qua các chữ cái; chọn gợi ý khác để sửa từ</string>

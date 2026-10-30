@@ -223,7 +223,7 @@
     <string name="ui_extra_large">Extra large</string>
     <string name="ui_keyboard">Keyboard</string>
     <string name="ui_force_keyboard">Force cover keyboard</string>
-    <string name="ui_force_keyboard_help">Show Foldlet’s keyboard when a text field on the cover screen is focused</string>
+    <string name="ui_force_keyboard_help">Auto-show for text fields. Number, phone and calculator fields use the keyboard button in navigation.</string>
     <string name="ui_keyboard_android13">Requires Android 13 or newer</string>
     <string name="ui_swipe_typing">Swipe typing (Beta)</string>
     <string name="ui_swipe_typing_help">Slide across letters; choose another suggestion to correct a word</string>
