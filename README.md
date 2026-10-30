@@ -4,7 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.7.0](https://github.com/luongwnv/Foldlet/releases/download/v0.7.0/Foldlet-0.7.0.apk)** · **0.7.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.8.0](https://github.com/luongwnv/Foldlet/releases/download/v0.8.0/Foldlet-0.8.0.apk)** · **0.8.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+
+[Foldlet Controls 1.0.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.8.0/Foldlet-Controls-1.0.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -28,6 +30,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 - A toolbar with adjustable size, top/left/right/bottom placement, and a hide option. It also hides when scrolling down.
 - A configurable tap area on the **Samsung clock page** opens the drawer; swiping from the right edge opens navigation.
 - Swipe down from the clock’s top edge for customizable One UI shortcuts, including Wi-Fi, Bluetooth, mobile data, hotspot, and 4G/5G settings. Widget pages keep Samsung controls.
+- Tap Wi-Fi or Bluetooth to switch it with the optional Foldlet Controls helper; touch and hold to open system settings.
 - Back, app drawer, Recent apps, and Samsung Home navigation while using an app on the cover screen.
 - Recent apps from across your phone, including apps opened on the inner screen.
 - English and Vietnamese following your system language; other languages fall back to English.
@@ -36,12 +39,14 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.7.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.8.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
 
 To update, install the new APK over your existing version and open Foldlet once. Versions signed with the same certificate can update without uninstalling the app.
+
+For one-tap Wi-Fi and Bluetooth, install **Foldlet-Controls-1.0.0.apk** from the same release. It runs only when Foldlet requests a control, has no separate launcher screen, and needs no ADB connection after installation. Without Controls, touch and hold a tile to use One UI settings.
 
 ## Using Foldlet
 
@@ -80,6 +85,8 @@ Tap **×** at the top-right of a card to close that card, or **Close all** to cl
 
 <p align="center"><img src="docs/images/shortcuts.png" width="512" alt="Foldlet system shortcuts"></p>
 
+Swipe down from the Samsung clock’s top edge to open the controls. Swipe up from the panel’s bottom edge to close it and return to Samsung Home.
+
 In **Settings > Home touch area**, choose the rectangle’s width, height, horizontal position, and vertical position using the preview. You can disable tap-to-open or hide its small indicator. Swiping from the right edge still opens navigation.
 
 <p align="center">
@@ -87,7 +94,9 @@ In **Settings > Home touch area**, choose the rectangle’s width, height, horiz
   <img src="docs/images/home-shortcuts-settings.png" width="260" alt="Choose and arrange home shortcuts">
 </p>
 
-In **Settings > Home shortcuts**, enable or disable the top-edge swipe, select available system shortcuts, then touch and hold a shortcut and drag it to reorder. Shortcuts open One UI’s own controls. If the OS cannot show a control on the cover screen, Foldlet offers **Open on phone**.
+In **Settings > Home shortcuts**, enable or disable the top-edge swipe, select available system shortcuts, then touch and hold a shortcut and drag it to reorder.
+
+On the cover panel, **tap Wi-Fi or Bluetooth to switch it** using Foldlet Controls. Blue indicates on; a dimmed tile indicates a change in progress. **Touch and hold** any tile for system settings. Sound switches between ringing and vibration; Display and Settings open their controls. One UI restricts direct switching for mobile data, hotspot, 4G/5G, airplane mode, and location: touch and hold those tiles to change them in system settings. If the OS cannot show a control on the cover screen, Foldlet offers **Open on phone**.
 
 ### Customization
 
@@ -122,6 +131,8 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 </table>
 
 Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. Foldlet does not save screen captures. Its network connection is used only for the ADB rotation bridge on localhost.
+
+**Foldlet Controls (Optional)** uses Wi-Fi state/change and legacy Bluetooth permissions solely to read on/off state and switch those two radios. It does not scan networks or devices, read their names, access location, or connect to the internet. Only Foldlet signed with the matching certificate can call its service. The helper uses Android’s older compatibility APIs; Foldlet itself continues to target modern Android.
 
 ## Optional USB rotation
 

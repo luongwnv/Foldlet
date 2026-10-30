@@ -44,8 +44,8 @@ class OverlaySmokeTest(private val runner: Instrumentation) {
             await("close home navigation") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.HOME_EDGE }
             swipe(256f,30f,256f,100f)
             await("top swipe opens shortcuts") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.SHORTCUTS }
-            tap(20f,18f)
-            await("shortcuts back returns home") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.HOME_EDGE }
+            swipe(256f,226f,256f,150f)
+            await("shortcuts bottom swipe returns home") { CoverMonitorService.current?.overlay?.mode==CoverOverlay.Mode.HOME_EDGE }
 
             swipe(480f, 220f, 480f, 80f)
             waitForIdleSync(); SystemClock.sleep(300)
