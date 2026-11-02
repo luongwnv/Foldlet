@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.11.1](https://github.com/luongwnv/Foldlet/releases/download/v0.11.1/Foldlet-0.11.1.apk)** · **0.11.1 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.11.2](https://github.com/luongwnv/Foldlet/releases/download/v0.11.2/Foldlet-0.11.2.apk)** · **0.11.2 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.11.1/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.11.2/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -40,7 +40,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.11.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.11.2.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -80,7 +80,7 @@ Enable **Settings > Override Samsung notifications** and grant **Notification ac
 
 The original activity PendingIntent receives the cover display ID. If the notification has no usable activity link or the app redirects to an inner-screen-only flow, Foldlet tries opening the app’s launcher on the cover and reports that fallback. Opening a specific conversation depends on the app’s notification link and Android display restrictions. Broadcast/service content intents use the app launcher instead. Foldlet does not bypass the lock screen. An auto-cancel notification is dismissed only after its app is confirmed on the cover.
 
-The list updates when notifications arrive or disappear and keeps its scroll position. It hides duplicate group summaries when their individual notifications are available. Existing cards retain their order while the list is open, with new cards added at the end. Reopening the list sorts it by newest first. Notification content stays on the device and is not saved by Foldlet. Without notification access, or when the override is disabled, Samsung keeps its original list. Other clock gestures are forwarded to Samsung, and widget pages keep their native controls. This feature runs without USB, root, or Shizuku.
+The list updates when notifications arrive or disappear and keeps its scroll position. Foldlet ignores Android’s status notice about its own overlay, so opening the list does not add that notice as another card. Other system notifications remain available. It hides duplicate group summaries when their individual notifications are available. Existing cards retain their order while the list is open, with new cards added at the end. Reopening the list sorts it by newest first. Notification content stays on the device and is not saved by Foldlet. Without notification access, or when the override is disabled, Samsung keeps its original list. Other clock gestures are forwarded to Samsung, and widget pages keep their native controls. This feature runs without USB, root, or Shizuku.
 
 ### Finding all apps
 

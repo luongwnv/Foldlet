@@ -4,6 +4,17 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NotificationListPolicyTest {
+    @Test fun ownOverlayNoticeCannotAddItselfToTheList() {
+        val own="vn.lit.screenos"
+        val channel="com.android.server.wm.AlertWindowNotification - $own"
+        assertFalse(NotificationListPolicy.includeSource(own,null,"cover",own))
+        assertFalse(NotificationListPolicy.includeSource("android",channel,channel,own))
+        assertFalse(NotificationListPolicy.includeSource("android",channel,null,own))
+        assertFalse(NotificationListPolicy.includeSource("android",null,channel,own))
+        assertTrue(NotificationListPolicy.includeSource("android","other","system",own))
+        assertTrue(NotificationListPolicy.includeSource("android",channel+".other",channel+".other",own))
+        assertTrue(NotificationListPolicy.includeSource("messages",channel,channel,own))
+    }
     private fun item(key: String,time: Long=1,summary: Boolean=false,pkg: String="routines",group: String?="group")=
         NotificationListPolicy.Item(key,pkg,group,summary,time)
     @Test fun summaryIsHiddenOnlyWhenItsChildrenAreAvailable() {

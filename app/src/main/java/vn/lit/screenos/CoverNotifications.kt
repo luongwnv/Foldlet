@@ -17,7 +17,8 @@ class CoverNotifications : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) { changed() }
     private fun changed() { if(!main.hasCallbacks(deliverChanges)) main.postDelayed(deliverChanges,120) }
     fun snapshot(): List<StatusBarNotification> = try {
-        val raw=activeNotifications?.filter { it.packageName != packageName }?.distinctBy { it.key }?.sortedByDescending { it.postTime } ?: emptyList()
+        val raw=activeNotifications?.filter { NotificationListPolicy.includeSource(it.packageName,it.tag,it.notification.channelId,packageName) }
+            ?.distinctBy { it.key }?.sortedByDescending { it.postTime } ?: emptyList()
         val keys=NotificationListPolicy.visible(raw.map(::metadata)).map { it.key }.toSet()
         val visible=raw.filter { it.key in keys }
         rawCount=raw.size;visibleCount=visible.size
