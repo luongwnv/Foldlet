@@ -5,4 +5,5 @@
     android:packageNames="com.android.systemui,com.samsung.android.app.aodservice"
     android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews|flagInputMethodEditor"
     android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
     android:notificationTimeout="30" />

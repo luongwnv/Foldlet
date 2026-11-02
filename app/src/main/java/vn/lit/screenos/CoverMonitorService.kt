@@ -25,6 +25,11 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     private var restoringRotation = false
     private var restoreGeneration = 0
     private var yieldedUntilSleep = false
+    private var notificationLaunchUntil=0L
+    private var notificationOverrideSuspended=false
+    private var notificationEntry="none"
+    private var forwardingHomeGesture=false
+    private var homeGestureGeneration=0
     private var folded: Boolean? = null
     private var lidSensor: Sensor? = null
     private lateinit var displays: DisplayManager
@@ -106,7 +111,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         keyboardVisible=false
         val homeNavigation=overlay?.mode==CoverOverlay.Mode.SIDEBAR && samsungHome
-        val leavingLauncher = overlay?.mode == CoverOverlay.Mode.DASHBOARD || overlay?.mode == CoverOverlay.Mode.RECENTS || overlay?.mode==CoverOverlay.Mode.SHORTCUTS
+        val leavingLauncher = overlay?.mode == CoverOverlay.Mode.DASHBOARD || overlay?.mode == CoverOverlay.Mode.RECENTS || overlay?.mode==CoverOverlay.Mode.SHORTCUTS || overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS
         minimized = true; navigationVisible = false; samsungHome = homeNavigation
         if (leavingLauncher) CoverRotation.clear()
         reconcile()
@@ -205,6 +210,8 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     fun showNavigation() {
         if(keyboardVisible) dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         keyboardVisible=false
+        val foreground=Platform.overlayDisplay(this)?.let { NavigationService.current?.let { service -> Platform.focusedCoverPackage(service,it.displayId) } }
+        if(foreground!=null && foreground !in setOf("com.android.systemui","com.samsung.android.app.aodservice")) samsungHome=false
         if (samsungHome) {
             val cover = Platform.overlayDisplay(this) ?: return
             val service = NavigationService.current ?: return
@@ -225,24 +232,64 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     fun openHomeShortcuts() {
         if(prefs.getBoolean("home_shortcuts_enabled",true) && homeGestureAllowed()) openPanel("shortcuts")
     }
+    fun openHomeNotifications() {
+        if(prefs.getBoolean("override_cover_notifications",true) && CoverNotifications.current!=null && Platform.unlocked(this) && homeGestureAllowed()) { notificationEntry="home-gesture";openPanel("notifications") }
+    }
+    private fun forwardSamsungGesture(x: Float,y: Float,endX: Float,endY: Float,duration: Long) {
+        if(!homeGestureAllowed()) return
+        val cover=Platform.overlayDisplay(this) ?: return
+        val service=NavigationService.current ?: return
+        val request=++homeGestureGeneration
+        forwardingHomeGesture=true;clearOverlay()
+        fun complete() {
+            if(current===this && homeGestureGeneration==request) { forwardingHomeGesture=false;schedule() }
+        }
+        handler.postDelayed({
+            if(current!==this || homeGestureGeneration!=request || Platform.overlayDisplay(this)?.state!=Display.STATE_ON) { complete();return@postDelayed }
+            val path=android.graphics.Path().apply { moveTo(x,y);if(x!=endX || y!=endY) lineTo(endX,endY) }
+            val gesture=android.accessibilityservice.GestureDescription.Builder().setDisplayId(cover.displayId)
+                .addStroke(android.accessibilityservice.GestureDescription.StrokeDescription(path,0,duration)).build()
+            val sent=service.dispatchGesture(gesture,object: android.accessibilityservice.AccessibilityService.GestureResultCallback() {
+                override fun onCompleted(gestureDescription: android.accessibilityservice.GestureDescription) { complete() }
+                override fun onCancelled(gestureDescription: android.accessibilityservice.GestureDescription) { complete() }
+            },handler)
+            if(!sent) complete()
+            else handler.postDelayed({ complete() },duration+1000)
+        },40)
+    }
     fun reloadHomeControls() {
         if(overlay?.mode in setOf(CoverOverlay.Mode.HOME_EDGE,CoverOverlay.Mode.SHORTCUTS) || samsungHome) clearOverlay()
         schedule()
     }
     fun showSamsungHome() {
+        homeGestureGeneration++;forwardingHomeGesture=false
+        CoverNotificationOpener.cancelPending()
         val cover = Platform.overlayDisplay(this) ?: return
+        val fromNotifications=overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS
         if (!Platform.isEmulatorOverlay(this) && !Platform.samsungHome(this, cover.displayId)) return
         keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         samsungHome = true; minimized = true; navigationVisible = false; yieldedUntilSleep = false
         ++restoreGeneration; restoringRotation = false
         clearOverlay()
+        if(fromNotifications) {
+            notificationOverrideSuspended=true
+            handler.postDelayed({ NavigationService.current?.let { SamsungCoverPage.showClock(it,cover.displayId) };schedule() },120)
+        }
         CoverRotation.clear { if (current === this) reconcile() }
+    }
+    private fun notificationOpened() { notificationLaunchUntil=SystemClock.uptimeMillis()+1800;minimize() }
+    fun reloadNotificationControls() {
+        if(overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS) showSamsungHome()
+        if(overlay?.mode==CoverOverlay.Mode.HOME_EDGE) clearOverlay()
+        notificationOverrideSuspended=false;schedule()
     }
     fun openDrawer(filter: String) {
         prefs.edit().putString("app_mode", filter).apply()
         openPanel("apps")
     }
     private fun openPanel(targetSection: String) {
+        homeGestureGeneration++;forwardingHomeGesture=false
+        CoverNotificationOpener.cancelPending()
         keyboardVisible=false
         section = targetSection; minimized = false; navigationVisible = false; yieldedUntilSleep = false; samsungHome = false
         clearOverlay()
@@ -292,7 +339,9 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         }
         val emulatorPreview = Platform.isEmulatorOverlay(this)
         if (cover.state != Display.STATE_ON || (!emulatorPreview && folded == false)) {
-            keyboardVisible=false;dismissedKeyboard=-1L
+            homeGestureGeneration++;forwardingHomeGesture=false
+            CoverNotificationOpener.cancelPending()
+            keyboardVisible=false;dismissedKeyboard=-1L;notificationOverrideSuspended=false;notificationLaunchUntil=0
             minimized = true; samsungHome = true; navigationVisible = false; yieldedUntilSleep = false; section = "apps"
             CoverRotation.clear()
             clearOverlay(); report(I18n.text(R.string.ui_waiting_for_the_cover_screen_to_turn), null); return
@@ -301,6 +350,11 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             CoverRotation.clear()
             clearOverlay(); report(I18n.text(R.string.ui_waiting_for_foldlet_accessibility_access), I18n.text(R.string.ui_enable_the_foldlet_accessibility_service_to_show))
             return
+        }
+        if(forwardingHomeGesture) return
+        if(overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS &&
+            (CoverNotifications.current==null || !prefs.getBoolean("override_cover_notifications",true) || !Platform.unlocked(this))) {
+            minimized=true;samsungHome=true;section="apps";clearOverlay()
         }
         val forceKeyboard=prefs.getBoolean("force_cover_keyboard",false)
         val editor=forceKeyboard && accessibility.hasCoverEditor(cover.displayId)
@@ -317,6 +371,13 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             // firmware that omits a final accessibility scroll event.
             handler.removeCallbacks(update); handler.postDelayed(update, 200)
             val clock = SamsungCoverPage.isClock(accessibility, cover.displayId)
+            val foreground=Platform.focusedCoverPackage(accessibility,cover.displayId)
+            if(foreground!=null && foreground !in setOf("com.android.systemui","com.samsung.android.app.aodservice")) samsungHome=false
+            if(clock) notificationOverrideSuspended=false
+            if(!clock && SamsungCoverPage.isNotifications && prefs.getBoolean("override_cover_notifications",true) &&
+                CoverNotifications.current!=null && Platform.unlocked(this) && !notificationOverrideSuspended && SystemClock.uptimeMillis()>=notificationLaunchUntil) {
+                notificationEntry="samsung-page";openPanel("notifications");return
+            }
             // Back inside an app can return to Samsung without our Home button.
             if (SamsungCoverPage.isSamsungPage) samsungHome = true
             if (samsungHome && !clock) {
@@ -328,12 +389,12 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
             if (overlay?.displayId != cover.displayId || owner !== accessibility) {
                 clearOverlay()
                 owner = accessibility
-                overlay = CoverOverlay(accessibility, cover, ::minimize, ::expand, ::yieldToStock, ::showNavigation, ::showSystemRecents, section, ::showSamsungHome, ::navigateBack, ::showKeyboard, ::openDrawerFromHome, ::openHomeShortcuts)
+                overlay = CoverOverlay(accessibility, cover, ::minimize, ::expand, ::yieldToStock, ::showNavigation, ::showSystemRecents, section, ::showSamsungHome, ::navigateBack, ::showKeyboard, ::openDrawerFromHome, ::openHomeShortcuts,::notificationOpened,::openHomeNotifications,::forwardSamsungGesture)
             }
             overlay!!.show(when {
                 keyboardVisible -> CoverOverlay.Mode.KEYBOARD
                 navigationVisible -> CoverOverlay.Mode.SIDEBAR
-                !minimized -> when(section) { "system-recent" -> CoverOverlay.Mode.RECENTS;"shortcuts" -> CoverOverlay.Mode.SHORTCUTS;else -> CoverOverlay.Mode.DASHBOARD }
+                !minimized -> when(section) { "system-recent" -> CoverOverlay.Mode.RECENTS;"shortcuts" -> CoverOverlay.Mode.SHORTCUTS;"notifications" -> CoverOverlay.Mode.NOTIFICATIONS;else -> CoverOverlay.Mode.DASHBOARD }
                 samsungHome -> CoverOverlay.Mode.HOME_EDGE
                 else -> CoverOverlay.Mode.EDGE
             })
@@ -359,6 +420,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("rotationRequest=${CoverRotation.mode} actualRotation=${Platform.overlayDisplay(this)?.rotation} adbBridgeConfigured=${CoverRotation.authorized} adbBridgeAvailable=${CoverRotation.available}")
         writer.println("rotationSensorActive=${CoverRotation.sensorActive} sensorAngle=${CoverRotation.sensorAngle}")
         writer.println("samsungPage=${SamsungCoverPage.diagnostic}")
+        writer.println("notificationOverride=${prefs.getBoolean("override_cover_notifications",true)} listener=${CoverNotifications.current!=null} notificationEntry=$notificationEntry notificationOpen=${CoverNotificationOpener.status}")
         writer.println("backRoute=${NavigationService.current?.backRoute}")
         writer.println("samsungRoutineControl=${SamsungRoutineControls.status}")
         writer.println("samsungRecentTask=${SamsungRecentTasks.status} closing=$closingRecentTask")
@@ -367,6 +429,8 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("window=${overlay?.window?.attributes} status=${prefs.getString("monitor_status", "")} error=${prefs.getString("monitor_error", null)}")
     }
     override fun onDestroy() {
+        homeGestureGeneration++;forwardingHomeGesture=false
+        CoverNotificationOpener.cancelPending()
         handler.removeCallbacksAndMessages(null)
         displays.unregisterDisplayListener(this)
         sensors.unregisterListener(this)

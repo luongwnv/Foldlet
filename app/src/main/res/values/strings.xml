@@ -6,7 +6,7 @@
     <string name="ui_stopped">stopped</string>
     <string name="app_name" translatable="false">Foldlet</string>
     <string name="accessibility_service_label">Foldlet · Cover screen controls</string>
-    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock page without covering widgets. Handle Back and, when enabled, send keyboard input to the focused cover-screen editor. When you tap × or Close all, use app labels and controls in Samsung Recent to close tasks. Existing field text and app screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
+    <string name="accessibility_description">Show Foldlet on the cover screen. Detect the Samsung clock and notification pages without covering widgets. When notification override is enabled, handle clock gestures and forward other clock gestures to Samsung on the cover display. Handle Back and, when enabled, send keyboard input to the focused cover-screen editor. When you tap × or Close all, use app labels and controls in Samsung Recent to close tasks. Existing field text and app screen contents are not read or stored. Stop the service in Foldlet or its notification.</string>
     <string name="ui_unlock_to_continue">Unlock to continue</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Use your fingerprint or unlock your phone.</string>
     <string name="ui_unlock">Unlock</string>
@@ -304,4 +304,13 @@
     <string name="ui_use_general_orientation">Use general setting</string>
     <string name="ui_rotation_sensor_unavailable">Orientation sensor is unavailable on this device.</string>
     <string name="ui_update_rotation_helper">Restart the ADB rotation helper with the updated APK to use Auto (sensor).</string>
+    <string name="ui_all_apps">All apps</string>
+    <string name="ui_notifications">Notifications</string>
+    <string name="ui_override_notifications">Override Samsung notifications</string>
+    <string name="ui_override_notifications_help">Replace the cover notification list. Tap a notification to open it on the cover screen.</string>
+    <string name="ui_notification_access">Notification access</string>
+    <string name="ui_notification_access_help">Allow access to show and open cover notifications</string>
+    <string name="ui_notification_cannot_open">This app could not open on the cover screen.</string>
+    <string name="ui_notification_opened_app">Opened the app on the cover screen. This notification does not support opening its specific content here.</string>
+    <string name="ui_home_notification_gesture">Swipe right for cover notifications</string>
 </resources>

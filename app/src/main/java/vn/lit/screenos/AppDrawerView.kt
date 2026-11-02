@@ -2,7 +2,6 @@ package vn.lit.screenos
 
 import android.content.*
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.text.*
 import android.view.*
 import android.widget.*
@@ -12,17 +11,13 @@ import kotlin.math.roundToInt
 
 /** Compact icon drawer following the reference's five-command toolbar structure. */
 class AppDrawerView(context: Context, private val displayId: Int, private val close: () -> Unit) : LinearLayout(context) {
-    private data class Entry(val component: ComponentName, val name: String, val icon: Drawable) { val key get() = component.flattenToString() }
     private val prefs = Platform.preferences(context)
-    private val entries = context.packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
-        .filter { it.activityInfo.packageName != context.packageName }
-        .map { Entry(ComponentName(it.activityInfo.packageName, it.activityInfo.name), it.loadLabel(context.packageManager).toString(), it.loadIcon(context.packageManager)) }
-        .distinctBy { it.key }
+    private val entries = AppCatalog.load(context)
     private val toolbar = LinearLayout(context)
     private val browser = FrameLayout(context)
     private val contents = FrameLayout(context)
     private val keyboard = LinearLayout(context).apply { orientation = VERTICAL }
-    private var selected: Entry? = null
+    private var selected: AppCatalog.Entry? = null
     private var searching = false
     private var query = ""
     private var searchField: EditText? = null
@@ -124,6 +119,9 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             sheet(listOf(I18n.text(R.string.ui_auto_sensor) to { orient("sensor") },I18n.text(R.string.ui_auto) to { orient("auto") }, I18n.text(R.string.ui_landscape) to { orient("landscape") }, I18n.text(R.string.ui_portrait) to { orient("portrait") }))
         }
         command(Glyph.Kind.SEARCH, I18n.text(R.string.ui_search)) { prefs.edit().putString("app_mode", "all").apply(); searching = true; renderToolbar(); renderGrid() }
+        command(Glyph.Kind.GRID,I18n.text(R.string.ui_all_apps),prefs.getString("app_mode","all")=="all") {
+            prefs.edit().putString("app_mode","all").apply();renderToolbar();renderGrid()
+        }
         command(Glyph.Kind.SORT, I18n.text(R.string.ui_sort)) {
             sheet(listOf("A → Z" to { sort("az") }, "Z → A" to { sort("za") }, I18n.text(R.string.ui_most_used_2) to { sort("used") }, I18n.text(R.string.ui_custom_order) to { sort("custom") }))
         }
@@ -141,7 +139,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         val edge=insets()
         contents.addView(Ui.scroll(context,column),FrameLayout.LayoutParams(-1,-1).apply { setMargins(edge[0],edge[1],edge[2],edge[3]) })
     }
-    private fun orient(value: String, entry: Entry? = null) {
+    private fun orient(value: String, entry: AppCatalog.Entry? = null) {
         if (!Platform.unlocked(context)) return
         val key=if(entry==null) "orientation" else "orientation.${entry.key}"
         if(value=="inherit" && entry!=null) prefs.edit().remove(key).apply() else prefs.edit().putString(key,value).apply()
@@ -239,7 +237,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
             contents.addView(scroller)
         }
     }
-    private fun launch(entry: Entry) {
+    private fun launch(entry: AppCatalog.Entry) {
         val rotation = prefs.getString("orientation.${entry.key}", prefs.getString("orientation", "auto")) ?: "auto"
         CoverRotation.prepare(context, displayId, rotation) { success ->
         if (!isAttachedToWindow || !Platform.unlocked(context)) return@prepare

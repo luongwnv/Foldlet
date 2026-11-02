@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.10.5](https://github.com/luongwnv/Foldlet/releases/download/v0.10.5/Foldlet-0.10.5.apk)** · **0.10.5 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.11.0](https://github.com/luongwnv/Foldlet/releases/download/v0.11.0/Foldlet-0.11.0.apk)** · **0.11.0 beta** · Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.10.5/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.11.0/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -26,20 +26,21 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Features
 
-- Large icons, 4–6 columns, search, favorites, sorting, and hidden apps.
+- Large icons, 4–6 columns, search, favorites, sorting, and hidden apps. The drawer includes Foldlet and Android Settings, with a dedicated **All apps** button.
 - A toolbar with adjustable size, top/left/right/bottom placement, and a hide option. It also hides when scrolling down.
 - A configurable tap area on the **Samsung clock page** opens the drawer; swiping from the right edge opens navigation.
 - Swipe down from the clock’s top edge for customizable One UI shortcuts, including Wi-Fi, Bluetooth, mobile data, hotspot, and 4G/5G settings. Widget pages keep Samsung controls.
 - Tap Wi-Fi or Bluetooth to switch it with the optional Foldlet Controls helper; touch and hold to open system settings.
 - Back, app drawer, Recent apps, and Samsung Home navigation while using an app on the cover screen.
 - Recent apps from across your phone, including apps opened on the inner screen.
+- Optional replacement of Samsung’s cover notification list. Tap a notification to open its app or linked content on the cover screen.
 - English and Vietnamese following your system language; other languages fall back to English.
 - An optional cover keyboard for text fields in other apps, with offline swipe typing (Beta).
 - Optional sensor-driven Auto, portrait, and landscape rotation through a USB connection to your computer.
 
 ## Getting started
 
-1. Download **Foldlet-0.10.5.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.11.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -54,7 +55,7 @@ For one-tap Wi-Fi and Bluetooth, install **Foldlet-Controls-1.1.0.apk** from the
 
 **In the app drawer:** tap an icon to open an app and swipe vertically to scroll. Use the toolbar to search, filter, or sort. Long-press an icon to favorite it, hide it, or choose its launch orientation. Swipe inward from either the left or right edge to return to Samsung Home.
 
-**Inside an app:** swipe from the right edge toward the left to reveal the navigation bar.
+**Inside an app:** swipe from the right edge toward the left to reveal the navigation bar. This also works in Foldlet and Samsung Settings on Android 14+, using the existing Accessibility permission.
 
 <p align="center"><img src="docs/images/navigation.png" width="512" alt="Foldlet navigation bar on a Galaxy Z Flip3, shown over Samsung Calculator"></p>
 
@@ -72,6 +73,18 @@ Captured directly on a Galaxy Z Flip3. Each control below is cropped from the sa
 </table>
 
 Long-press **Hide** to give Samsung control until the next screen wake.
+
+### Notifications on the cover screen
+
+Enable **Settings > Override Samsung notifications** and grant **Notification access** using the adjacent permission shortcut. Swipe right on Samsung’s clock to open Foldlet’s list directly while the cover is awake and unlocked. Foldlet handles this gesture before Samsung’s notification page moves, so that page is not shown first. The list fills the screen without a title or Back button. Tap a card to open its notification on the cover screen, including the linked conversation when the app supports it. Swipe inward from either edge to return to Samsung’s clock.
+
+The original activity PendingIntent receives the cover display ID. If the notification has no usable activity link or the app redirects to an inner-screen-only flow, Foldlet tries opening the app’s launcher on the cover and reports that fallback. Opening a specific conversation depends on the app’s notification link and Android display restrictions. Broadcast/service content intents use the app launcher instead. Foldlet does not bypass the lock screen. An auto-cancel notification is dismissed only after its app is confirmed on the cover.
+
+The list updates when notifications arrive or disappear and keeps its scroll position. Notification content stays on the device and is not saved by Foldlet. Without notification access, or when the override is disabled, Samsung keeps its original list. Other clock gestures are forwarded to Samsung, and widget pages keep their native controls. This feature runs without USB, root, or Shizuku.
+
+### Finding all apps
+
+Tap **All apps** in the drawer toolbar to leave Favorites or Recent filtering. The drawer combines launcher discovery sources and includes Foldlet itself and Android Settings. It lists enabled apps with launchable activities in your current profile. Background helpers with no launcher screen are not app shortcuts. Apps you deliberately hide remain hidden until restored in **Settings > Hidden apps**.
 
 ### Recent apps and Close all
 
@@ -152,7 +165,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 <tbody>
 <tr><td valign="middle">Display over other apps</td><td valign="middle">Show the drawer and navigation bar on the cover screen</td></tr>
 <tr><td valign="middle">Network state</td><td valign="middle">Read the mobile-data switch state; granted automatically by Android</td></tr>
-<tr><td valign="middle">Accessibility</td><td valign="middle">Distinguish Samsung’s clock and widget pages, handle Back, close tasks through Samsung Recent when requested, and send keyboard input to the focused cover-screen editor when enabled</td></tr>
+<tr><td valign="middle">Accessibility</td><td valign="middle">Distinguish Samsung’s clock, notification and widget pages, handle the notification gesture and forward other clock gestures, show navigation over Settings on Android 14+, handle Back, close tasks through Samsung Recent when requested, and send keyboard input to the focused cover-screen editor when enabled</td></tr>
 <tr><td valign="middle">Usage access (Optional)</td><td valign="middle">Show Recent apps and help identify an app’s launcher page when handling Back</td></tr>
 <tr><td valign="middle">Notifications (Optional)</td><td valign="middle">Show the service status and Stop button</td></tr>
 <tr><td valign="middle">Notification access (Optional)</td><td valign="middle">Support notification and media features when used</td></tr>
@@ -160,7 +173,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 </tbody>
 </table>
 
-Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. While closing tasks, Foldlet holds a temporary rendering of its own menu in memory and discards it afterward; it does not capture other apps or save screenshots. Its network connection is used only for the ADB rotation bridge on localhost.
+Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. While closing tasks, Foldlet holds a temporary rendering of its own menu in memory and discards it afterward; it does not capture other apps or save screenshots. Notification content is obtained on demand through Notification access and kept only in the visible on-device list. Its network connection is used only for the ADB rotation bridge on localhost.
 
 **Foldlet Controls (Optional)** uses Wi-Fi state/change and legacy Bluetooth permissions to switch those two radios and read Wi-Fi, Bluetooth, hotspot, and configured network-mode state. It does not scan networks or devices, read their names, access location, or connect to the internet. Only Foldlet signed with the matching certificate can call its service. The helper uses Android’s older compatibility APIs; Foldlet itself continues to target modern Android.
 

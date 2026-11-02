@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityWindowInfo
 object SamsungCoverPage {
     var diagnostic = "unknown"; private set
     var isSamsungPage = false; private set
+    var isNotifications = false; private set
     private var coverWindowId = -1
     private var scrollingUntil = 0L
 
@@ -20,16 +21,29 @@ object SamsungCoverPage {
 
     fun isClock(service: NavigationService, displayId: Int): Boolean {
         isSamsungPage = false
+        isNotifications = false
         if (SystemClock.uptimeMillis() < scrollingUntil) { diagnostic = "scrolling"; return false }
         val windows = try { service.windowsOnAllDisplays[displayId] } catch (_: RuntimeException) { null }
         if (windows == null) { diagnostic = "no-cover-windows"; return false }
         try {
+            // Cached Samsung windows can remain behind Settings or Foldlet.
+            // They must never classify a foreground application as a widget page.
+            val focused=Platform.focusedCoverPackage(service,displayId)
+            if(focused!=null && !samsung(focused)) { diagnostic="not-subhome";return false }
             for (window in windows) {
                 if (window.type == AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY) continue
                 val root = window.root ?: continue
                 try {
                     val owner = root.packageName?.toString()
                     if (!samsung(owner)) continue
+                    // Only inspect known SystemUI layout IDs, not notification text.
+                    val notificationLists=root.findAccessibilityNodeInfosByViewId("com.android.systemui:id/notification_list_recyclerview")
+                    val notificationPage=try { notificationLists.any { it.isVisibleToUser && !bounds(it).isEmpty } }
+                        finally { notificationLists.forEach(::recycle) }
+                    if(notificationPage) {
+                        isSamsungPage=true;isNotifications=true;coverWindowId=window.id
+                        diagnostic="notifications";return false
+                    }
                     var profileSeen = false
                     var clockFrame = false
                     var clockContent = false
@@ -70,6 +84,31 @@ object SamsungCoverPage {
     }
 
     private fun samsung(pkg: String?) = pkg == "com.android.systemui" || pkg == "com.samsung.android.app.aodservice"
+
+    /** Move from the left notification page back to Samsung's clock. IDs only. */
+    fun showClock(service: NavigationService,displayId: Int) {
+        if(isClock(service,displayId) || !isNotifications) return
+        runCatching {
+            service.windowsOnAllDisplays[displayId]?.forEach { window ->
+                val root=window.root ?: return@forEach
+                try {
+                    if(!samsung(root.packageName?.toString())) return@forEach
+                    var visited=0
+                    fun visit(node: AccessibilityNodeInfo): Boolean {
+                        if(++visited>128) return false
+                        if(node.viewIdResourceName?.substringAfter(":id/")=="sub_ui_home_horizontal_vp")
+                            return node.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+                        for(i in 0 until node.childCount) {
+                            val child=node.getChild(i) ?: continue
+                            try { if(visit(child)) return true } finally { recycle(child) }
+                        }
+                        return false
+                    }
+                    if(visit(root)) return
+                } finally { recycle(root) }
+            }
+        }
+    }
 
     private fun bounds(node: AccessibilityNodeInfo) = Rect().also { node.getBoundsInScreen(it) }
     @Suppress("DEPRECATION")

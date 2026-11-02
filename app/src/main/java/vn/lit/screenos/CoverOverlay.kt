@@ -28,18 +28,22 @@ class CoverOverlay(
     private val onKeyboard: () -> Unit = {},
     private val onHomeTap: () -> Unit = onExpand,
     private val onShortcuts: () -> Unit = {},
+    private val onNotificationOpened: () -> Unit = onMinimize,
+    private val onHomeNotifications: ()->Unit = {},
+    private val forwardHomeGesture: (Float,Float,Float,Float,Long)->Unit = { _,_,_,_,_ -> },
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD, SHORTCUTS }
+    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD, SHORTCUTS, NOTIFICATIONS }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
     private var homeGestures: HomeGestureOverlay?=null
     private var attached: View? = null
     private var applicationWindow = false
+    private var surfaceWindow: AccessibilitySurfaceWindow?=null
     private var preferApplicationWindow = false
     val window: Window? get() = panel?.window
     val view: View? get() = attached
     val displayId get() = display.displayId
-    val backend get() = if (applicationWindow) "application-overlay-2038" else "accessibility-overlay-2032"
+    val backend get() = if(surfaceWindow!=null) "accessibility-surface" else if (applicationWindow) "application-overlay-2038" else "accessibility-overlay-2032"
     private val a11yContext = service.createDisplayContext(display)
     private val appContext = service.applicationContext.createDisplayContext(display)
     private var manager = a11yContext.getSystemService(WindowManager::class.java)
@@ -52,12 +56,14 @@ class CoverOverlay(
         hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
-        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS
+        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS
         val title = if(requested==Mode.SHORTCUTS) SHORTCUTS_TITLE else if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
         val homeEdge = requested == Mode.HOME_EDGE
         val edge = homeEdge || requested == Mode.EDGE
         try {
-            if(requested==Mode.SHORTCUTS) {
+            if(requested==Mode.NOTIFICATIONS) {
+                dialog.setContentView(CoverNotificationView(dialog.context,displayId,onSamsungHome,onNotificationOpened))
+            } else if(requested==Mode.SHORTCUTS) {
                 dialog.setContentView(QuickShortcutsView(dialog.context,displayId,onSamsungHome,onMinimize))
             } else if(requested == Mode.KEYBOARD) {
                 val target=service.coverInputTarget(displayId) ?: return
@@ -126,16 +132,29 @@ class CoverOverlay(
             val decor = window.decorView
             window.callback = object : Window.Callback by dialog {
                 override fun onWindowAttributesChanged(attributes: WindowManager.LayoutParams) {
-                    if (attached === decor && decor.isAttachedToWindow) manager.updateViewLayout(decor, attributes)
+                    if (surfaceWindow==null && attached === decor && decor.isAttachedToWindow) manager.updateViewLayout(decor, attributes)
                 }
                 override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) { if(requested==Mode.SHORTCUTS) onSamsungHome() else onMinimize() }; return true }
+                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) { if(requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS) onSamsungHome() else onMinimize() }; return true }
                     return dialog.dispatchKeyEvent(event)
                 }
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
                     if ((requested == Mode.SIDEBAR || requested==Mode.KEYBOARD) && event.action == MotionEvent.ACTION_OUTSIDE) { onMinimize(); return true }
                     return dialog.dispatchTouchEvent(event)
                 }
+            }
+            // Samsung Settings hides ordinary application overlays. Use the
+            // accessibility service's official display surface for navigation,
+            // and for menus/keyboard opened over Settings, on Android 14+.
+            val foreground=Platform.focusedCoverPackage(service,displayId)
+            if(android.os.Build.VERSION.SDK_INT>=34 && !homeEdge &&
+                (requested==Mode.EDGE || requested==Mode.SIDEBAR || foreground=="com.android.settings")) {
+                val size=Point();@Suppress("DEPRECATION") display.getRealSize(size)
+                val w=if(full || requested==Mode.KEYBOARD) size.x else Ui.dp(a11yContext,if(requested==Mode.EDGE) 18 else 48)
+                val h=if(requested==Mode.KEYBOARD) Ui.dp(a11yContext,164).coerceAtMost(size.y) else size.y
+                if(!full) (decor as? ViewGroup)?.descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                surfaceWindow=AccessibilitySurfaceWindow.create(service,display,decor,w,h,if(full || requested==Mode.KEYBOARD) 0 else size.x-w,if(requested==Mode.KEYBOARD) size.y-h else 0)
+                if(surfaceWindow!=null) { applicationWindow=false;attached=decor;panel=dialog;mode=requested;return }
             }
             manager = (if (preferApplicationWindow) appContext else a11yContext).getSystemService(WindowManager::class.java)
             try { manager.addView(decor, window.attributes) }
@@ -149,7 +168,10 @@ class CoverOverlay(
             applicationWindow = window.attributes.type == WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             attached = decor; panel = dialog; mode = requested
             if(homeEdge) {
-                homeGestures=HomeGestureOverlay(a11yContext,manager,window.attributes,display,onHomeTap,onNavigation,onShortcuts)
+                val interceptNotifications=Platform.preferences(service).getBoolean("override_cover_notifications",true) && CoverNotifications.current!=null && Platform.unlocked(service) &&
+                    (service.serviceInfo.capabilities and android.accessibilityservice.AccessibilityServiceInfo.CAPABILITY_CAN_PERFORM_GESTURES)!=0
+                homeGestures=HomeGestureOverlay(a11yContext,manager,window.attributes,display,onHomeTap,onNavigation,onShortcuts,
+                    if(interceptNotifications) onHomeNotifications else null,if(interceptNotifications) forwardHomeGesture else null)
                 homeGestures!!.show()
             }
         } catch (error: RuntimeException) { hide(); throw error }
@@ -159,6 +181,8 @@ class CoverOverlay(
         homeGestures?.hide();homeGestures=null
         val decor = attached
         attached = null; panel = null; mode = Mode.HIDDEN
+        val surface=surfaceWindow;surfaceWindow=null
+        if(surface!=null) { surface.close();return }
         // WindowManager registers the root before the first traversal attaches
         // the decor. Removing only attached views leaks pending cover windows,
         // especially when the panel sleeps or a mode changes before drawing.
