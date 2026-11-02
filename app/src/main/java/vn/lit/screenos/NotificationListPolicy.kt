@@ -13,6 +13,13 @@ internal class NotificationListPolicy {
         return order.toList()
     }
     companion object {
+        fun includeSource(packageName: String,tag: String?,channelId: String?,ownPackage: String): Boolean {
+            if(packageName==ownPackage) return false
+            // Android posts this after our application overlay becomes visible.
+            // Including it makes opening the list add a card to the list itself.
+            val ownOverlay="com.android.server.wm.AlertWindowNotification - $ownPackage"
+            return packageName!="android" || (tag!=ownOverlay && channelId!=ownOverlay)
+        }
         fun counts(items: List<Item>): Map<String,Int> = visible(items).groupingBy { it.packageName }.eachCount()
         fun visible(items: List<Item>): List<Item> {
             val unique=items.distinctBy { it.key }
