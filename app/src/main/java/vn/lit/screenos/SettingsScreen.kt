@@ -183,6 +183,14 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         }.apply { tag="swipe-typing-switch" }))
         input.addView(SettingsUi.text(c,I18n.text(R.string.ui_keyboard_words_note),12f,SettingsUi.muted).apply { setPadding(SettingsUi.dp(c,16),0,SettingsUi.dp(c,16),SettingsUi.dp(c,16)) })
         content.addView(input)
+        content.addView(SettingsUi.section(c,I18n.text(R.string.ui_notifications)))
+        val notifications=SettingsUi.card(c)
+        notifications.addView(SettingsUi.row(c,SettingsGlyph.Kind.BELL,I18n.text(R.string.ui_override_notifications),I18n.text(R.string.ui_override_notifications_help),SettingsUi.toggle(c,prefs.getBoolean("override_cover_notifications",true),I18n.text(R.string.ui_override_notifications)) {
+            prefs.edit().putBoolean("override_cover_notifications",it).apply();CoverMonitorService.current?.reloadNotificationControls()
+        }.apply { tag="notification-override-switch" }))
+        notifications.addView(SettingsUi.divider(c))
+        notifications.addView(SettingsUi.row(c,SettingsGlyph.Kind.BELL,I18n.text(R.string.ui_notification_access),I18n.text(if(CoverNotifications.current!=null) R.string.ui_allowed else R.string.ui_notification_access_help)) { c.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) })
+        content.addView(notifications)
         content.addView(SettingsUi.row(c,SettingsGlyph.Kind.USB,I18n.text(R.string.ui_set_up_usb_rotation),if(CoverRotation.available) I18n.text(R.string.ui_connected_to_a_computer) else I18n.text(R.string.ui_view_adb_connection_instructions)) { c.startActivity(Intent(c,RotationSetupActivity::class.java)) }.apply { tag="row-adb" })
     }
     private fun value(label: String) = LinearLayout(c).apply {

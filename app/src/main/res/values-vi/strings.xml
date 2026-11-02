@@ -5,7 +5,7 @@
     <string name="ui_running">đang chạy</string>
     <string name="ui_stopped">đã dừng</string>
     <string name="accessibility_service_label">Foldlet · Điều khiển màn hình ngoài</string>
-    <string name="accessibility_description">Hiển thị Foldlet trên màn hình ngoài, phân biệt trang đồng hồ Samsung với widget. Thực hiện Back và gửi phím tới ô nhập đang có focus khi bạn bật bàn phím. Khi bạn nhấn × hoặc Đóng tất cả, dùng tên app và nút điều khiển trong Gần đây Samsung để đóng task. Không đọc hoặc lưu nội dung ô nhập hay nội dung màn hình app khác. Dừng dịch vụ trong Foldlet hoặc thông báo.</string>
+    <string name="accessibility_description">Hiển thị Foldlet trên màn hình ngoài, phân biệt trang đồng hồ, thông báo Samsung với widget. Khi bật ghi đè thông báo, xử lý cử chỉ trên đồng hồ và chuyển các cử chỉ khác về Samsung trên màn ngoài. Thực hiện Back và gửi phím tới ô nhập đang có focus khi bạn bật bàn phím. Khi bạn nhấn × hoặc Đóng tất cả, dùng tên app và nút điều khiển trong Gần đây Samsung để đóng task. Không đọc hoặc lưu nội dung ô nhập hay nội dung màn hình app khác. Dừng dịch vụ trong Foldlet hoặc thông báo.</string>
     <string name="ui_unlock_to_continue">Mở khóa để tiếp tục</string>
     <string name="ui_use_your_fingerprint_or_unlock_your_phone">Dùng vân tay hoặc mở khóa điện thoại.</string>
     <string name="ui_unlock">Mở khóa</string>
@@ -300,4 +300,13 @@
     <string name="ui_use_general_orientation">Dùng thiết lập chung</string>
     <string name="ui_rotation_sensor_unavailable">Không có cảm biến hướng trên thiết bị này.</string>
     <string name="ui_update_rotation_helper">Khởi động lại helper xoay ADB bằng APK mới để dùng Auto (cảm biến).</string>
+    <string name="ui_all_apps">Tất cả ứng dụng</string>
+    <string name="ui_notifications">Thông báo</string>
+    <string name="ui_override_notifications">Ghi đè thông báo Samsung</string>
+    <string name="ui_override_notifications_help">Thay danh sách thông báo màn ngoài. Chạm thông báo để mở trên màn ngoài.</string>
+    <string name="ui_notification_access">Truy cập thông báo</string>
+    <string name="ui_notification_access_help">Cấp quyền để hiển thị và mở thông báo màn ngoài</string>
+    <string name="ui_notification_cannot_open">Không mở được ứng dụng này trên màn ngoài.</string>
+    <string name="ui_notification_opened_app">Đã mở app trên màn ngoài. Thông báo này chưa hỗ trợ mở đúng nội dung tại đây.</string>
+    <string name="ui_home_notification_gesture">Vuốt sang phải để mở thông báo màn ngoài</string>
 </resources>

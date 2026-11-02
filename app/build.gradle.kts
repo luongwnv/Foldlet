@@ -9,8 +9,8 @@ android {
         applicationId = "vn.lit.screenos"
         minSdk = 30
         targetSdk = 35
-        versionCode = 29
-        versionName = "0.10.5"
+        versionCode = 30
+        versionName = "0.11.0"
         testInstrumentationRunner = "vn.lit.screenos.HardwareSmokeTest"
     }
     buildFeatures { buildConfig = true }
