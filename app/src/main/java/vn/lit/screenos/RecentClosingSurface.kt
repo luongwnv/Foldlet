@@ -10,7 +10,7 @@ import android.widget.ImageView
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 
-/** Keeps only Foldlet's own rendered menu visible during a native task action. */
+/** Keeps only Foldlet's own rendered UI visible during a native cover transition. */
 @android.annotation.TargetApi(34)
 class RecentClosingSurface private constructor(private val service: NavigationService,private val display: Display) {
     private val handler=Handler(Looper.getMainLooper())
