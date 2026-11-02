@@ -86,9 +86,10 @@ object SamsungCoverPage {
     private fun samsung(pkg: String?) = pkg == "com.android.systemui" || pkg == "com.samsung.android.app.aodservice"
 
     /** Move from the left notification page back to Samsung's clock. IDs only. */
-    fun showClock(service: NavigationService,displayId: Int) {
-        if(isClock(service,displayId) || !isNotifications) return
-        runCatching {
+    fun showClock(service: NavigationService,displayId: Int): Boolean {
+        if(isClock(service,displayId)) return true
+        if(!isNotifications) return false
+        return runCatching {
             service.windowsOnAllDisplays[displayId]?.forEach { window ->
                 val root=window.root ?: return@forEach
                 try {
@@ -104,10 +105,11 @@ object SamsungCoverPage {
                         }
                         return false
                     }
-                    if(visit(root)) return
+                    if(visit(root)) return true
                 } finally { recycle(root) }
             }
-        }
+            false
+        }.getOrDefault(false)
     }
 
     private fun bounds(node: AccessibilityNodeInfo) = Rect().also { node.getBoundsInScreen(it) }

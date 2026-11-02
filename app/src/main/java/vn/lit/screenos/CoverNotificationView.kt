@@ -10,10 +10,16 @@ import android.os.Looper
 import android.view.*
 import android.widget.*
 
-/** On-device notification list, shown in place of Samsung's cover-only list. */
+/** Stable, on-device notification cards; unchanged views stay attached. */
 @android.annotation.SuppressLint("ViewConstructor")
 class CoverNotificationView(context: Context,private val displayId: Int,private val home: ()->Unit,private val opened: ()->Unit): LinearLayout(context) {
     private val body=FrameLayout(context)
+    private val column=LinearLayout(context).apply { orientation=VERTICAL;setPadding(Ui.dp(context,8),0,Ui.dp(context,8),Ui.dp(context,8)) }
+    private val scroll=ScrollView(context).apply { isVerticalScrollBarEnabled=false;addView(column) }
+    private data class Content(val title: String,val message: String)
+    private data class Card(val content: Content,val view: View)
+    private val cards=linkedMapOf<String,Card>()
+    private val policy=NotificationListPolicy()
     private var opening=false
     private val handler=Handler(Looper.getMainLooper())
     private val changed: ()->Unit={ if(isAttachedToWindow && !opening) render() }
@@ -28,25 +34,59 @@ class CoverNotificationView(context: Context,private val displayId: Int,private 
         addView(body,LayoutParams(-1,0,1f))
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow();CoverNotifications.observe(changed);render();handler.post(privacy) }
-    override fun onDetachedFromWindow() { opening=false;CoverNotifications.removeObserver(changed);handler.removeCallbacksAndMessages(null);body.removeAllViews();super.onDetachedFromWindow() }
+    override fun onDetachedFromWindow() {
+        opening=false;CoverNotifications.removeObserver(changed);handler.removeCallbacksAndMessages(null)
+        body.removeAllViews();column.removeAllViews();cards.clear();super.onDetachedFromWindow()
+    }
     private fun render() {
-        val scrollY=body.getChildAt(0)?.scrollY ?: 0
-        body.removeAllViews()
-        if(!Platform.unlocked(context)) return
+        if(!Platform.unlocked(context)) { body.removeAllViews();return }
         val listener=CoverNotifications.current
-        if(listener==null) { body.addView(text(I18n.text(R.string.ui_allow_notification_access_on_the_main_screen),16f));return }
+        if(listener==null) { showMessage(R.string.ui_allow_notification_access_on_the_main_screen);return }
         val entries=listener.snapshot()
-        if(entries.isEmpty()) { body.addView(text(I18n.text(R.string.ui_no_notifications),17f).apply { gravity=Gravity.CENTER },FrameLayout.LayoutParams(-1,-1));return }
-        val column=LinearLayout(context).apply { orientation=VERTICAL;setPadding(Ui.dp(context,8),0,Ui.dp(context,8),Ui.dp(context,8)) }
-        val scroll=ScrollView(context).apply { isVerticalScrollBarEnabled=false;addView(column) }
-        body.addView(scroll,FrameLayout.LayoutParams(-1,-1))
-        scroll.post { if(scroll.isAttachedToWindow) scroll.scrollTo(0,scrollY) }
-        entries.forEach { entry ->
+        val order=policy.update(entries.map { CoverNotifications.metadata(it) })
+        if(entries.isEmpty()) { showMessage(R.string.ui_no_notifications);return }
+        val byKey=entries.associateBy { it.key }
+        val contents=entries.associate { entry ->
+            val extras=entry.notification.extras
+            entry.key to Content(extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty(),
+                (extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString().orEmpty())
+        }
+        if(body.getChildAt(0)===scroll && cards.keys.toList()==order && order.all { cards[it]?.content==contents[it] }) return
+        val anchor=cards.entries.firstOrNull { it.value.view.bottom>scroll.scrollY }
+        val anchorKey=anchor?.key;val anchorTop=anchor?.value?.view?.top ?: 0
+        if(body.getChildAt(0)!==scroll) { body.removeAllViews();body.addView(scroll,FrameLayout.LayoutParams(-1,-1)) }
+        cards.keys.filter { it !in byKey }.forEach { column.removeView(cards.remove(it)?.view) }
+        order.forEachIndexed { index,key ->
+            val entry=byKey.getValue(key)
+            val content=contents.getValue(key)
+            val existing=cards[key]
+            val card=if(existing?.content==content) existing.view else {
+                if(existing!=null) column.removeView(existing.view)
+                buildCard(entry,content).also { cards[key]=Card(content,it) }
+            }
+            if(column.getChildAt(index)!==card) {
+                column.removeView(card)
+                column.addView(card,index.coerceAtMost(column.childCount),LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,6) })
+            }
+        }
+        scroll.post {
+            val anchorView=anchorKey?.let { cards[it]?.view }
+            if(scroll.isAttachedToWindow && anchorView!=null) {
+                val delta=anchorView.top-anchorTop
+                if(delta!=0) scroll.scrollBy(0,delta)
+            }
+        }
+    }
+    private fun showMessage(id: Int) {
+        if(body.getChildAt(0)?.tag==id) return
+        body.removeAllViews();column.removeAllViews();cards.clear()
+        body.addView(text(I18n.text(id),17f).apply { gravity=Gravity.CENTER;tag=id },FrameLayout.LayoutParams(-1,-1))
+    }
+    private fun buildCard(entry: android.service.notification.StatusBarNotification,content: Content): View {
             val info=runCatching { context.packageManager.getApplicationInfo(entry.packageName,0) }.getOrNull()
             val label=runCatching { info?.loadLabel(context.packageManager)?.toString() }.getOrNull() ?: entry.packageName
-            val extras=entry.notification.extras
-            val title=extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
-            val message=(extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString().orEmpty()
+            val title=content.title
+            val message=content.message
             val card=LinearLayout(context).apply {
                 orientation=HORIZONTAL;gravity=Gravity.TOP
                 setPadding(Ui.dp(context,12),Ui.dp(context,10),Ui.dp(context,12),Ui.dp(context,10))
@@ -64,10 +104,9 @@ class CoverNotificationView(context: Context,private val displayId: Int,private 
             card.setOnClickListener {
                 if(opening || !isAttachedToWindow) return@setOnClickListener
                 opening=true;card.isEnabled=false
-                CoverNotificationOpener.open(context,entry,displayId,valid={ isAttachedToWindow && opening },opened={ if(isAttachedToWindow) opened() },failed={ opening=false;if(isAttachedToWindow) render() })
+                CoverNotificationOpener.open(context,entry,displayId,valid={ isAttachedToWindow && opening },opened={ if(isAttachedToWindow) opened() },failed={ opening=false;card.isEnabled=true;if(isAttachedToWindow) render() })
             }
-            column.addView(card,LayoutParams(-1,-2).apply { topMargin=Ui.dp(context,6) })
-        }
+            return card
     }
     private fun text(value: String,size: Float,bold: Boolean=false)=TextView(context).apply {
         text=value;textSize=size;setTextColor(Color.WHITE)

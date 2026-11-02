@@ -1,4 +1,8 @@
 <resources>
+    <plurals name="ui_app_notification_count">
+        <item quantity="one">%1$s, %2$d notification</item>
+        <item quantity="other">%1$s, %2$d notifications</item>
+    </plurals>
     <string name="ui_done">Done</string>
     <string name="ui_next">Next</string>
     <string name="ui_pause">Pause</string>

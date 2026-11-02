@@ -28,6 +28,9 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     private var notificationLaunchUntil=0L
     private var notificationOverrideSuspended=false
     private var notificationEntry="none"
+    private var notificationReturn: SamsungClockReturn?=null
+    private var notificationReturnCover: RecentClosingSurface?=null
+    private var notificationReturnStatus="idle"
     private var forwardingHomeGesture=false
     private var homeGestureGeneration=0
     private var folded: Boolean? = null
@@ -69,7 +72,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         getSystemService(NotificationManager::class.java).notify(1,foregroundNotification())
-        clearOverlay(); reconcile()
+        if(notificationReturn==null) { clearOverlay();reconcile() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -262,20 +265,87 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         schedule()
     }
     fun showSamsungHome() {
+        if(overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS && Build.VERSION.SDK_INT>=34) { returnFromNotifications();return }
         homeGestureGeneration++;forwardingHomeGesture=false
         CoverNotificationOpener.cancelPending()
         val cover = Platform.overlayDisplay(this) ?: return
-        val fromNotifications=overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS
+        val legacyNotifications=overlay?.mode==CoverOverlay.Mode.NOTIFICATIONS
         if (!Platform.isEmulatorOverlay(this) && !Platform.samsungHome(this, cover.displayId)) return
         keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         samsungHome = true; minimized = true; navigationVisible = false; yieldedUntilSleep = false
         ++restoreGeneration; restoringRotation = false
         clearOverlay()
-        if(fromNotifications) {
+        if(legacyNotifications) {
             notificationOverrideSuspended=true
             handler.postDelayed({ NavigationService.current?.let { SamsungCoverPage.showClock(it,cover.displayId) };schedule() },120)
         }
         CoverRotation.clear { if (current === this) reconcile() }
+    }
+    private fun returnFromNotifications() {
+        if(notificationReturn!=null) return
+        val cover=Platform.overlayDisplay(this) ?: return
+        val accessibility=NavigationService.current ?: return
+        homeGestureGeneration++;forwardingHomeGesture=false
+        CoverNotificationOpener.cancelPending()
+        notificationOverrideSuspended=true
+        notificationReturnStatus="waiting-clock"
+        overlay?.holdNotificationInput(true)
+        val source=overlay?.view ?: return
+        val coverSurface=RecentClosingSurface.create(accessibility,cover,source)
+        if(coverSurface==null) {
+            overlay?.holdNotificationInput(false);notificationReturnStatus="unavailable"
+            Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_could_not_open_samsung_home));return
+        }
+        val operation=SamsungClockReturn(this,accessibility,cover) { result ->
+            notificationReturn=null;notificationReturnStatus=result.name.lowercase()
+            if(current!==this) return@SamsungClockReturn
+            if(result==SamsungClockReturn.Result.UNAVAILABLE) {
+                // Retain Foldlet instead of exposing Samsung's notification page.
+                minimized=false;section="notifications";samsungHome=false
+                reconcile()
+                releaseNotificationCover(coverSurface,waitForPanel=true)
+                Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_could_not_open_samsung_home))
+                schedule();return@SamsungClockReturn
+            }
+            keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
+            samsungHome=true;minimized=true;navigationVisible=false;yieldedUntilSleep=false
+            section="apps";++restoreGeneration;restoringRotation=false
+            clearOverlay()
+            CoverRotation.clear { if(current===this) reconcile() }
+            reconcile()
+            releaseNotificationCover(coverSurface,waitForPanel=false)
+        }
+        notificationReturn=operation;notificationReturnCover=coverSurface
+        coverSurface.whenReady({
+            if(notificationReturn!==operation || notificationReturnCover!==coverSurface) return@whenReady
+            // The service surface keeps the menu visible while native nodes
+            // become accessible after removing the focusable application window.
+            clearOverlay();operation.start()
+        },{
+            if(notificationReturn!==operation) return@whenReady
+            operation.cancel();notificationReturn=null;notificationReturnCover=null
+            notificationReturnStatus="unavailable";overlay?.holdNotificationInput(false)
+            Platform.messageOnDisplay(this,cover.displayId,I18n.text(R.string.ui_could_not_open_samsung_home));schedule()
+        })
+    }
+    private fun releaseNotificationCover(surface: RecentClosingSurface,waitForPanel: Boolean,attempt: Int=0) {
+        if(notificationReturnCover!==surface) return
+        if(!waitForPanel) {
+            handler.postDelayed({ if(notificationReturnCover===surface) { surface.close();notificationReturnCover=null } },64)
+            return
+        }
+        val panel=overlay?.takeIf { it.mode==CoverOverlay.Mode.NOTIFICATIONS }?.view
+        if(panel?.isAttachedToWindow==true) {
+            panel.viewTreeObserver.registerFrameCommitCallback {
+                handler.post { if(notificationReturnCover===surface) { surface.close();notificationReturnCover=null } }
+            }
+            panel.invalidate()
+        } else if(attempt<40) handler.postDelayed({ releaseNotificationCover(surface,true,attempt+1) },50)
+    }
+    private fun cancelNotificationReturn() {
+        notificationReturn?.cancel();notificationReturn=null
+        notificationReturnCover?.close();notificationReturnCover=null
+        overlay?.holdNotificationInput(false)
     }
     private fun notificationOpened() { notificationLaunchUntil=SystemClock.uptimeMillis()+1800;minimize() }
     fun reloadNotificationControls() {
@@ -288,6 +358,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         openPanel("apps")
     }
     private fun openPanel(targetSection: String) {
+        cancelNotificationReturn()
         homeGestureGeneration++;forwardingHomeGesture=false
         CoverNotificationOpener.cancelPending()
         keyboardVisible=false
@@ -326,6 +397,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         clearOverlay();reconcile()
     }
     private fun reconcile() {
+        if(notificationReturn!=null) return
         if (restoringRotation) return
         if (closingRecentTask) {
             if(!Platform.unlocked(this) || folded==false || Platform.cover(this)?.state!=Display.STATE_ON) { recentClosingSurface?.close();recentClosingSurface=null }
@@ -420,7 +492,8 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("rotationRequest=${CoverRotation.mode} actualRotation=${Platform.overlayDisplay(this)?.rotation} adbBridgeConfigured=${CoverRotation.authorized} adbBridgeAvailable=${CoverRotation.available}")
         writer.println("rotationSensorActive=${CoverRotation.sensorActive} sensorAngle=${CoverRotation.sensorAngle}")
         writer.println("samsungPage=${SamsungCoverPage.diagnostic}")
-        writer.println("notificationOverride=${prefs.getBoolean("override_cover_notifications",true)} listener=${CoverNotifications.current!=null} notificationEntry=$notificationEntry notificationOpen=${CoverNotificationOpener.status}")
+        writer.println("notificationOverride=${prefs.getBoolean("override_cover_notifications",true)} listener=${CoverNotifications.current!=null} notificationEntry=$notificationEntry notificationOpen=${CoverNotificationOpener.status} notificationReturn=$notificationReturnStatus notificationReturnCover=${notificationReturnCover!=null}")
+        writer.println("notificationCount=${CoverNotifications.current?.visibleCount} rawNotificationCount=${CoverNotifications.current?.rawCount}")
         writer.println("backRoute=${NavigationService.current?.backRoute}")
         writer.println("samsungRoutineControl=${SamsungRoutineControls.status}")
         writer.println("samsungRecentTask=${SamsungRecentTasks.status} closing=$closingRecentTask")
@@ -429,6 +502,7 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         writer.println("window=${overlay?.window?.attributes} status=${prefs.getString("monitor_status", "")} error=${prefs.getString("monitor_error", null)}")
     }
     override fun onDestroy() {
+        cancelNotificationReturn()
         homeGestureGeneration++;forwardingHomeGesture=false
         CoverNotificationOpener.cancelPending()
         handler.removeCallbacksAndMessages(null)

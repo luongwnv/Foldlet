@@ -39,6 +39,8 @@ class CoverOverlay(
     private var attached: View? = null
     private var applicationWindow = false
     private var surfaceWindow: AccessibilitySurfaceWindow?=null
+    private var notificationClosing=false
+    fun holdNotificationInput(hold: Boolean) { notificationClosing=hold }
     private var preferApplicationWindow = false
     val window: Window? get() = panel?.window
     val view: View? get() = attached
@@ -139,6 +141,7 @@ class CoverOverlay(
                     return dialog.dispatchKeyEvent(event)
                 }
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+                    if(requested==Mode.NOTIFICATIONS && notificationClosing) return true
                     if ((requested == Mode.SIDEBAR || requested==Mode.KEYBOARD) && event.action == MotionEvent.ACTION_OUTSIDE) { onMinimize(); return true }
                     return dialog.dispatchTouchEvent(event)
                 }
@@ -178,6 +181,7 @@ class CoverOverlay(
     }
 
     fun hide() {
+        notificationClosing=false
         homeGestures?.hide();homeGestures=null
         val decor = attached
         attached = null; panel = null; mode = Mode.HIDDEN

@@ -27,6 +27,34 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
     private val verticalToolbar get() = toolbarPosition == "left" || toolbarPosition == "right"
     private val toolbarEnabled get() = searching || selected != null || prefs.getBoolean("toolbar_visible",true)
     private var toolbarShown = true
+    private data class Badge(val packageName: String,val name: String,val tile: View,val label: TextView)
+    private val badges=mutableListOf<Badge>()
+    private var notificationCounts=emptyMap<String,Int>()
+    private val notificationsChanged: ()->Unit={ if(isAttachedToWindow) refreshBadges() }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        CoverNotifications.observe(notificationsChanged)
+        refreshBadges()
+    }
+    override fun onDetachedFromWindow() {
+        CoverNotifications.removeObserver(notificationsChanged)
+        notificationCounts=emptyMap()
+        updateBadges()
+        super.onDetachedFromWindow()
+    }
+    private fun refreshBadges() {
+        notificationCounts=if(Platform.unlocked(context)) CoverNotifications.current?.packageCounts() ?: emptyMap() else emptyMap()
+        updateBadges()
+    }
+    private fun updateBadges() {
+        badges.forEach { badge ->
+            val count=notificationCounts[badge.packageName] ?: 0
+            badge.label.visibility=if(count>0) VISIBLE else GONE
+            badge.label.text=if(count>99) "99+" else count.toString()
+            badge.tile.contentDescription=if(count>0) resources.getQuantityString(R.plurals.ui_app_notification_count,count,badge.name,count) else badge.name
+        }
+    }
 
     init {
         orientation = VERTICAL; setBackgroundColor(Color.BLACK)
@@ -154,6 +182,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
     private fun renderGrid() {
         showToolbar(true, false)
         contents.removeAllViews()
+        badges.clear()
         val favorites = prefs.getStringSet("favorites", emptySet())!!
         val hidden = prefs.getStringSet("hidden", emptySet())!!
         val recent = prefs.getString("recents", "")!!.split('|')
@@ -184,7 +213,20 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
         visible.forEachIndexed { index, app ->
             val tile = FrameLayout(context).apply {
                 contentDescription = app.name; isClickable = true; isFocusable = true
-                addView(ImageView(context).apply { setImageDrawable(app.icon); scaleType = ImageView.ScaleType.FIT_CENTER }, FrameLayout.LayoutParams(iconSize, iconSize, if(showNames) Gravity.TOP or Gravity.CENTER_HORIZONTAL else Gravity.CENTER).apply { if(showNames) topMargin=Ui.dp(context,8) })
+                val iconFrame=FrameLayout(context)
+                iconFrame.addView(ImageView(context).apply { setImageDrawable(app.icon); scaleType = ImageView.ScaleType.FIT_CENTER },FrameLayout.LayoutParams(-1,-1))
+                val badge=TextView(context).apply {
+                    gravity=Gravity.CENTER;includeFontPadding=false;textSize=13f
+                    setTypeface(null,android.graphics.Typeface.BOLD);setTextColor(Color.WHITE)
+                    minWidth=Ui.dp(context,24);setPadding(Ui.dp(context,5),0,Ui.dp(context,5),0)
+                    importantForAccessibility=IMPORTANT_FOR_ACCESSIBILITY_NO
+                    background=android.graphics.drawable.GradientDrawable().apply {
+                        setColor(0xFFE53935.toInt());cornerRadius=Ui.dp(context,14).toFloat();setStroke(Ui.dp(context,2),Color.BLACK)
+                    }
+                }
+                iconFrame.addView(badge,FrameLayout.LayoutParams(-2,Ui.dp(context,24),Gravity.TOP or Gravity.RIGHT))
+                addView(iconFrame, FrameLayout.LayoutParams(iconSize, iconSize, if(showNames) Gravity.TOP or Gravity.CENTER_HORIZONTAL else Gravity.CENTER).apply { if(showNames) topMargin=Ui.dp(context,8) })
+                badges.add(Badge(app.component.packageName,app.name,this,badge))
                 if(showNames) addView(TextView(context).apply {
                     text=app.name; textSize=14f; setTextColor(Color.WHITE); isSingleLine=true
                     ellipsize=android.text.TextUtils.TruncateAt.END; gravity=Gravity.CENTER; includeFontPadding=false
@@ -219,6 +261,7 @@ class AppDrawerView(context: Context, private val displayId: Int, private val cl
                 rowSpec = GridLayout.spec(index / columns, GridLayout.TOP)
             })
         }
+        updateBadges()
         if (visible.isEmpty()) contents.addView(Ui.text(context, I18n.text(R.string.ui_no_apps), 17f, Ui.muted), FrameLayout.LayoutParams(-1,-2).apply { setMargins(edge[0],edge[1],edge[2],edge[3]) })
         else {
             val list = FrameLayout(context).apply {
