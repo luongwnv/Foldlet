@@ -261,8 +261,8 @@
     <string name="ui_hotspot_mode">Chế độ hotspot</string>
     <string name="ui_hotspot_mode_help">Thay đồng hồ bằng tốc độ mạng và dung lượng đã dùng. Vuốt ngang để đổi trang, vuốt xuống để mở shortcut, nhấn giữ để về đồng hồ Samsung</string>
     <string name="ui_hotspot_today">Hôm nay</string>
+    <string name="ui_hotspot_devices">Thiết bị kết nối</string>
     <string name="ui_hotspot_this_month">Tháng này</string>
-    <string name="ui_hotspot_session">Từ lúc bật màn hình</string>
     <string name="ui_hotspot_no_service">Không có sóng</string>
     <string name="ui_hotspot_needs_usage_access">Cần quyền Usage access</string>
     <string name="ui_hotspot_aod">AOD cho hotspot</string>

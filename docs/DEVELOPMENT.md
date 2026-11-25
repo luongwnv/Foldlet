@@ -31,6 +31,7 @@ Beta release builds are not debuggable. They use the existing local development 
 | `SamsungCoverPage` | Samsung clock/widget coexistence |
 | `SettingsScreen` | Settings and the actual drawer preview |
 | `HotspotView` / `HotspotWifi` / `HotspotWifiReader` | Hotspot mode pages, Wi-Fi QR code (ZXing core), and reading the hotspot name and password from Samsung's settings page |
+| `HotspotClients` / `WifiName` | Connected device count by probing the hotspot subnet, and the connected Wi-Fi name remembered from Samsung's Wi-Fi settings page |
 | `SpeedTest` / `Ndt7` / `SpeedTestView` | Lowest-ping server selection across Speedtest.net, Cloudflare, and M-Lab ndt7, measurements, and the cover speed test UI |
 | `AvatarReplay` | Restarts the AR Emoji cover wallpaper animation by briefly hiding the wallpaper |
 

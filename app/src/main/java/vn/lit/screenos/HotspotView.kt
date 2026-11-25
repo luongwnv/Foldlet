@@ -38,6 +38,9 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private var networkLabel = ""
     private var displayCallback: Any? = null
     private val io = Executors.newSingleThreadExecutor()
+    private val scanner = Executors.newSingleThreadExecutor()
+    private var scanning = false
+    private var scannedAt = 0L
 
     private val condensed = Typeface.create("sans-serif-condensed", Typeface.BOLD)
     private val light = Typeface.create("sans-serif-light", Typeface.NORMAL)
@@ -46,7 +49,8 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private val carrier = Ui.text(context, "", 22f).apply { gravity = Gravity.CENTER }
     private val today = usage()
     private val month = usage()
-    private val session = usage()
+    private val devices = usage()
+    private var upstreamWifi: Boolean? = null
     private val batteryIcon = BatteryIcon(context)
     private val batteryText = small("").apply { typeface = light; textSize = 19f }
     private val statusBar = LinearLayout(context).apply {
@@ -76,8 +80,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private var lastRx = -1L
     private var lastTx = -1L
     private var lastAt = 0L
-    private var sessionRx = 0L
-    private var sessionTx = 0L
     private var usageAt = 0L
     private var lastSource: String? = null
 
@@ -155,7 +157,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
 
     private fun usagePage(): View {
         val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL; setPadding(Ui.dp(context, 22), 0, Ui.dp(context, 12), 0) }
-        for ((label, value) in listOf(R.string.ui_hotspot_today to today, R.string.ui_hotspot_this_month to month, R.string.ui_hotspot_session to session)) {
+        for ((label, value) in listOf(R.string.ui_hotspot_devices to devices, R.string.ui_hotspot_today to today, R.string.ui_hotspot_this_month to month)) {
             column.addView(Ui.text(context, I18n.text(label), 16f, Ui.muted).apply { setPadding(0, Ui.dp(context, 3), 0, 0); maxLines = 1 })
             column.addView(value)
         }
@@ -255,6 +257,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         if (android.os.Build.VERSION.SDK_INT >= 31) (displayCallback as? TelephonyCallback)?.let { runCatching { telephony.unregisterTelephonyCallback(it) } }
         displayCallback = null
         io.shutdownNow()
+        scanner.shutdownNow()
         super.onDetachedFromWindow()
     }
 
@@ -271,15 +274,24 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         }
     }
 
+    private fun upstreamIsWifi(): Boolean {
+        val connectivity = context.getSystemService(ConnectivityManager::class.java)
+        return connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true
+    }
+
     private fun updateCarrier() {
+        if (upstreamWifi == true) { carrier.text = WifiName.current(context) ?: I18n.text(R.string.ui_speedtest_wifi); return }
         val name = telephony.networkOperatorName.orEmpty().ifBlank { telephony.simOperatorName.orEmpty() }
         carrier.text = listOf(name.ifBlank { I18n.text(R.string.ui_hotspot_no_service) }, networkLabel).filter { it.isNotBlank() }.joinToString(" ")
     }
 
     private fun refresh() {
+        val wifi = upstreamIsWifi()
+        if (wifi != upstreamWifi) { upstreamWifi = wifi; usageAt = 0L; lastAt = 0L }
         updateCarrier()
         val iface = hotspotInterface()
         var rx = TrafficStats.getMobileRxBytes(); var tx = TrafficStats.getMobileTxBytes()
+        if (wifi) { rx = TrafficStats.getTotalRxBytes() - rx.coerceAtLeast(0); tx = TrafficStats.getTotalTxBytes() - tx.coerceAtLeast(0) }
         if (android.os.Build.VERSION.SDK_INT >= 31 && iface != null) {
             // Clients download what the hotspot interface transmits and upload what it receives.
             val down = TrafficStats.getTxBytes(iface); val up = TrafficStats.getRxBytes(iface)
@@ -292,11 +304,18 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
                 val seconds = (now - lastAt).coerceAtLeast(1) / 1000f
                 download.text = mbps((rx - lastRx) / seconds)
                 upload.text = mbps((tx - lastTx) / seconds)
-                sessionRx += rx - lastRx; sessionTx += tx - lastTx
             }
             lastRx = rx; lastTx = tx; lastAt = now
         }
-        session.text = bytes(sessionRx + sessionTx)
+        val prefs = Platform.preferences(context)
+        if (iface == null) {
+            if (prefs.contains(HotspotWifiReader.CLIENT_COUNT)) prefs.edit().remove(HotspotWifiReader.CLIENT_COUNT).apply()
+            HotspotClients.reset()
+        } else if (!scanning && (scannedAt == 0L || now - scannedAt > SCAN_MS)) {
+            scanning = true; scannedAt = now
+            runCatching { scanner.execute { HotspotClients.scan(iface); handler.post { scanning = false } } }.onFailure { scanning = false }
+        }
+        devices.text = if (iface == null) "0" else (HotspotClients.lastCount ?: prefs.getInt(HotspotWifiReader.CLIENT_COUNT, -1).takeIf { it >= 0 })?.toString() ?: "-"
         val level = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val percent = level?.let { it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / it.getIntExtra(BatteryManager.EXTRA_SCALE, 100).coerceAtLeast(1) } ?: -1
         val charging = (level?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
@@ -313,7 +332,8 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
             val dayStart = calendar.timeInMillis
             calendar.set(Calendar.DAY_OF_MONTH, 1)
             val monthStart = calendar.timeInMillis
-            fun total(start: Long) = runCatching { stats.querySummaryForDevice(ConnectivityManager.TYPE_MOBILE, null, start, System.currentTimeMillis()).let { it.rxBytes + it.txBytes } }.getOrNull()
+            val type = if (upstreamWifi == true) ConnectivityManager.TYPE_WIFI else ConnectivityManager.TYPE_MOBILE
+            fun total(start: Long) = runCatching { stats.querySummaryForDevice(type, null, start, System.currentTimeMillis()).let { it.rxBytes + it.txBytes } }.getOrNull()
             val day = total(dayStart); val all = total(monthStart)
             handler.post { today.text = day?.let(::bytes) ?: "-"; month.text = all?.let(::bytes) ?: "-" }
         } }
@@ -357,6 +377,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         private const val AOD_BRIGHTNESS = .12f
         private const val AOD_DELAY_MS = 15_000L
         const val AOD_PREF = "hotspot_aod"
+        private const val SCAN_MS = 15_000L
 
         fun mbps(bytesPerSecond: Float): String {
             val value = bytesPerSecond * 8 / 1_000_000f
