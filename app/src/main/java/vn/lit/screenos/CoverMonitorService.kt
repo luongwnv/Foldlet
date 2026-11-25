@@ -278,7 +278,9 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         keyboardVisible=false;dismissedKeyboard=NavigationService.current?.inputSession ?: -1L
         samsungHome = true; minimized = true; navigationVisible = false; yieldedUntilSleep = false
         ++restoreGeneration; restoringRotation = false
-        clearOverlay()
+        // Return straight to Hotspot mode, replacing the panel without exposing the clock.
+        val toHotspot=prefs.getBoolean(HotspotView.PREF,false) && !legacyNotifications && overlay?.mode in setOf(CoverOverlay.Mode.SHORTCUTS,CoverOverlay.Mode.SPEEDTEST)
+        if(toHotspot) runCatching { overlay?.show(CoverOverlay.Mode.HOTSPOT) }.onFailure { clearOverlay() } else clearOverlay()
         if(legacyNotifications) {
             notificationOverrideSuspended=true
             handler.postDelayed({ NavigationService.current?.let { SamsungCoverPage.showClock(it,cover.displayId) };schedule() },120)
@@ -367,7 +369,8 @@ class CoverMonitorService : Service(), DisplayManager.DisplayListener, SensorEve
         CoverNotificationOpener.cancelPending()
         keyboardVisible=false
         section = targetSection; minimized = false; navigationVisible = false; yieldedUntilSleep = false; samsungHome = false
-        clearOverlay()
+        // Keep Hotspot mode on screen until the panel replaces it, so the Samsung clock never shows in between.
+        if (overlay?.mode != CoverOverlay.Mode.HOTSPOT) clearOverlay()
         restoringRotation = true
         val generation = ++restoreGeneration
         fun showDrawer() {

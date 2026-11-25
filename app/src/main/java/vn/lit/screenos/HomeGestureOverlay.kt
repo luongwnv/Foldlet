@@ -42,6 +42,8 @@ class HomeGestureOverlay(
                     MotionEvent.ACTION_MOVE -> {
                         val dx=event.rawX-startX;val dy=event.rawY-startY
                         if(active && !consumed && dx>Ui.dp(context,24) && dx>kotlin.math.abs(dy)*1.25f) { consumed=true;onNotifications() }
+                        // This full-screen layer sits above the right-edge strip, so handle its inward swipe here.
+                        else if(active && !consumed && startX>size.x-Ui.dp(context,28) && -dx>Ui.dp(context,24) && -dx>kotlin.math.abs(dy)*1.25f) { consumed=true;active=false;onNavigation() }
                     }
                     MotionEvent.ACTION_UP -> if(active && !consumed) {
                         active=false

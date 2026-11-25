@@ -34,7 +34,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private val pages = FrameLayout(context)
     private val dots = LinearLayout(context).apply { gravity = Gravity.CENTER }
     private var page = 0
-    private val pageCount = 4
+    private val pageCount = 3
     private var networkLabel = ""
     private var displayCallback: Any? = null
     private val io = Executors.newSingleThreadExecutor()
@@ -47,9 +47,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private val today = usage()
     private val month = usage()
     private val session = usage()
-    private val hotspot = big()
-    private val battery = big()
-    private val signal = big()
     private val batteryIcon = BatteryIcon(context)
     private val batteryText = small("").apply { typeface = light; textSize = 19f }
     private val statusBar = LinearLayout(context).apply {
@@ -98,7 +95,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         })
         pages.addView(infoPage())
         pages.addView(SpeedTestView(context, onActivity = { scheduleDim() }))
-        pages.addView(listPage(R.string.ui_hotspot_status, listOf(R.string.ui_hotspot to hotspot, R.string.ui_hotspot_battery to battery, R.string.ui_hotspot_signal to signal)))
         addView(pages, LayoutParams(-1, -1).apply { topMargin = Ui.dp(context, 26); bottomMargin = Ui.dp(context, 14) })
         addView(statusBar, LayoutParams(-1, Ui.dp(context, 32), Gravity.TOP))
         addView(dots, LayoutParams(-1, Ui.dp(context, 14), Gravity.BOTTOM))
@@ -108,7 +104,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         setOnLongClickListener { onExit(); true }
     }
 
-    private fun big() = Ui.text(context, "-", 30f).apply { typeface = condensed; gravity = Gravity.END }
     private fun small(value: String) = Ui.text(context, value, 16f).apply { includeFontPadding = false; setPadding(0, 0, 0, 0) }
     private fun clock(size: Float, color: Int, face: Typeface) = TextClock(context).apply {
         format12Hour = "h:mm"; format24Hour = "HH:mm"; textSize = size; setTextColor(color); typeface = face; includeFontPadding = false
@@ -181,17 +176,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         }
         column.addView(row(upload, true), LinearLayout.LayoutParams(-1, -2).apply { topMargin = Ui.dp(context, 2) })
         column.addView(row(download, false), LinearLayout.LayoutParams(-1, -2))
-        return column
-    }
-
-    private fun listPage(title: Int, rows: List<Pair<Int, TextView>>): View {
-        val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL; setPadding(Ui.dp(context, 36), 0, Ui.dp(context, 36), 0) }
-        column.addView(Ui.text(context, I18n.text(title), 20f).apply { gravity = Gravity.CENTER }, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = Ui.dp(context, 8) })
-        for ((label, value) in rows) column.addView(LinearLayout(context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(Ui.text(context, I18n.text(label), 17f, Ui.muted), LinearLayout.LayoutParams(0, -2, 1f))
-            addView(value)
-        }, LinearLayout.LayoutParams(-1, Ui.dp(context, 50)))
         return column
     }
 
@@ -313,17 +297,11 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
             lastRx = rx; lastTx = tx; lastAt = now
         }
         session.text = bytes(sessionRx + sessionTx)
-        val on = iface != null || hotspotOn()
-        hotspot.text = I18n.text(if (on) R.string.ui_hotspot_on else R.string.ui_hotspot_off)
-        hotspot.setTextColor(if (on) GREEN else Color.WHITE)
         val level = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val percent = level?.let { it.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / it.getIntExtra(BatteryManager.EXTRA_SCALE, 100).coerceAtLeast(1) } ?: -1
         val charging = (level?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
-        battery.text = if (percent < 0) "-" else "$percent%" + if (charging) " +" else ""
         batteryText.text = if (percent < 0) "" else "$percent%"
         batteryIcon.update(percent, charging)
-        val bars = runCatching { telephony.signalStrength?.level }.getOrNull()
-        signal.text = if (bars == null) "-" else "$bars/4"
         if (now - usageAt > 30_000 || usageAt == 0L) { usageAt = now; loadUsage() }
     }
 
@@ -390,8 +368,6 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
             value >= 1_000_000L -> "%.1f MB".format(value / 1_000_000.0)
             else -> "%.0f KB".format(value / 1_000.0)
         }
-
-        fun hotspotOn() = hotspotInterface() != null
 
         fun hotspotInterface(): String? = try {
             NetworkInterface.getNetworkInterfaces()?.toList().orEmpty().firstOrNull { iface ->
