@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.12.0](https://github.com/luongwnv/Foldlet/releases/download/v0.12.0/Foldlet-0.12.0.apk)** - **0.12.0 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.12.1](https://github.com/luongwnv/Foldlet/releases/download/v0.12.1/Foldlet-0.12.1.apk)** - **0.12.1 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.0/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.1/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -38,12 +38,12 @@ Actual captures of the native Android interface running on a dedicated test emul
 - An optional cover keyboard for text fields in other apps, with offline swipe typing (Beta).
 - Optional sensor-driven Auto, portrait, and landscape rotation through a USB connection to your computer.
 - **Hotspot mode**: a pocket Wi-Fi style cover screen with live upload and download speed, data usage, a Wi-Fi QR code, a speed test, and a dimmed gray always-on view.
-- **Speed test** for Wi-Fi or mobile data: Download, Upload, Ping, Ping while loaded, Jitter, and Packet loss on the lowest-ping public server, with on-device history.
+- **Speed test** for Wi-Fi or mobile data: Download, Upload, Ping, Ping while loaded, Jitter, and Packet loss on the lowest-ping nearby server, including Speedtest.net servers, with on-device history.
 - Cover clock options: keep the Samsung clock on, and keep a 3D AR Emoji avatar moving.
 
 ## Getting started
 
-1. Download **Foldlet-0.12.0.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.12.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -120,9 +120,9 @@ In **Settings > Home shortcuts**, enable or disable the top-edge swipe, select a
 
 On the cover panel, **tap Wi-Fi or Bluetooth to switch it** using Foldlet Controls. **Touch and hold** any tile for system settings. Sound switches between ringing and vibration; Display and Settings open their controls.
 
-When there are more than eight tiles, swipe sideways to switch pages. The second page holds **Clock on**, **Hotspot screen**, and **Speed test** by default: the first two switch those modes on or off, and Speed test opens a full-screen test that starts right away.
+When there are more than eight tiles, swipe sideways to switch pages. The second page holds **Clock on**, **Hotspot mode**, and **Speed test** by default: the first two switch those modes on or off, and Speed test opens a full-screen test that starts right away.
 
-<p align="center"><img src="docs/images/shortcuts-modes.png" width="512" alt="Second shortcuts page with Clock on, Hotspot screen and Speed test"></p>
+<p align="center"><img src="docs/images/shortcuts-modes.png" width="512" alt="Second shortcuts page with Clock on, Hotspot mode and Speed test"></p>
 
 Blue indicates on; a dimmed tile indicates a change in progress. Hotspot, mobile data, sound, airplane mode, and location update from the device state. Each tile shows its state below the label; unavailable readings are marked explicitly. Network mode shows the configured preference when One UI exposes it, and Display shows automatic/manual brightness. The panel fills the cover screen and uses the installed Samsung icons when available.
 
@@ -150,7 +150,7 @@ Hotspot state detection requires **Foldlet Controls 1.1.0**. If a routine cannot
 
 <p align="center"><img src="docs/images/hotspot-mode.png" width="512" alt="Hotspot mode showing live upload and download speed and data usage"></p>
 
-Turn on **Settings > Hotspot mode**, or tap **Hotspot screen** in Shortcuts. Foldlet then shows this screen instead of the Samsung clock. Swipe sideways through four pages:
+Turn on **Settings > Hotspot mode**, or tap **Hotspot mode** in Shortcuts. Foldlet then shows this screen instead of the Samsung clock. Swipe sideways through four pages:
 
 1. **Speed and usage**: live upload and download speed, plus mobile data used today, this month, and since the screen turned on. While the hotspot is on, the speed is measured on the hotspot itself, so it is correct whether the hotspot shares Wi-Fi or mobile data. Otherwise it shows mobile data traffic.
 2. **Wi-Fi**: a QR code that other phones can scan to join, with the network name and password.
@@ -177,11 +177,11 @@ Android does not let apps read the hotspot password. Open **Settings > Connectio
 
 Open the third page of Hotspot mode, or tap **Speed test** in Shortcuts. Foldlet tests the network the phone is using, Wi-Fi or mobile data:
 
-- **Server**: like Speedtest, Foldlet pings several nearby servers and tests the one that answers fastest. Candidates are Cloudflare’s nearest speed test server and the nearest [M-Lab](https://www.measurementlab.net/) NDT servers. If a server refuses the test, the next one is used. The top line shows the server and your Internet provider.
+- **Server**: like Speedtest, Foldlet pings several nearby servers and tests the one that answers fastest. Candidates are the five nearest Speedtest.net servers, Cloudflare’s nearest speed test server, and the nearest [M-Lab](https://www.measurementlab.net/) NDT servers. In Vietnam this is usually a Speedtest.net server inside a local network. If a server refuses the test, the next one is used. The top line shows the server and your Internet provider.
 - **Results**: download and upload in Mbps, Ping, Ping while downloading and uploading, Jitter, and Packet loss. Like Speedtest, the slowest 30% and fastest 10% of samples are left out of the speed.
 - **History**: tap the clock button to see the last 20 results, saved only on this phone.
 
-Speedtest.net servers inside Vietnamese networks belong to Ookla and require a license, so Foldlet cannot use them. Results through Singapore or Hong Kong can be lower than Speedtest.net. Packet loss is estimated from failed ping attempts. One test can use up to 300 MB download and 150 MB upload, which counts toward a mobile data plan. The test server sees your IP address, and [M-Lab publishes its test data openly](https://www.measurementlab.net/privacy/), including IP addresses.
+Speedtest.net servers are found and used through the same unofficial endpoints as the Speedtest website, not a public Ookla API. Ookla may change or block them at any time; Foldlet then falls back to Cloudflare or M-Lab, whose results through Singapore or Hong Kong can be lower. Packet loss is estimated from failed ping attempts. One test can use up to 300 MB download and 150 MB upload, which counts toward a mobile data plan. The test server sees your IP address, and [M-Lab publishes its test data openly](https://www.measurementlab.net/privacy/), including IP addresses.
 
 ### Cover clock options
 
@@ -223,7 +223,7 @@ Permission shortcuts are available in **Overview**. You can revoke permissions i
 </tbody>
 </table>
 
-Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. While closing tasks or returning from notifications to Samsung’s clock, Foldlet holds a temporary rendering of its own menu in memory and discards it afterward; it does not capture other apps or save screenshots. Notification content is obtained on demand through Notification access and kept only in the visible on-device list. Its network connection is used for the ADB rotation bridge on localhost and, only when you start a speed test, for test traffic to Cloudflare and M-Lab.
+Recent-app data is read on your device, is not sent to a server, and is not saved as a separate usage history. Foldlet keeps dismissal timestamps so closed cards stay hidden until their apps are used again. Input to other apps is write-only: existing field contents are not read or recorded. Swipe traces and suggestions stay in memory and are discarded when the keyboard closes. While closing tasks or returning from notifications to Samsung’s clock, Foldlet holds a temporary rendering of its own menu in memory and discards it afterward; it does not capture other apps or save screenshots. Notification content is obtained on demand through Notification access and kept only in the visible on-device list. Its network connection is used for the ADB rotation bridge on localhost and, only when you start a speed test, for test traffic to Speedtest.net, Cloudflare, and M-Lab servers.
 
 **Foldlet Controls (Optional)** uses Wi-Fi state/change and legacy Bluetooth permissions to switch those two radios and read Wi-Fi, Bluetooth, hotspot, and configured network-mode state. It does not scan networks or devices, read their names, access location, or connect to the internet. Only Foldlet signed with the matching certificate can call its service. The helper uses Android’s older compatibility APIs; Foldlet itself continues to target modern Android.
 

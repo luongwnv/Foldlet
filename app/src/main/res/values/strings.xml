@@ -299,7 +299,7 @@
     <string name="ui_shortcut_airplane">Airplane mode</string>
     <string name="ui_shortcut_location">Location</string>
     <string name="ui_shortcut_clock_awake">Clock on</string>
-    <string name="ui_shortcut_hotspot_mode">Hotspot screen</string>
+    <string name="ui_shortcut_hotspot_mode">Hotspot mode</string>
     <string name="ui_shortcut_speedtest">Speed test</string>
     <string name="ui_speedtest_download">Download</string>
     <string name="ui_speedtest_upload">Upload</string>
@@ -307,8 +307,8 @@
     <string name="ui_speedtest_loss">Packet loss</string>
     <string name="ui_speedtest_nearest">Nearest server</string>
     <string name="ui_speedtest_ping">Ping</string>
-    <string name="ui_speedtest_ping_down">Ping ↓</string>
-    <string name="ui_speedtest_ping_up">Ping ↑</string>
+    <string name="ui_speedtest_ping_down">Ping while downloading</string>
+    <string name="ui_speedtest_ping_up">Ping while uploading</string>
     <string name="ui_speedtest_history_empty">No results yet</string>
     <string name="ui_speedtest_ready">Tap ▶ to test %1$s</string>
     <string name="ui_speedtest_latency_phase">Measuring latency</string>

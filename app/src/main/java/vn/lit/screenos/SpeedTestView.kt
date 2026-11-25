@@ -39,7 +39,7 @@ class SpeedTestView(
     private val jitter = stat()
     private val loss = stat()
     private val results = LinearLayout(context)
-    private val history = LinearLayout(context).apply { orientation = VERTICAL }
+    private val history = LinearLayout(context).apply { orientation = VERTICAL; setPadding(Ui.dp(context, 14), 0, 0, 0) }
     private val historyScroll = ScrollView(context).apply { addView(history); visibility = GONE; isVerticalScrollBarEnabled = false }
     private val status = small("", 14f, ORANGE).apply { maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
     private val bar = ChevronBar(context)
@@ -63,8 +63,8 @@ class SpeedTestView(
         results.addView(LinearLayout(context).apply {
             orientation = VERTICAL; gravity = Gravity.CENTER_VERTICAL
             addView(statRow(R.string.ui_speedtest_ping, ping, "ms"))
-            addView(statRow(R.string.ui_speedtest_ping_down, pingDown, "ms"))
-            addView(statRow(R.string.ui_speedtest_ping_up, pingUp, "ms"))
+            addView(statRow(R.string.ui_speedtest_ping, pingDown, "ms", arrow = false, description = R.string.ui_speedtest_ping_down))
+            addView(statRow(R.string.ui_speedtest_ping, pingUp, "ms", arrow = true, description = R.string.ui_speedtest_ping_up))
             addView(statRow(R.string.ui_speedtest_jitter, jitter, "ms"))
             addView(statRow(R.string.ui_speedtest_loss, loss, "%"))
         }, LayoutParams(Ui.dp(context, 150), -1))
@@ -98,9 +98,13 @@ class SpeedTestView(
         }, LayoutParams(-2, -2).apply { leftMargin = Ui.dp(context, 8) })
     }
 
-    private fun statRow(label: Int, value: TextView, unit: String) = LinearLayout(context).apply {
-        gravity = Gravity.CENTER_VERTICAL
-        addView(small(I18n.text(label), 13f, Ui.muted).apply { maxLines = 1 }, LayoutParams(0, -2, 1f))
+    private fun statRow(label: Int, value: TextView, unit: String, arrow: Boolean? = null, description: Int = label) = LinearLayout(context).apply {
+        gravity = Gravity.CENTER_VERTICAL; contentDescription = I18n.text(description)
+        addView(LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(small(I18n.text(label), 13f, Ui.muted).apply { maxLines = 1 })
+            if (arrow != null) addView(HotspotView.Arrow(context, arrow), LayoutParams(Ui.dp(context, 12), Ui.dp(context, 12)).apply { leftMargin = Ui.dp(context, 4) })
+        }, LayoutParams(0, -2, 1f))
         addView(value)
         addView(small(unit, 12f, Ui.muted), LayoutParams(Ui.dp(context, 22), -2).apply { leftMargin = Ui.dp(context, 3) })
         setPadding(0, Ui.dp(context, 3), 0, Ui.dp(context, 3))
@@ -153,8 +157,14 @@ class SpeedTestView(
                 addView(small("${time.format(Date(entry.time))}  ${date.format(Date(entry.time))}", 14f, Color.WHITE))
                 addView(small(listOfNotNull(entry.network, entry.server).joinToString(" - "), 12f, Ui.muted).apply { maxLines = 1; ellipsize = TextUtils.TruncateAt.END })
             }, LayoutParams(0, -2, 1f))
-            addView(small("↓ ${format(entry.download)}  ↑ ${format(entry.upload)}", 17f, Color.WHITE).apply { typeface = bold })
-            addView(small(entry.ping?.let { "  ${format(it)} ms" } ?: "", 13f, Ui.muted))
+            // Fixed-width columns keep arrows and numbers aligned between rows.
+            fun speed(value: Double, up: Boolean) {
+                addView(HotspotView.Arrow(context, up), LayoutParams(Ui.dp(context, 12), Ui.dp(context, 12)).apply { leftMargin = Ui.dp(context, 10) })
+                addView(small(format(value), 17f, Color.WHITE).apply { typeface = bold; gravity = Gravity.END }, LayoutParams(Ui.dp(context, 46), -2))
+            }
+            speed(entry.download, false)
+            speed(entry.upload, true)
+            addView(small(entry.ping?.let { "${format(it)} ms" } ?: "", 13f, Ui.muted).apply { gravity = Gravity.END }, LayoutParams(Ui.dp(context, 60), -2))
         })
     }
 
