@@ -53,12 +53,15 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private var upstreamWifi: Boolean? = null
     private val batteryIcon = BatteryIcon(context)
     private val batteryText = small("").apply { typeface = light; textSize = 19f }
-    private val statusBar = LinearLayout(context).apply {
-        gravity = Gravity.CENTER_VERTICAL; setPadding(Ui.dp(context, 30), Ui.dp(context, 4), Ui.dp(context, 30), 0)
+    private val battery = LinearLayout(context).apply {
+        gravity = Gravity.CENTER_VERTICAL
         addView(batteryIcon, LinearLayout.LayoutParams(Ui.dp(context, 27), Ui.dp(context, 13)))
         addView(batteryText, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = Ui.dp(context, 5) })
-        addView(View(context), LinearLayout.LayoutParams(0, 1, 1f))
-        addView(clock(19f, Color.WHITE, light))
+    }
+    private val statusClock = clock(19f, Color.WHITE, light)
+    private val statusSpacer = View(context)
+    private val statusBar = LinearLayout(context).apply {
+        gravity = Gravity.CENTER_VERTICAL; setPadding(Ui.dp(context, 30), Ui.dp(context, 4), Ui.dp(context, 30), 0)
     }
 
     private val aodEnabled = Platform.preferences(context).getBoolean(AOD_PREF, false)
@@ -68,11 +71,34 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f); postConcat(ColorMatrix().apply { setScale(AOD_LEVEL, AOD_LEVEL, AOD_LEVEL, 1f) }) })
     }
     private val dim = Runnable { setDimmed(true) }
+    private val overview = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
+    private val speedColumn by lazy { speedPage() }
+    private val usageColumn by lazy { usagePage() }
+    private val divider by lazy { View(context).apply { setBackgroundColor(0x33FFFFFF) } }
+    private var swapped = false
+    private var shifts = 0
+
+    /** Page 1 columns; in AOD they trade places every minute to spread wear across the OLED. */
+    private fun arrange(swap: Boolean) {
+        swapped = swap
+        overview.removeAllViews()
+        val (left, right) = if (swap) usageColumn to speedColumn else speedColumn to usageColumn
+        overview.addView(left, LinearLayout.LayoutParams(0, -1, if (swap) 1f else 1.15f))
+        overview.addView(divider, LinearLayout.LayoutParams(1, -1).apply { setMargins(0, Ui.dp(context, 28), 0, Ui.dp(context, 18)) })
+        overview.addView(right, LinearLayout.LayoutParams(0, -1, if (swap) 1.15f else 1f))
+        statusBar.removeAllViews()
+        val (start, end) = if (swap) statusClock to battery else battery to statusClock
+        statusBar.addView(start, LinearLayout.LayoutParams(-2, -2))
+        statusBar.addView(statusSpacer, LinearLayout.LayoutParams(0, 1, 1f))
+        statusBar.addView(end, LinearLayout.LayoutParams(-2, -2))
+    }
+
     private val shift = object : Runnable {
         override fun run() {
             val range = Ui.dp(context, 4).toFloat()
             val x = (Math.random().toFloat() * 2 - 1) * range; val y = (Math.random().toFloat() * 2 - 1) * range
             for (view in listOf(statusBar, pages, dots)) { view.translationX = x; view.translationY = y }
+            if (shifts++ > 0) arrange(!swapped)
             handler.postDelayed(this, 60_000)
         }
     }
@@ -89,12 +115,8 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
 
     init {
         setBackgroundColor(Color.BLACK)
-        pages.addView(LinearLayout(context).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(speedPage(), LinearLayout.LayoutParams(0, -1, 1.15f))
-            addView(View(context).apply { setBackgroundColor(0x33FFFFFF) }, LinearLayout.LayoutParams(1, -1).apply { setMargins(0, Ui.dp(context, 28), 0, Ui.dp(context, 18)) })
-            addView(usagePage(), LinearLayout.LayoutParams(0, -1, 1f))
-        })
+        arrange(false)
+        pages.addView(overview)
         pages.addView(infoPage())
         pages.addView(SpeedTestView(context, onActivity = { scheduleDim() }))
         addView(pages, LayoutParams(-1, -1).apply { topMargin = Ui.dp(context, 26); bottomMargin = Ui.dp(context, 14) })
@@ -120,9 +142,11 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         if (dimmed == value) return
         dimmed = value
         setLayerType(if (value) LAYER_TYPE_HARDWARE else LAYER_TYPE_NONE, if (value) grayscale else null)
+        dots.visibility = if (value) INVISIBLE else VISIBLE
         handler.removeCallbacks(shift)
-        if (value) handler.post(shift) else {
+        if (value) { showPage(0, 0); shifts = 0; handler.post(shift) } else {
             for (view in listOf(statusBar, pages, dots)) { view.translationX = 0f; view.translationY = 0f }
+            if (swapped) arrange(false)
             scheduleDim()
         }
         val params = rootView.layoutParams as? WindowManager.LayoutParams ?: return
@@ -205,7 +229,27 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_UP && !dimmed) scheduleDim()
-        return super.dispatchTouchEvent(event)
+        if (!flipped) return super.dispatchTouchEvent(event)
+        // The view is drawn rotated 180 degrees, so map touches into the same upright space.
+        val upright = MotionEvent.obtain(event).apply { transform(android.graphics.Matrix().apply { setRotate(180f, width / 2f, height / 2f) }) }
+        return try { super.dispatchTouchEvent(upright) } finally { upright.recycle() }
+    }
+
+    private var flipped = false
+    private val orientationPolicy = SensorRotationPolicy()
+    private val orientation = object : android.view.OrientationEventListener(context.applicationContext, android.hardware.SensorManager.SENSOR_DELAY_UI) {
+        override fun onOrientationChanged(angle: Int) {
+            val quarter = orientationPolicy.update(angle, SystemClock.uptimeMillis()) ?: return
+            val cover = if (android.os.Build.MODEL.startsWith("SM-F711")) flip3CoverRotation(quarter) else quarter
+            // Only upright and upside-down landscape change the view; portrait and flat keep the last one.
+            when ((cover - (display?.rotation ?: 0) + 4) % 4) { 0 -> setFlipped(false); 2 -> setFlipped(true) }
+        }
+    }
+
+    private fun setFlipped(value: Boolean) {
+        if (flipped == value) return
+        flipped = value
+        rotation = if (value) 180f else 0f
     }
 
     // Children such as the speed test buttons receive taps; swipes are taken over here.
@@ -241,6 +285,8 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        orientationPolicy.reset()
+        if (orientation.canDetectOrientation()) orientation.enable()
         if (android.os.Build.VERSION.SDK_INT >= 31) try {
             val callback = object : TelephonyCallback(), TelephonyCallback.DisplayInfoListener {
                 override fun onDisplayInfoChanged(info: TelephonyDisplayInfo) { networkLabel = label(info); updateCarrier() }
@@ -253,6 +299,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     }
 
     override fun onDetachedFromWindow() {
+        orientation.disable()
         handler.removeCallbacksAndMessages(null)
         if (android.os.Build.VERSION.SDK_INT >= 31) (displayCallback as? TelephonyCallback)?.let { runCatching { telephony.unregisterTelephonyCallback(it) } }
         displayCallback = null
@@ -374,7 +421,7 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
         const val GREEN = 0xFF4ADE80.toInt()
         private const val RED = 0xFFF87171.toInt()
         private const val AOD_LEVEL = .8f
-        private const val AOD_BRIGHTNESS = .12f
+        private const val AOD_BRIGHTNESS = .10f
         private const val AOD_DELAY_MS = 15_000L
         const val AOD_PREF = "hotspot_aod"
         private const val SCAN_MS = 15_000L

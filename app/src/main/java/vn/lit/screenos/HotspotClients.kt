@@ -40,7 +40,10 @@ object HotspotClients {
             if (alive(network, address)) lastSeen[address] = SystemClock.elapsedRealtime()
         }
         pool.shutdown()
-        pool.awaitTermination(20, TimeUnit.SECONDS)
+        try { pool.awaitTermination(20, TimeUnit.SECONDS) } catch (_: InterruptedException) {
+            // The hotspot screen closed mid-scan; stop quietly instead of crashing the app.
+            pool.shutdownNow(); Thread.currentThread().interrupt(); return null
+        }
         val now = SystemClock.elapsedRealtime()
         lastSeen.entries.removeIf { now - it.value > SEEN_MS }
         lastCount = lastSeen.size
