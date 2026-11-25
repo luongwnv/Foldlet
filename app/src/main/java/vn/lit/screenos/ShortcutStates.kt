@@ -31,7 +31,10 @@ object ShortcutStates {
             "airplane" to switch { Settings.Global.getInt(context.contentResolver,Settings.Global.AIRPLANE_MODE_ON)==1 },
             "location" to switch { context.getSystemService(LocationManager::class.java).isLocationEnabled },
             "sound" to State(if(sound<0) -1 else if(sound==AudioManager.RINGER_MODE_SILENT) 0 else 1,I18n.text(soundLabel),sound),
-            "display" to State(detail=display),"network" to State(detail=network),"settings" to State(detail="")
+            "display" to State(detail=display),"network" to State(detail=network),"settings" to State(detail=""),
+            "clock_awake" to State(if(Platform.preferences(context).getBoolean(CoverOverlay.KEEP_CLOCK_AWAKE,false)) 1 else 0),
+            "hotspot_mode" to State(if(Platform.preferences(context).getBoolean(HotspotView.PREF,false)) 1 else 0),
+            "speedtest" to State(detail="")
         )
     }
 }

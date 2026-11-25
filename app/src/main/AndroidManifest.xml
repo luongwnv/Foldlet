@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.BIND_APPWIDGET" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- The user grants GET_USAGE_STATS through Usage Access, not a signature permission. -->
@@ -54,6 +55,10 @@
         <activity android:name=".CoverActivity" android:exported="true"
             android:theme="@style/CoverTheme" android:showWhenLocked="true"
             android:excludeFromRecents="true" />
+        <activity android:name=".AvatarReplayActivity" android:exported="false"
+            android:theme="@style/AvatarReplayTheme" android:showWhenLocked="true"
+            android:excludeFromRecents="true" android:noHistory="true"
+            android:taskAffinity="vn.lit.screenos.avatar" android:launchMode="singleInstance" />
         <activity android:name=".RotationSetupActivity" android:exported="false" android:theme="@style/SettingsTheme" />
         <activity android:name=".SamsungControlsActivity" android:exported="false" android:theme="@style/SettingsTheme" />
         <provider android:name=".SamsungRoutinePresetProvider" android:authorities="${applicationId}.routine-presets"

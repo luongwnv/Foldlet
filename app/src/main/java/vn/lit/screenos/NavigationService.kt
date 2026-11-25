@@ -167,6 +167,7 @@ class NavigationService : AccessibilityService() {
     override fun onServiceConnected() { super.onServiceConnected(); current = this; CoverMonitorService.current?.schedule() }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
+        if (event.packageName?.toString() == HotspotWifiReader.PACKAGE) { HotspotWifiReader.onEvent(this, event); return }
         if (event.packageName?.toString() in setOf("com.android.systemui", "com.samsung.android.app.aodservice") || event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             SamsungCoverPage.onEvent(event)
             CoverMonitorService.current?.schedule()

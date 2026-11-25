@@ -2,7 +2,7 @@
     android:description="@string/accessibility_description"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged|typeWindowContentChanged|typeViewScrolled"
-    android:packageNames="com.android.systemui,com.samsung.android.app.aodservice"
+    android:packageNames="com.android.systemui,com.samsung.android.app.aodservice,com.android.settings"
     android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews|flagInputMethodEditor"
     android:canRetrieveWindowContent="true"
     android:canPerformGestures="true"
