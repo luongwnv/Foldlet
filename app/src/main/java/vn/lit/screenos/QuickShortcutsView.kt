@@ -11,6 +11,8 @@ import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.widget.*
 
+private const val PAGE_SIZE=8
+
 class QuickShortcutsView(context: Context,private val displayId: Int,private val close: ()->Unit,private val launched: ()->Unit): LinearLayout(context) {
     private val body=FrameLayout(context)
     private data class Tile(val action: QuickShortcuts.Action,val view: android.view.View,val icon: ImageView,val detail: TextView,var state: ShortcutStates.State?=null)
@@ -25,6 +27,10 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
     private var downY=0f
     private var dismissCandidate=false
     private var dismissing=false
+    private var paging=false
+    private var page=0
+    private val pages=mutableListOf<android.view.View>()
+    private val dots=LinearLayout(context).apply { gravity=Gravity.CENTER }
     private val swipeThreshold=ViewConfiguration.get(context).scaledTouchSlop.coerceAtLeast(Ui.dp(context,24))
     init {
         orientation=VERTICAL;setBackgroundColor(Color.BLACK)
@@ -74,6 +80,7 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         }
     }
     private fun openDetails(action: QuickShortcuts.Action) {
+        if(QuickShortcuts.isLocal(action)) { activate(action);return }
         if(QuickShortcuts.open(context,action,displayId)) launched() else openOnPhone(action)
     }
     private fun activate(action: QuickShortcuts.Action) {
@@ -112,6 +119,8 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
                 updateTiles()
             }
             "display","settings" -> openDetails(action)
+            "clock_awake","hotspot_mode" -> { QuickShortcuts.toggle(context,action);updateTiles() }
+            "speedtest" -> CoverMonitorService.current?.openSpeedTest()
             else -> Platform.message(context,I18n.text(R.string.ui_toggle_restricted))
         }
     }
@@ -133,6 +142,19 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
                 try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
             } else if(dx>swipeThreshold || up < -swipeThreshold) dismissCandidate=false
         }
+        if(pages.size>1 && !dismissing && !paging && event.actionMasked==MotionEvent.ACTION_MOVE) {
+            val dx=event.x-downX;val dy=event.y-downY
+            if(kotlin.math.abs(dx)>swipeThreshold && kotlin.math.abs(dx)>kotlin.math.abs(dy)*1.25f) {
+                paging=true;dismissCandidate=false
+                val cancel=MotionEvent.obtain(event).apply { action=MotionEvent.ACTION_CANCEL }
+                try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
+                showPage(page+if(dx<0) 1 else -1,if(dx<0) 1 else -1)
+            }
+        }
+        if(paging) {
+            if(event.actionMasked==MotionEvent.ACTION_UP || event.actionMasked==MotionEvent.ACTION_CANCEL) paging=false
+            return true
+        }
         if(dismissing) {
             if(event.actionMasked==MotionEvent.ACTION_UP) {
                 val dismiss=dismissCandidate
@@ -147,8 +169,18 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         super.onSizeChanged(w,h,oldw,oldh)
         if(w!=oldw || h!=oldh) post { render() }
     }
+    private fun showPage(index: Int,direction: Int) {
+        if(pages.isEmpty()) return
+        page=index.coerceIn(0,pages.size-1)
+        pages.forEachIndexed { i,view -> view.visibility=if(i==page) android.view.View.VISIBLE else android.view.View.GONE }
+        if(direction!=0) pages[page].apply { translationX=direction*width*.3f;alpha=0f;animate().translationX(0f).alpha(1f).setDuration(160).start() }
+        dots.removeAllViews()
+        if(pages.size>1) for(i in pages.indices) dots.addView(android.view.View(context).apply {
+            background=GradientDrawable().apply { shape=GradientDrawable.OVAL;setColor(if(i==page) Color.WHITE else 0x55FFFFFF) }
+        },LayoutParams(Ui.dp(context,6),Ui.dp(context,6)).apply { setMargins(Ui.dp(context,4),0,Ui.dp(context,4),0) })
+    }
     private fun render() {
-        body.removeAllViews();tiles.clear()
+        body.removeAllViews();tiles.clear();pages.clear();(dots.parent as? android.view.ViewGroup)?.removeView(dots)
         if(!Platform.unlocked(context)) {
             body.addView(Ui.text(context,I18n.text(R.string.ui_unlock_to_continue),17f).apply { gravity=Gravity.CENTER },FrameLayout.LayoutParams(-1,-1));return
         }
@@ -165,10 +197,12 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
         val widthPx=width.takeIf { it>0 } ?: resources.displayMetrics.widthPixels
         val heightPx=height.takeIf { it>0 } ?: resources.displayMetrics.heightPixels
         val cell=(widthPx-Ui.dp(context,8))/4
-        val visibleRows=((actions.size+3)/4).coerceIn(1,2)
-        val cellHeight=((heightPx-Ui.dp(context,8))/visibleRows-Ui.dp(context,8)).coerceAtLeast(Ui.dp(context,88))
+        val visibleRows=((actions.size.coerceAtMost(PAGE_SIZE)+3)/4).coerceIn(1,2)
+        val dotSpace=if(actions.size>PAGE_SIZE) Ui.dp(context,10) else 0
+        val cellHeight=((heightPx-Ui.dp(context,8)-dotSpace)/visibleRows-Ui.dp(context,8)).coerceAtLeast(Ui.dp(context,80))
+        actions.chunked(PAGE_SIZE).forEach { chunk ->
         val grid=GridLayout(context).apply { columnCount=4;setPadding(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4)) }
-        actions.forEachIndexed { index,action ->
+        chunk.forEachIndexed { index,action ->
             val tile=LinearLayout(context).apply {
                 orientation=VERTICAL;gravity=Gravity.CENTER;isClickable=true;isFocusable=true
                 tag="shortcut:${action.id}";contentDescription=I18n.text(action.title)
@@ -184,7 +218,10 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
             grid.addView(tile,GridLayout.LayoutParams().apply { width=cell-Ui.dp(context,8);height=cellHeight;columnSpec=GridLayout.spec(index%4);rowSpec=GridLayout.spec(index/4);setMargins(Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4),Ui.dp(context,4)) })
             tiles.add(Tile(action,tile,icon,detail))
         }
-        body.addView(Ui.scroll(context,grid),FrameLayout.LayoutParams(-1,-1))
+        pages.add(grid);body.addView(grid,FrameLayout.LayoutParams(-1,-1))
+        }
+        if(pages.size>1) body.addView(dots,FrameLayout.LayoutParams(-1,Ui.dp(context,8),Gravity.BOTTOM).apply { bottomMargin=Ui.dp(context,2) })
+        showPage(page,0)
         updateTiles()
     }
     private fun openOnPhone(action: QuickShortcuts.Action) {

@@ -32,7 +32,7 @@ class CoverOverlay(
     private val onHomeNotifications: ()->Unit = {},
     private val forwardHomeGesture: (Float,Float,Float,Float,Long)->Unit = { _,_,_,_,_ -> },
 ) {
-    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD, SHORTCUTS, NOTIFICATIONS }
+    enum class Mode { HIDDEN, DASHBOARD, RECENTS, HOME_EDGE, EDGE, SIDEBAR, KEYBOARD, SHORTCUTS, NOTIFICATIONS, HOTSPOT, SPEEDTEST }
     var mode = Mode.HIDDEN; private set
     private var panel: Dialog? = null
     private var homeGestures: HomeGestureOverlay?=null
@@ -58,12 +58,17 @@ class CoverOverlay(
         hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
-        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS
-        val title = if(requested==Mode.SHORTCUTS) SHORTCUTS_TITLE else if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
+        val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS || requested==Mode.SPEEDTEST
+        val hotspot = requested == Mode.HOTSPOT
+        val title = if(hotspot) HOTSPOT_TITLE else if(requested==Mode.SPEEDTEST) SPEEDTEST_TITLE else if(requested==Mode.SHORTCUTS) SHORTCUTS_TITLE else if(requested == Mode.KEYBOARD) KEYBOARD_TITLE else if(requested == Mode.RECENTS) RECENTS_TITLE else if(full) DASHBOARD_TITLE else if(requested == Mode.HOME_EDGE || requested == Mode.EDGE) EDGE_TITLE else NAVIGATION_TITLE
         val homeEdge = requested == Mode.HOME_EDGE
         val edge = homeEdge || requested == Mode.EDGE
         try {
-            if(requested==Mode.NOTIFICATIONS) {
+            if(hotspot) {
+                dialog.setContentView(HotspotView(dialog.context,onShortcuts,onYieldToStock))
+            } else if(requested==Mode.SPEEDTEST) {
+                dialog.setContentView(SpeedTestView(dialog.context,autoStart=true,onClose=onSamsungHome))
+            } else if(requested==Mode.NOTIFICATIONS) {
                 dialog.setContentView(CoverNotificationView(dialog.context,displayId,onSamsungHome,onNotificationOpened))
             } else if(requested==Mode.SHORTCUTS) {
                 dialog.setContentView(QuickShortcutsView(dialog.context,displayId,onSamsungHome,onMinimize))
@@ -117,6 +122,8 @@ class CoverOverlay(
             window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
             if (!full) window.addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+            val prefs=Platform.preferences(service)
+            if (((homeEdge || hotspot) && prefs.getBoolean(KEEP_CLOCK_AWAKE,false)) || (hotspot && prefs.getBoolean(HotspotView.AOD_PREF,false))) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             if (requested == Mode.SIDEBAR || requested==Mode.KEYBOARD) window.addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH)
             @Suppress("DEPRECATION")
             window.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
@@ -125,7 +132,7 @@ class CoverOverlay(
                 setTitle(title)
                 type = if (preferApplicationWindow) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
                 format = PixelFormat.TRANSLUCENT
-                width = if (full || requested==Mode.KEYBOARD) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE || requested==Mode.HOME_EDGE) 18 else 48)
+                width = if (full || hotspot || requested==Mode.KEYBOARD) WindowManager.LayoutParams.MATCH_PARENT else Ui.dp(a11yContext, if (requested == Mode.EDGE || requested==Mode.HOME_EDGE) 18 else 48)
                 height = if(requested==Mode.KEYBOARD) Ui.dp(a11yContext,164) else WindowManager.LayoutParams.MATCH_PARENT
                 gravity = if(requested==Mode.KEYBOARD) Gravity.BOTTOM or Gravity.LEFT else Gravity.TOP or if (full) Gravity.LEFT else Gravity.RIGHT
                 x = 0; y = 0
@@ -137,7 +144,7 @@ class CoverOverlay(
                     if (surfaceWindow==null && attached === decor && decor.isAttachedToWindow) manager.updateViewLayout(decor, attributes)
                 }
                 override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) { if(requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS) onSamsungHome() else onMinimize() }; return true }
+                    if (event.keyCode == KeyEvent.KEYCODE_BACK) { if (event.action == KeyEvent.ACTION_UP) { if(requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS || requested==Mode.SPEEDTEST) onSamsungHome() else onMinimize() }; return true }
                     return dialog.dispatchKeyEvent(event)
                 }
                 override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -150,7 +157,7 @@ class CoverOverlay(
             // accessibility service's official display surface for navigation,
             // and for menus/keyboard opened over Settings, on Android 14+.
             val foreground=Platform.focusedCoverPackage(service,displayId)
-            if(android.os.Build.VERSION.SDK_INT>=34 && !homeEdge &&
+            if(android.os.Build.VERSION.SDK_INT>=34 && !homeEdge && !hotspot &&
                 (requested==Mode.EDGE || requested==Mode.SIDEBAR || foreground=="com.android.settings")) {
                 val size=Point();@Suppress("DEPRECATION") display.getRealSize(size)
                 val w=if(full || requested==Mode.KEYBOARD) size.x else Ui.dp(a11yContext,if(requested==Mode.EDGE) 18 else 48)
@@ -199,5 +206,8 @@ class CoverOverlay(
         const val RECENTS_TITLE = "Foldlet · recent applications"
         const val KEYBOARD_TITLE = "Foldlet · cover keyboard"
         const val SHORTCUTS_TITLE = "Foldlet · shortcuts"
+        const val KEEP_CLOCK_AWAKE = "keep_cover_clock_awake"
+        const val HOTSPOT_TITLE = "Foldlet - hotspot"
+        const val SPEEDTEST_TITLE = "Foldlet - speed test"
     }
 }

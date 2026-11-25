@@ -30,6 +30,9 @@ Beta release builds are not debuggable. They use the existing local development 
 | `RecentApps` / `RecentAppsView` | Recent usage cards and Close all |
 | `SamsungCoverPage` | Samsung clock/widget coexistence |
 | `SettingsScreen` | Settings and the actual drawer preview |
+| `HotspotView` / `HotspotWifi` / `HotspotWifiReader` | Hotspot mode pages, Wi-Fi QR code (ZXing core), and reading the hotspot name and password from Samsung's settings page |
+| `SpeedTest` / `Ndt7` / `SpeedTestView` | Lowest-ping server selection, Cloudflare and M-Lab ndt7 measurements, and the cover speed test UI |
+| `AvatarReplay` | Restarts the AR Emoji cover wallpaper animation by briefly hiding the wallpaper |
 
 The keyboard verifies the focused cover package and input-session generation before each write. Existing editor contents are not read. Candidate replacement is restricted to the known word length and expected cursor position. Password fields disable gesture suggestions. The bundled basic swipe vocabulary is original, with no external dictionary dependency.
 

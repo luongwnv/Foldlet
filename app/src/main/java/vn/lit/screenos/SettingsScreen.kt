@@ -117,6 +117,29 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
             HomeControlSettings.shortcuts(c) { CoverMonitorService.current?.reloadHomeControls();render() }
         }.apply { tag="row-home-shortcuts" })
         display.addView(SettingsUi.divider(c))
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.EYE,I18n.text(R.string.ui_keep_clock_awake),I18n.text(R.string.ui_keep_clock_awake_help),SettingsUi.toggle(c,prefs.getBoolean(CoverOverlay.KEEP_CLOCK_AWAKE,false),I18n.text(R.string.ui_keep_clock_awake)) {
+            prefs.edit().putBoolean(CoverOverlay.KEEP_CLOCK_AWAKE,it).apply();CoverMonitorService.current?.reloadHomeControls()
+        }.apply { tag="keep-clock-awake-switch" }))
+        display.addView(SettingsUi.divider(c))
+        if(AvatarReplay.available(c)) {
+            display.addView(SettingsUi.row(c,SettingsGlyph.Kind.PLAY,I18n.text(R.string.ui_avatar_replay),I18n.text(R.string.ui_avatar_replay_help),SettingsUi.toggle(c,prefs.getBoolean(AvatarReplay.PREF,false),I18n.text(R.string.ui_avatar_replay)) {
+                prefs.edit().putBoolean(AvatarReplay.PREF,it).apply();CoverMonitorService.current?.reloadHomeControls()
+            }.apply { tag="avatar-replay-switch" }))
+            display.addView(SettingsUi.divider(c))
+        }
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.PHONE,I18n.text(R.string.ui_hotspot_mode),I18n.text(R.string.ui_hotspot_mode_help),SettingsUi.toggle(c,prefs.getBoolean(HotspotView.PREF,false),I18n.text(R.string.ui_hotspot_mode)) {
+            prefs.edit().putBoolean(HotspotView.PREF,it).apply();CoverMonitorService.current?.reloadHomeControls()
+        }.apply { tag="hotspot-mode-switch" }))
+        display.addView(SettingsUi.divider(c))
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.EYE,I18n.text(R.string.ui_hotspot_aod),I18n.text(R.string.ui_hotspot_aod_help),SettingsUi.toggle(c,prefs.getBoolean(HotspotView.AOD_PREF,false),I18n.text(R.string.ui_hotspot_aod)) {
+            prefs.edit().putBoolean(HotspotView.AOD_PREF,it).apply();CoverMonitorService.current?.reloadHomeControls()
+        }.apply { tag="hotspot-aod-switch" }))
+        display.addView(SettingsUi.divider(c))
+        val wifi=HotspotWifi.read(c)
+        display.addView(SettingsUi.row(c,SettingsGlyph.Kind.LABEL,I18n.text(R.string.ui_hotspot_wifi),if(wifi.configured) wifi.ssid else I18n.text(R.string.ui_hotspot_wifi_not_set),SettingsUi.icon(c,SettingsGlyph.Kind.NEXT,SettingsUi.muted,20)) {
+            hotspotWifi()
+        }.apply { tag="row-hotspot-wifi" })
+        display.addView(SettingsUi.divider(c))
         display.addView(SettingsUi.row(c,SettingsGlyph.Kind.PLAY,I18n.text(R.string.ui_samsung_controls),I18n.text(R.string.ui_samsung_controls_help),SettingsUi.icon(c,SettingsGlyph.Kind.NEXT)) {
             c.startActivity(android.content.Intent(c,SamsungControlsActivity::class.java))
         })
@@ -192,6 +215,21 @@ class SettingsScreen(private val activity: MainActivity, state: Bundle?) {
         notifications.addView(SettingsUi.row(c,SettingsGlyph.Kind.BELL,I18n.text(R.string.ui_notification_access),I18n.text(if(CoverNotifications.current!=null) R.string.ui_allowed else R.string.ui_notification_access_help)) { c.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) })
         content.addView(notifications)
         content.addView(SettingsUi.row(c,SettingsGlyph.Kind.USB,I18n.text(R.string.ui_set_up_usb_rotation),if(CoverRotation.available) I18n.text(R.string.ui_connected_to_a_computer) else I18n.text(R.string.ui_view_adb_connection_instructions)) { c.startActivity(Intent(c,RotationSetupActivity::class.java)) }.apply { tag="row-adb" })
+    }
+    private fun hotspotWifi() {
+        val current=HotspotWifi.read(c)
+        val pad=SettingsUi.dp(c,20)
+        val content=LinearLayout(c).apply { orientation=LinearLayout.VERTICAL;setPadding(pad,SettingsUi.dp(c,8),pad,0) }
+        content.addView(SettingsUi.text(c,I18n.text(R.string.ui_hotspot_wifi_dialog_help),13f,SettingsUi.muted))
+        fun input(hint: Int,value: String,secret: Boolean) = android.widget.EditText(c).apply {
+            setHint(I18n.text(hint));setText(value);setSingleLine(true)
+            inputType=android.text.InputType.TYPE_CLASS_TEXT or if(secret) android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD else 0
+        }.also { content.addView(it) }
+        val ssid=input(R.string.ui_hotspot_wifi_name,current.ssid,false)
+        val password=input(R.string.ui_hotspot_wifi_password,current.password,true)
+        AlertDialog.Builder(c).setTitle(I18n.text(R.string.ui_hotspot_wifi)).setView(content)
+            .setPositiveButton(I18n.text(R.string.ui_save)) { _,_ -> HotspotWifi(ssid.text.toString(),password.text.toString()).save(c);CoverMonitorService.current?.reloadHomeControls();render() }
+            .setNegativeButton(I18n.text(R.string.ui_cancel),null).show()
     }
     private fun value(label: String) = LinearLayout(c).apply {
         gravity=Gravity.CENTER_VERTICAL; background=SettingsUi.shape(SettingsUi.background,12,c,SettingsUi.line)

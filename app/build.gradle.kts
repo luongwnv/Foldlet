@@ -9,8 +9,8 @@ android {
         applicationId = "vn.lit.screenos"
         minSdk = 30
         targetSdk = 35
-        versionCode = 32
-        versionName = "0.11.2"
+        versionCode = 33
+        versionName = "0.12.0"
         testInstrumentationRunner = "vn.lit.screenos.HardwareSmokeTest"
     }
     buildFeatures { buildConfig = true }
@@ -28,4 +28,7 @@ android {
     }
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
-dependencies { testImplementation("junit:junit:4.13.2") }
+dependencies {
+    implementation("com.google.zxing:core:3.5.3")
+    testImplementation("junit:junit:4.13.2")
+}
