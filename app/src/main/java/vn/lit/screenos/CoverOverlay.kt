@@ -55,7 +55,12 @@ class CoverOverlay(
         // addView already owns the pending root before its first frame. Repeated
         // accessibility updates must not replace that window while it lays out.
         if (mode == requested && attached != null) return
-        hide()
+        // Switching to or from Hotspot mode keeps the old window until the new one has drawn,
+        // so the Samsung clock underneath never shows for a frame.
+        val panels = setOf(Mode.SHORTCUTS, Mode.SPEEDTEST)
+        val swap = ((requested == Mode.HOTSPOT && mode in panels) || (mode == Mode.HOTSPOT && requested in panels)) &&
+            surfaceWindow == null && homeGestures == null && attached != null
+        if (swap) { releasePrevious(); previousWindow = attached?.let { it to manager }; attached = null; panel = null; mode = Mode.HIDDEN; notificationClosing = false } else hide()
         val dialog = Dialog(a11yContext, R.style.CoverTheme)
         val window = requireNotNull(dialog.window)
         val full = requested == Mode.DASHBOARD || requested == Mode.RECENTS || requested==Mode.SHORTCUTS || requested==Mode.NOTIFICATIONS || requested==Mode.SPEEDTEST
@@ -164,7 +169,7 @@ class CoverOverlay(
                 val h=if(requested==Mode.KEYBOARD) Ui.dp(a11yContext,164).coerceAtMost(size.y) else size.y
                 if(!full) (decor as? ViewGroup)?.descendantFocusability=ViewGroup.FOCUS_BLOCK_DESCENDANTS
                 surfaceWindow=AccessibilitySurfaceWindow.create(service,display,decor,w,h,if(full || requested==Mode.KEYBOARD) 0 else size.x-w,if(requested==Mode.KEYBOARD) size.y-h else 0)
-                if(surfaceWindow!=null) { applicationWindow=false;attached=decor;panel=dialog;mode=requested;return }
+                if(surfaceWindow!=null) { releasePrevious();applicationWindow=false;attached=decor;panel=dialog;mode=requested;return }
             }
             manager = (if (preferApplicationWindow) appContext else a11yContext).getSystemService(WindowManager::class.java)
             try { manager.addView(decor, window.attributes) }
@@ -177,6 +182,10 @@ class CoverOverlay(
             }
             applicationWindow = window.attributes.type == WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             attached = decor; panel = dialog; mode = requested
+            if (previousWindow != null) {
+                decor.viewTreeObserver.registerFrameCommitCallback { releasePrevious() }
+                swapHandler.postDelayed({ releasePrevious() }, 500)
+            }
             if(homeEdge) {
                 val interceptNotifications=Platform.preferences(service).getBoolean("override_cover_notifications",true) && CoverNotifications.current!=null && Platform.unlocked(service) &&
                     (service.serviceInfo.capabilities and android.accessibilityservice.AccessibilityServiceInfo.CAPABILITY_CAN_PERFORM_GESTURES)!=0
@@ -184,10 +193,15 @@ class CoverOverlay(
                     if(interceptNotifications) onHomeNotifications else null,if(interceptNotifications) forwardHomeGesture else null)
                 homeGestures!!.show()
             }
-        } catch (error: RuntimeException) { hide(); throw error }
+        } catch (error: RuntimeException) { releasePrevious(); hide(); throw error }
     }
 
+    private val swapHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var previousWindow: Pair<View, WindowManager>? = null
+    private fun releasePrevious() { previousWindow?.let { (view, owner) -> previousWindow = null; runCatching { owner.removeViewImmediate(view) } } }
+
     fun hide() {
+        releasePrevious()
         notificationClosing=false
         homeGestures?.hide();homeGestures=null
         val decor = attached

@@ -163,7 +163,8 @@ class QuickShortcutsView(context: Context,private val displayId: Int,private val
             } else if(event.actionMasked==MotionEvent.ACTION_CANCEL) dismissing=false
             return true
         }
-        return super.dispatchTouchEvent(event)
+        // Keep receiving a gesture that starts on empty space, so page swipes and swipe-up close still work.
+        return super.dispatchTouchEvent(event) || event.actionMasked==MotionEvent.ACTION_DOWN
     }
     override fun onSizeChanged(w: Int,h: Int,oldw: Int,oldh: Int) {
         super.onSizeChanged(w,h,oldw,oldh)

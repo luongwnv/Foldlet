@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.12.1](https://github.com/luongwnv/Foldlet/releases/download/v0.12.1/Foldlet-0.12.1.apk)** - **0.12.1 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.12.2](https://github.com/luongwnv/Foldlet/releases/download/v0.12.2/Foldlet-0.12.2.apk)** - **0.12.2 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.1/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.2/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -43,7 +43,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.12.1.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.12.2.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -150,12 +150,11 @@ Hotspot state detection requires **Foldlet Controls 1.1.0**. If a routine cannot
 
 <p align="center"><img src="docs/images/hotspot-mode.png" width="512" alt="Hotspot mode showing live upload and download speed and data usage"></p>
 
-Turn on **Settings > Hotspot mode**, or tap **Hotspot mode** in Shortcuts. Foldlet then shows this screen instead of the Samsung clock. Swipe sideways through four pages:
+Turn on **Settings > Hotspot mode**, or tap **Hotspot mode** in Shortcuts. Foldlet then shows this screen instead of the Samsung clock. Swipe sideways through three pages:
 
 1. **Speed and usage**: live upload and download speed, plus mobile data used today, this month, and since the screen turned on. While the hotspot is on, the speed is measured on the hotspot itself, so it is correct whether the hotspot shares Wi-Fi or mobile data. Otherwise it shows mobile data traffic.
 2. **Wi-Fi**: a QR code that other phones can scan to join, with the network name and password.
 3. **Speed test**: see below.
-4. **Status**: hotspot on or off, battery, and signal.
 
 The battery and time stay at the top of every page. Swipe down from the top for Shortcuts, or touch and hold to return to the Samsung clock until the next screen wake.
 
@@ -175,7 +174,7 @@ Android does not let apps read the hotspot password. Open **Settings > Connectio
   <img src="docs/images/speedtest-history.png" width="380" alt="Speed test history">
 </p>
 
-Open the third page of Hotspot mode, or tap **Speed test** in Shortcuts. Foldlet tests the network the phone is using, Wi-Fi or mobile data:
+Open the last page of Hotspot mode, or tap **Speed test** in Shortcuts. Foldlet tests the network the phone is using, Wi-Fi or mobile data:
 
 - **Server**: like Speedtest, Foldlet pings several nearby servers and tests the one that answers fastest. Candidates are the five nearest Speedtest.net servers, Cloudflare’s nearest speed test server, and the nearest [M-Lab](https://www.measurementlab.net/) NDT servers. In Vietnam this is usually a Speedtest.net server inside a local network. If a server refuses the test, the next one is used. The top line shows the server and your Internet provider.
 - **Results**: download and upload in Mbps, Ping, Ping while downloading and uploading, Jitter, and Packet loss. Like Speedtest, the slowest 30% and fastest 10% of samples are left out of the speed.

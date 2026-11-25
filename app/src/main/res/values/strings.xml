@@ -265,15 +265,9 @@
     <string name="ui_avatar_replay_help">Replays the AR Emoji clock animation every few seconds. The screen blinks briefly and uses more battery</string>
     <string name="ui_hotspot_mode">Hotspot mode</string>
     <string name="ui_hotspot_mode_help">Replace the clock with network speed and data usage. Swipe sideways to change pages, swipe down for shortcuts, touch and hold for the Samsung clock</string>
-    <string name="ui_hotspot">Hotspot</string>
-    <string name="ui_hotspot_on">On</string>
-    <string name="ui_hotspot_off">Off</string>
     <string name="ui_hotspot_today">Today</string>
     <string name="ui_hotspot_this_month">This month</string>
     <string name="ui_hotspot_session">Since screen on</string>
-    <string name="ui_hotspot_status">Status</string>
-    <string name="ui_hotspot_battery">Battery</string>
-    <string name="ui_hotspot_signal">Signal</string>
     <string name="ui_hotspot_no_service">No service</string>
     <string name="ui_hotspot_needs_usage_access">Needs Usage access</string>
     <string name="ui_hotspot_aod">Hotspot AOD</string>

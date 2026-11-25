@@ -260,15 +260,9 @@
     <string name="ui_avatar_replay_help">Phát lại animation avatar AR Emoji mỗi vài giây. Màn hình chớp nhẹ và tốn pin hơn</string>
     <string name="ui_hotspot_mode">Chế độ hotspot</string>
     <string name="ui_hotspot_mode_help">Thay đồng hồ bằng tốc độ mạng và dung lượng đã dùng. Vuốt ngang để đổi trang, vuốt xuống để mở shortcut, nhấn giữ để về đồng hồ Samsung</string>
-    <string name="ui_hotspot">Hotspot</string>
-    <string name="ui_hotspot_on">Bật</string>
-    <string name="ui_hotspot_off">Tắt</string>
     <string name="ui_hotspot_today">Hôm nay</string>
     <string name="ui_hotspot_this_month">Tháng này</string>
     <string name="ui_hotspot_session">Từ lúc bật màn hình</string>
-    <string name="ui_hotspot_status">Trạng thái</string>
-    <string name="ui_hotspot_battery">Pin</string>
-    <string name="ui_hotspot_signal">Sóng</string>
     <string name="ui_hotspot_no_service">Không có sóng</string>
     <string name="ui_hotspot_needs_usage_access">Cần quyền Usage access</string>
     <string name="ui_hotspot_aod">AOD cho hotspot</string>
