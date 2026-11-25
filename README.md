@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.12.3](https://github.com/luongwnv/Foldlet/releases/download/v0.12.3/Foldlet-0.12.3.apk)** - **0.12.3 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.12.4](https://github.com/luongwnv/Foldlet/releases/download/v0.12.4/Foldlet-0.12.4.apk)** - **0.12.4 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.3/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.4/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -43,7 +43,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.12.3.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.12.4.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -156,7 +156,7 @@ Turn on **Settings > Hotspot mode**, or tap **Hotspot mode** in Shortcuts. Foldl
 2. **Wi-Fi**: a QR code that other phones can scan to join, with the network name and password.
 3. **Speed test**: see below.
 
-The battery and time stay at the top of every page. Swipe down from the top for Shortcuts, or touch and hold to return to the Samsung clock until the next screen wake.
+The battery and time stay at the top of every page. Swipe down from the top for Shortcuts, or touch and hold to return to the Samsung clock until the next screen wake. When the folded phone is turned upside down, the motion sensor flips the screen so it stays readable, without a USB connection.
 
 <p align="center">
   <img src="docs/images/hotspot-wifi.png" width="380" alt="Wi-Fi page with QR code, shown with a sample network name and password">
@@ -169,7 +169,7 @@ The battery and time stay at the top of every page. Swipe down from the top for 
 
 Android does not let apps read the hotspot password. Open **Settings > Connections > Mobile Hotspot** once and Foldlet saves the **Network name** and **Password** shown there, using the existing Accessibility permission. You can also enter them in **Settings > Hotspot Wi-Fi details**. They stay on the phone, are excluded from backups, and are shown on the cover screen even when the phone is locked. The QR image above uses a sample network.
 
-**Hotspot AOD** dims the same screen and turns it gray after 15 seconds without touch, instead of letting the cover screen turn off. It shifts slightly every minute to protect the display. Tap once to brighten it again.
+**Hotspot AOD** dims the same screen and turns it gray after 15 seconds without touch, instead of letting the cover screen turn off. It returns to the first page and hides the page dots. To protect the OLED display, the speed and usage columns, and the battery and time, trade sides every minute, and the content shifts slightly. Tap once to brighten it again.
 
 ### Speed test
 
