@@ -294,7 +294,7 @@
     <string name="ui_shortcut_airplane">Chế độ máy bay</string>
     <string name="ui_shortcut_location">Vị trí</string>
     <string name="ui_shortcut_clock_awake">Luôn sáng</string>
-    <string name="ui_shortcut_hotspot_mode">Màn hotspot</string>
+    <string name="ui_shortcut_hotspot_mode">Chế độ hotspot</string>
     <string name="ui_shortcut_speedtest">Đo tốc độ</string>
     <string name="ui_speedtest_download">Tải xuống</string>
     <string name="ui_speedtest_upload">Tải lên</string>
@@ -302,8 +302,8 @@
     <string name="ui_speedtest_loss">Mất gói</string>
     <string name="ui_speedtest_nearest">Máy chủ gần nhất</string>
     <string name="ui_speedtest_ping">Ping</string>
-    <string name="ui_speedtest_ping_down">Ping ↓</string>
-    <string name="ui_speedtest_ping_up">Ping ↑</string>
+    <string name="ui_speedtest_ping_down">Ping khi tải xuống</string>
+    <string name="ui_speedtest_ping_up">Ping khi tải lên</string>
     <string name="ui_speedtest_history_empty">Chưa có kết quả</string>
     <string name="ui_speedtest_ready">Chạm ▶ để đo %1$s</string>
     <string name="ui_speedtest_latency_phase">Đang đo độ trễ</string>

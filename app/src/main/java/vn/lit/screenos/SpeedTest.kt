@@ -32,7 +32,7 @@ class SpeedTest(private val listener: (Snapshot) -> Unit) {
         val transferred: Long = 0,
     )
 
-    private abstract inner class Backend(val host: String, val label: String, val streams: Int) {
+    private abstract inner class Backend(val host: String, val label: String, val streams: Int, val port: Int = 443) {
         val address: InetAddress by lazy { InetAddress.getByName(host) }
         abstract fun download(total: AtomicLong)
         abstract fun upload(total: AtomicLong)
@@ -66,6 +66,58 @@ class SpeedTest(private val listener: (Snapshot) -> Unit) {
                 if (!cancelled.get()) connection.responseCode
             } finally { release(connection) }
         }
+    }
+
+    /** Speedtest.net (Ookla) server, found through the same server list the Speedtest website uses. */
+    private inner class Ookla(private val base: String, host: String, port: Int, label: String) : Backend(host, label, 6, port) {
+        override fun download(total: AtomicLong) {
+            val connection = open("$base/download?nocache=${System.nanoTime()}&size=$CHUNK")
+            try {
+                connection.inputStream.use { input ->
+                    val buffer = ByteArray(64 * 1024)
+                    while (!cancelled.get()) { val read = input.read(buffer); if (read < 0) break; total.addAndGet(read.toLong()) }
+                }
+            } finally { release(connection) }
+        }
+
+        override fun upload(total: AtomicLong) {
+            val connection = open("$base/upload?nocache=${System.nanoTime()}").apply {
+                requestMethod = "POST"; doOutput = true
+                setRequestProperty("Content-Type", "application/octet-stream")
+                setFixedLengthStreamingMode(UPLOAD_CHUNK)
+            }
+            try {
+                connection.outputStream.use { output ->
+                    var sent = 0L
+                    while (sent < UPLOAD_CHUNK && !cancelled.get()) {
+                        val size = minOf(PAYLOAD.size.toLong(), UPLOAD_CHUNK - sent).toInt()
+                        output.write(PAYLOAD, 0, size); sent += size; total.addAndGet(size.toLong())
+                    }
+                }
+                if (!cancelled.get()) connection.responseCode
+            } finally { release(connection) }
+        }
+    }
+
+    private fun ooklaServers(limit: Int): List<Backend> {
+        val connection = (URL(OOKLA_SERVERS).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 4000; readTimeout = 4000; useCaches = false
+            // The server list rejects requests that do not look like the Speedtest website.
+            setRequestProperty("User-Agent", BROWSER)
+            setRequestProperty("Accept", "application/json, text/plain, */*")
+            setRequestProperty("Referer", "https://www.speedtest.net/")
+            setRequestProperty("Sec-Fetch-Dest", "empty"); setRequestProperty("Sec-Fetch-Mode", "cors"); setRequestProperty("Sec-Fetch-Site", "same-origin")
+        }
+        try {
+            val servers = org.json.JSONArray(connection.inputStream.use { it.readBytes().decodeToString() })
+            return (0 until servers.length()).mapNotNull { i ->
+                val server = servers.getJSONObject(i)
+                val host = server.optString("host").takeIf { it.contains(':') } ?: return@mapNotNull null
+                val name = server.optString("name"); val sponsor = server.optString("sponsor")
+                val label = listOf(sponsor, name).filter { it.isNotBlank() }.joinToString(", ").ifBlank { host }
+                Ookla("https://$host", host.substringBeforeLast(':'), host.substringAfterLast(':').toIntOrNull() ?: 8080, label)
+            }.take(limit)
+        } finally { connection.disconnect() }
     }
 
     private inner class MLab(private val server: Ndt7.Server) : Backend(server.host, listOf("M-Lab", listOf(server.city, server.country).filter { it.isNotBlank() }.joinToString(", ")).filter { it.isNotBlank() }.joinToString(" - "), 1) {
@@ -149,11 +201,14 @@ class SpeedTest(private val listener: (Snapshot) -> Unit) {
         }
         emit(state.copy(isp = isp, progress = .02f))
         val candidates = mutableListOf<Backend>(Cloudflare(cloudflareLabel))
+        runCatching { candidates.addAll(ooklaServers(5)) }
         runCatching { Ndt7.locate(3).forEach { candidates.add(MLab(it)) } }
-        val ranked = candidates.mapNotNull { backend ->
-            if (cancelled.get()) return@mapNotNull null
-            List(3) { ping(backend) }.filterNotNull().minOrNull()?.let { backend to it }
-        }
+        emit(state.copy(progress = .03f))
+        val pings = java.util.concurrent.ConcurrentHashMap<Backend, Double>()
+        candidates.map { backend ->
+            Thread({ List(3) { ping(backend) }.filterNotNull().minOrNull()?.let { pings[backend] = it } }).apply { isDaemon = true; start() }
+        }.forEach { it.join(6000) }
+        val ranked = candidates.mapNotNull { backend -> pings[backend]?.let { backend to it } }
         if (ranked.isEmpty()) throw IOException("No reachable server")
         return ranked.sortedBy { it.second }.map { it.first }
     }
@@ -162,7 +217,7 @@ class SpeedTest(private val listener: (Snapshot) -> Unit) {
         val address = backend.address
         Socket().use { socket ->
             val started = System.nanoTime()
-            socket.connect(InetSocketAddress(address, 443), 1500)
+            socket.connect(InetSocketAddress(address, backend.port), 1500)
             (System.nanoTime() - started) / 1_000_000.0
         }
     } catch (_: IOException) { null }
@@ -246,6 +301,8 @@ class SpeedTest(private val listener: (Snapshot) -> Unit) {
 
     companion object {
         private const val CLOUDFLARE = "https://speed.cloudflare.com"
+        private const val OOKLA_SERVERS = "https://www.speedtest.net/api/js/servers?engine=js&limit=10&https_functional=true"
+        private const val BROWSER = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Mobile Safari/537.36"
         private const val PROBES = 20
         private const val DOWNLOAD_MS = 10_000L
         private const val UPLOAD_MS = 10_000L
