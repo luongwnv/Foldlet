@@ -4,9 +4,9 @@
 
 Open apps on your **Galaxy Z Flip3 cover screen**. Foldlet adds an app drawer, search, favorites, and navigation alongside Samsung’s native clock and widgets.
 
-**[Download APK 0.12.4](https://github.com/luongwnv/Foldlet/releases/download/v0.12.4/Foldlet-0.12.4.apk)** - **0.12.4 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
+**[Download APK 0.12.5](https://github.com/luongwnv/Foldlet/releases/download/v0.12.5/Foldlet-0.12.5.apk)** - **0.12.5 beta** - Tested on **SM-F711B, Android 14 / One UI 6.1.1**.
 
-[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.4/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
+[Foldlet Controls 1.1.0 (Optional)](https://github.com/luongwnv/Foldlet/releases/download/v0.12.5/Foldlet-Controls-1.1.0.apk) enables one-tap Wi-Fi and Bluetooth without a computer.
 
 ## Screenshots
 
@@ -43,7 +43,7 @@ Actual captures of the native Android interface running on a dedicated test emul
 
 ## Getting started
 
-1. Download **Foldlet-0.12.4.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
+1. Download **Foldlet-0.12.5.apk** from [Releases](https://github.com/luongwnv/Foldlet/releases), open it on your phone, and allow installation from that source when Android asks.
 2. Open **Foldlet** on the inner screen. In **Overview**, grant **Display over other apps** and enable the **Foldlet** service in Android’s **Accessibility** settings.
 3. Grant **Usage access** to use Recent apps. Allow notifications if you want the service notification and its **Stop** button.
 4. Turn on the Foldlet service, fold your phone, and wake the cover screen.
@@ -153,7 +153,7 @@ Hotspot state detection requires **Foldlet Controls 1.1.0**. If a routine cannot
 Turn on **Settings > Hotspot mode**, or tap **Hotspot mode** in Shortcuts. Foldlet then shows this screen instead of the Samsung clock. Swipe sideways through three pages:
 
 1. **Speed and usage**: the top line shows the Wi-Fi network the phone is sharing, or the carrier and 4G/5G when it uses mobile data. Below are live upload and download speed, the number of connected devices, and data used today and this month on that network, Wi-Fi or mobile. While the hotspot is on, the speed is measured on the hotspot itself, so it reflects what connected devices use.
-2. **Wi-Fi**: a QR code that other phones can scan to join, with the network name and password.
+2. **Wi-Fi**: a white-on-black QR code that other phones, including iPhone, can scan to join, with the network name and password.
 3. **Speed test**: see below.
 
 The battery and time stay at the top of every page. Swipe down from the top for Shortcuts, or touch and hold to return to the Samsung clock until the next screen wake. When the folded phone is turned upside down, the motion sensor flips the screen so it stays readable, without a USB connection.

@@ -191,9 +191,10 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
     private fun speedPage(): View {
         val column = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
         column.addView(carrier, LinearLayout.LayoutParams(-1, -2))
+        // The number grows to the left so the arrow and unit stay in one place.
         fun row(value: TextView, up: Boolean) = LinearLayout(context).apply {
-            gravity = Gravity.CENTER
-            addView(value)
+            gravity = Gravity.CENTER_VERTICAL; setPadding(0, 0, Ui.dp(context, 36), 0)
+            addView(value.apply { gravity = Gravity.END }, LinearLayout.LayoutParams(0, -2, 1f))
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
                 addView(Arrow(context, up), LinearLayout.LayoutParams(Ui.dp(context, 22), Ui.dp(context, 22)))
@@ -229,10 +230,8 @@ class HotspotView(context: Context, private val onShortcuts: () -> Unit, private
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_UP && !dimmed) scheduleDim()
-        if (!flipped) return super.dispatchTouchEvent(event)
-        // The view is drawn rotated 180 degrees, so map touches into the same upright space.
-        val upright = MotionEvent.obtain(event).apply { transform(android.graphics.Matrix().apply { setRotate(180f, width / 2f, height / 2f) }) }
-        return try { super.dispatchTouchEvent(upright) } finally { upright.recycle() }
+        // The parent already maps touches through this view's 180 degree rotation.
+        return super.dispatchTouchEvent(event)
     }
 
     private var flipped = false

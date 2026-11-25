@@ -89,8 +89,9 @@ class SpeedTestView(
     private fun stat() = small("-", 17f, Color.WHITE).apply { typeface = bold }
 
     private fun speedRow(value: TextView, up: Boolean, label: Int) = LinearLayout(context).apply {
-        gravity = Gravity.CENTER; contentDescription = I18n.text(label)
-        addView(value)
+        gravity = Gravity.CENTER_VERTICAL; contentDescription = I18n.text(label); setPadding(0, 0, Ui.dp(context, 24), 0)
+        // The number grows to the left so the arrow and unit stay in one place.
+        addView(value.apply { gravity = Gravity.END }, LayoutParams(0, -2, 1f))
         addView(LinearLayout(context).apply {
             orientation = VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
             addView(HotspotView.Arrow(context, up), LayoutParams(Ui.dp(context, 20), Ui.dp(context, 20)))
