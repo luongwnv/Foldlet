@@ -24,7 +24,7 @@ data class HotspotWifi(val ssid: String, val password: String) {
 
     fun bitmap(size: Int): Bitmap {
         val matrix = matrix(size)
-        val pixels = IntArray(matrix.width * matrix.height) { if (matrix[it % matrix.width, it / matrix.width]) Color.BLACK else Color.WHITE }
+        val pixels = IntArray(matrix.width * matrix.height) { if (matrix[it % matrix.width, it / matrix.width]) Color.WHITE else Color.BLACK }
         return Bitmap.createBitmap(pixels, matrix.width, matrix.height, Bitmap.Config.RGB_565)
     }
 
